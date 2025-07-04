@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Course Enrollment - SkillSpark</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        td {
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #ff6f00;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .content p {
+            font-size: 16px;
+            color: #34495e;
+            margin: 0 0 16px 0;
+        }
+
+        .info-section {
+            background-color: #f8f8f8;
+            border: 1px solid #ff6f00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-section h2 {
+            color: #ff6f00;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-section p {
+            color: #34495e;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .footer-section {
+            padding: 20px 30px;
+            background-color: #ff6f00;
+            border-top: 1px solid #ff6f00;
+            text-align: center;
+        }
+
+        .footer-section p {
+            font-size: 14px;
+            color: #ffffff;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+            <td align="center">
+                <table cellpadding="0" cellspacing="0" border="0" width="600" class="container"
+                    style="width: 100%; max-width: 600px;">
+                    <tr>
+                        <td class="header">
+                            <h1>New Course Enrollment - SkillSpark</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <p>Hello {{instructorName}},</p>
+                            <p>A new student has enrolled in your course <strong>{{courseName}}</strong>! Here are the
+                                details:</p>
+
+                            <div class="info-section">
+                                <h2>Enrollment Details</h2>
+                                <p><strong>Student Name:</strong> {{studentName}}</p>
+                                <p><strong>Student Email:</strong> {{studentEmail}}</p>
+                                <p><strong>Course Name:</strong> {{courseName}}</p>
+                                <p><strong>Enrollment Date:</strong> {{enrollmentDate}}</p>
+                                <p><strong>Course Duration:</strong> {{courseDuration}}</p>
+                            </div>
+
+                            <p>We wish you and your new student a successful learning experience.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer-section">
+                            <p>Need help? Our support team is always here for you.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
