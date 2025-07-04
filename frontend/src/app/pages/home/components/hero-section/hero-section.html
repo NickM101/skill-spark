@@ -1,0 +1,133 @@
+<section class="hero-section">
+    <div class="hero-background">
+        <div class="hero-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="title-line">Master New Skills</span>
+                    <span class="title-line highlight">Transform Your Career</span>
+                    <span class="title-line">Build Your Future</span>
+                </h1>
+
+                <p class="hero-description">
+                    Join thousands of learners advancing their careers with our
+                    expert-led courses. From programming to design, business to data
+                    science - we have the perfect course for you.
+                </p>
+
+                <div class="hero-features">
+                    <div class="feature-item">
+                        <mat-icon>verified</mat-icon>
+                        <span>Certified Courses</span>
+                    </div>
+                    <div class="feature-item">
+                        <mat-icon>schedule</mat-icon>
+                        <span>Learn at Your Pace</span>
+                    </div>
+                    <div class="feature-item">
+                        <mat-icon>support</mat-icon>
+                        <span>Expert Support</span>
+                    </div>
+                </div>
+
+                <div class="hero-actions">
+                    <button mat-raised-button color="primary" routerLink="/courses" class="cta-primary">
+                        <mat-icon>play_circle</mat-icon>
+                        Start Learning Now
+                    </button>
+                    <button mat-stroked-button routerLink="/about" class="cta-secondary">
+                        <mat-icon>info</mat-icon>
+                        Learn More
+                    </button>
+                </div>
+
+                <div class="hero-search">
+                    <mat-form-field appearance="outline" class="search-field">
+                        <mat-label>What do you want to learn?</mat-label>
+                        <input matInput placeholder="e.g., JavaScript, React, Python..." />
+                        <mat-icon matSuffix>search</mat-icon>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="visual-container">
+                    <!-- Course Preview Cards -->
+                    <div class="floating-card card-1" [class.animate]="animationsStarted()">
+                        <div class="card-content">
+                            <div class="course-thumbnail">
+                                <mat-icon>code</mat-icon>
+                            </div>
+                            <div class="course-info">
+                                <h4>JavaScript Mastery</h4>
+                                <p>4.9 ⭐ • 12,458 students</p>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card card-2" [class.animate]="animationsStarted()">
+                        <div class="card-content">
+                            <div class="course-thumbnail">
+                                <mat-icon>palette</mat-icon>
+                            </div>
+                            <div class="course-info">
+                                <h4>UI/UX Design</h4>
+                                <p>4.8 ⭐ • 8,934 students</p>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="floating-card card-3" [class.animate]="animationsStarted()">
+                        <div class="card-content">
+                            <div class="course-thumbnail">
+                                <mat-icon>analytics</mat-icon>
+                            </div>
+                            <div class="course-info">
+                                <h4>Data Science</h4>
+                                <p>4.9 ⭐ • 15,672 students</p>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Central Illustration -->
+                    <div class="central-visual">
+                        <div class="visual-circle">
+                            <mat-icon class="main-icon">school</mat-icon>
+                        </div>
+                        <div class="orbit orbit-1">
+                            <div class="orbit-item">
+                                <mat-icon>laptop</mat-icon>
+                            </div>
+                        </div>
+                        <div class="orbit orbit-2">
+                            <div class="orbit-item">
+                                <mat-icon>book</mat-icon>
+                            </div>
+                        </div>
+                        <div class="orbit orbit-3">
+                            <div class="orbit-item">
+                                <mat-icon>lightbulb</mat-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

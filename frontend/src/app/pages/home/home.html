@@ -1,0 +1,68 @@
+<div class="home-page">
+    <!-- Hero Section -->
+    <app-hero-section></app-hero-section>
+
+    <!-- Stats Section -->
+    <app-stats></app-stats>
+
+    <!-- Featured Courses -->
+    <app-featured-courses></app-featured-courses>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Choose LearnHub?</h2>
+                <p class="section-subtitle">
+                    Experience the difference with our comprehensive learning platform
+                </p>
+            </div>
+
+            <div class="features-grid">
+                @for (feature of features(); track feature.id) {
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <mat-icon>{{ feature.icon }}</mat-icon>
+                    </div>
+                    <h3 class="feature-title">{{ feature.title }}</h3>
+                    <p class="feature-description">{{ feature.description }}</p>
+                </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Popular Categories</h2>
+                <p class="section-subtitle">
+                    Explore our wide range of course categories
+                </p>
+            </div>
+
+            <div class="categories-grid">
+                @for (category of categories(); track category.id) {
+                <a routerLink="/courses" [queryParams]="{ category: category.slug }" class="category-card"
+                    [style.background]="category.gradient">
+                    <div class="category-content">
+                        <mat-icon class="category-icon">{{ category.icon }}</mat-icon>
+                        <h3 class="category-title">{{ category.name }}</h3>
+                        <p class="category-courses">
+                            {{ category.courseCount }} courses
+                        </p>
+                    </div>
+                    <div class="category-overlay"></div>
+                </a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <app-testimonials></app-testimonials>
+
+    <!-- CTA Section -->
+    <app-cta-section></app-cta-section>
+</div>

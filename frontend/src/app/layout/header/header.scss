@@ -1,0 +1,215 @@
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: var(--shadow-medium);
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 64px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+  }
+
+  .logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    gap: 0.5rem;
+  }
+
+  .logo-icon {
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .brand-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .nav-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease-in-out;
+    position: relative;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &.active {
+      background-color: rgba(255, 255, 255, 0.15);
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        background-color: currentColor;
+        border-radius: 2px;
+      }
+    }
+  }
+
+  .user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .login-btn {
+    color: inherit !important;
+  }
+
+  .signup-btn {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: inherit !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.25) !important;
+    }
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .user-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit !important;
+  }
+
+  .user-avatar {
+    display: flex;
+    align-items: center;
+  }
+
+  .user-name {
+    font-weight: 500;
+  }
+
+  .notification-btn {
+    color: inherit !important;
+  }
+
+  .mobile-menu-btn {
+    color: inherit !important;
+  }
+
+  // Menu Styles
+  .notification-dropdown {
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+  }
+
+  .notification-item {
+    width: 100%;
+    padding: 1rem !important;
+    height: auto !important;
+
+    &.unread {
+      background-color: rgba(245, 81, 8, 0.05);
+      border-left: 3px solid var(--primary-color);
+    }
+  }
+
+  .notification-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    width: 100%;
+  }
+
+  .notification-text {
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .notification-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .no-notifications {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 3rem;
+      width: 3rem;
+      height: 3rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 768px) {
+    .header-content {
+      height: 56px;
+    }
+
+    .brand-text {
+      display: none;
+    }
+
+    .auth-buttons {
+      .login-btn {
+        display: none;
+      }
+    }
+  }

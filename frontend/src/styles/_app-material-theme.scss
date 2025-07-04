@@ -1,0 +1,115 @@
+@use '@angular/material' as mat;
+
+// Include the common styles for Angular Material
+@include mat.core();
+
+// Define custom color palette using the requested primary color #f55108
+$learnhub-primary: mat.m2-define-palette((
+  50: #fef3e8,
+  100: #fce0c5,
+  200: #f9cb9f,
+  300: #f6b579,
+  400: #f6a55c,
+  500: #f55108, // Primary color
+  600: #f44607,
+  700: #f23a05,
+  800: #f03004,
+  900: #ed1e02,
+  A100: #fff4f3,
+  A200: #ffc3c0,
+  A400: #ff928d,
+  A700: #ff7c73,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  )
+));
+
+// Define accent color palette (complementary orange)
+$learnhub-accent: mat.m2-define-palette((
+  50: #fff3e0,
+  100: #ffe0b2,
+  200: #ffcc80,
+  300: #ffb74d,
+  400: #ffa726,
+  500: #ff9800,
+  600: #fb8c00,
+  700: #f57c00,
+  800: #ef6c00,
+  900: #e65100,
+  A100: #ffd180,
+  A200: #ffab40,
+  A400: #ff9100,
+  A700: #ff6d00,
+  contrast: (
+    50: #000000,
+    100: #000000,
+    200: #000000,
+    300: #000000,
+    400: #000000,
+    500: #000000,
+    600: #000000,
+    700: #000000,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #000000,
+    A200: #000000,
+    A400: #000000,
+    A700: #000000,
+  )
+));
+
+// Define warn color palette (red)
+$learnhub-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+// Create the theme object (using M2 for Angular 20 compatibility)
+$learnhub-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $learnhub-primary,
+    accent: $learnhub-accent,
+    warn: $learnhub-warn,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: 'Inter, "Helvetica Neue", sans-serif',
+  ),
+  density: 0,
+));
+
+// Include theme styles for core and each component used in your app
+@include mat.all-component-themes($learnhub-theme);
+
+// Custom CSS variables for consistent theming
+:root {
+  --primary-color: #f55108;
+  --primary-light: #f6a55c;
+  --primary-dark: #f23a05;
+  --accent-color: #ff9800;
+  --accent-light: #ffa726;
+  --accent-dark: #f57c00;
+  --warn-color: #f44336;
+  --success-color: #4caf50;
+  --background-color: #fafafa;
+  --surface-color: #ffffff;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-disabled: #bdbdbd;
+  --divider-color: #e0e0e0;
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.2);
+  --border-radius: 8px;
+  --border-radius-small: 4px;
+  --border-radius-large: 12px;
+}
