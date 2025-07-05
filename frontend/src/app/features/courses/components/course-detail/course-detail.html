@@ -1,0 +1,342 @@
+<!-- src/app/features/courses/components/course-detail/course-detail.component.html -->
+
+<div class="course-detail-container" *ngIf="viewModel$ | async as vm">
+    <!-- Loading State -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <div class="container">
+            <div class="loading-spinner">
+                <mat-spinner diameter="50"></mat-spinner>
+                <p>Loading course details...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Hero Section -->
+    <div class="course-hero" *ngIf="!(loading$ | async)">
+        <div class="container">
+            <div class="hero-content">
+                <!-- Course Info -->
+                <div class="course-info">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb">
+                        <a routerLink="/courses" class="breadcrumb-link">
+                            <mat-icon>arrow_back</mat-icon>
+                            All Courses
+                        </a>
+                        <span class="breadcrumb-separator">/</span>
+                        <button mat-button class="category-link" (click)="onCategoryClick(vm.course.categoryId)">
+                            {{ vm.course.category?.name }}
+                        </button>
+                    </nav>
+
+                    <!-- Course Header -->
+                    <div class="course-header">
+                        <div class="course-badges">
+                            <span [class]="'badge ' + getLevelBadgeClass(vm.course.level)">
+                                {{ vm.course.level | titlecase }}
+                            </span>
+                            <span class="badge badge-secondary">
+                                {{ vm.course.lessons?.length || 0 }} Lessons
+                            </span>
+                        </div>
+
+                        <h1 class="course-title">{{ vm.course.title }}</h1>
+
+                        <p class="course-description" [class.expanded]="expandedDescription">
+                            {{ vm.course.description }}
+                        </p>
+
+                        <button *ngIf="vm.course.description && vm.course.description.length > 200" mat-button
+                            class="expand-btn" (click)="toggleDescription()">
+                            {{ expandedDescription ? 'Show Less' : 'Show More' }}
+                            <mat-icon>{{ expandedDescription ? 'expand_less' : 'expand_more' }}</mat-icon>
+                        </button>
+
+                        <!-- Course Meta -->
+                        <div class="course-meta">
+                            <div class="meta-item" (click)="onInstructorClick(vm.course.instructor!)">
+                                <mat-icon>person</mat-icon>
+                                <span>{{ getInstructorName(vm.course.instructor) }}</span>
+                            </div>
+
+                            <div class="meta-item">
+                                <mat-icon>schedule</mat-icon>
+                                <span>{{ formatDuration(vm.course.lessons) }}</span>
+                            </div>
+
+                            <div class="meta-item">
+                                <mat-icon>language</mat-icon>
+                                <span>English</span>
+                            </div>
+
+                            <div class="meta-item">
+                                <mat-icon>update</mat-icon>
+                                <span>Last updated {{ vm.course.updatedAt | date:'MMM yyyy' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <ng-container *ngIf="!vm.isEnrolled">
+                                <button *ngIf="vm.canEnroll" mat-raised-button color="primary" class="enroll-btn"
+                                    (click)="onEnrollClick(vm.course)">
+                                    <mat-icon>school</mat-icon>
+                                    Enroll Now - {{ formatPrice(vm.course.price) }}
+                                </button>
+
+                                <button *ngIf="!vm.currentUser" mat-raised-button color="primary"
+                                    routerLink="/auth/login">
+                                    <mat-icon>login</mat-icon>
+                                    Login to Enroll
+                                </button>
+                            </ng-container>
+
+                            <button *ngIf="vm.isEnrolled" mat-raised-button color="primary" class="start-learning-btn"
+                                (click)="onStartLearning(vm.course)">
+                                <mat-icon>play_arrow</mat-icon>
+                                {{ vm.progress > 0 ? 'Continue Learning' : 'Start Learning' }}
+                            </button>
+
+                            <!-- Share Button -->
+                            <button mat-stroked-button [matMenuTriggerFor]="shareMenu" class="share-btn">
+                                <mat-icon>share</mat-icon>
+                                Share
+                            </button>
+                        </div>
+
+                        <!-- Progress Bar (for enrolled students) -->
+                        <div *ngIf="vm.isEnrolled" class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Your Progress</span>
+                                <span class="progress-percentage">{{ vm.progress }}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" [style.width.%]="vm.progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Thumbnail -->
+                <div class="course-thumbnail">
+                    <img [src]="vm.course.thumbnail || '/assets/images/course-placeholder.jpg'" [alt]="vm.course.title"
+                        class="thumbnail-image">
+                    <div class="thumbnail-overlay">
+                        <button mat-fab color="primary" class="play-button" (click)="onStartLearning(vm.course)"
+                            [disabled]="!vm.isEnrolled">
+                            <mat-icon>play_arrow</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Content Tabs -->
+    <div class="course-content" *ngIf="!(loading$ | async)">
+        <div class="container">
+            <mat-tab-group [(selectedIndex)]="selectedTab" (selectedTabChange)="onTabChange($event.index)"
+                class="course-tabs">
+
+                <!-- Curriculum Tab -->
+                <mat-tab label="Curriculum">
+                    <div class="tab-content curriculum-content">
+                        <div class="curriculum-header">
+                            <h3>Course Content</h3>
+                            <div class="curriculum-stats">
+                                <span>{{ vm.course.lessons?.length || 0 }} lessons</span>
+                                <span>•</span>
+                                <span>{{ formatDuration(vm.course.lessons) }}</span>
+                                <span>•</span>
+                                <span>{{ getCompletedLessonsCount(vm.course.lessons) }} completed</span>
+                            </div>
+                        </div>
+
+                        <div class="lessons-list">
+                            <div *ngFor="let lesson of getVisibleLessons(vm.course.lessons); let i = index; trackBy: trackByLessonId"
+                                class="lesson-item" [class.completed]="isLessonCompleted(lesson)"
+                                [class.locked]="isLessonLocked(lesson, i, vm.isEnrolled)"
+                                (click)="onLessonClick(vm.course, lesson, vm.isEnrolled)">
+
+                                <div class="lesson-icon">
+                                    <mat-icon *ngIf="isLessonCompleted(lesson)"
+                                        class="completed-icon">check_circle</mat-icon>
+                                    <mat-icon *ngIf="isLessonLocked(lesson, i, vm.isEnrolled)"
+                                        class="locked-icon">lock</mat-icon>
+                                    <mat-icon
+                                        *ngIf="!isLessonCompleted(lesson) && !isLessonLocked(lesson, i, vm.isEnrolled)">
+                                        {{ getLessonTypeIcon(lesson.type) }}
+                                    </mat-icon>
+                                </div>
+
+                                <div class="lesson-content">
+                                    <h4 class="lesson-title">{{ lesson.title }}</h4>
+                                    <div class="lesson-meta">
+                                        <span class="lesson-type">{{ lesson.type | titlecase }}</span>
+                                        <span class="lesson-duration">{{ getEstimatedDuration(1) }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="lesson-actions">
+                                    <button *ngIf="vm.isEnrolled && !isLessonLocked(lesson, i, vm.isEnrolled)"
+                                        mat-icon-button class="play-lesson-btn">
+                                        <mat-icon>play_circle_outline</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Show More/Less Button -->
+                            <div *ngIf="vm.course.lessons && vm.course.lessons.length > 5" class="show-more-section">
+                                <button mat-button color="primary" (click)="toggleLessonsView()">
+                                    {{ showAllLessons ? 'Show Less' : `Show ${vm.course.lessons.length - 5} More
+                                    Lessons` }}
+                                    <mat-icon>{{ showAllLessons ? 'expand_less' : 'expand_more' }}</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Overview Tab -->
+                <mat-tab label="Overview">
+                    <div class="tab-content overview-content">
+                        <div class="overview-section">
+                            <h3>What you'll learn</h3>
+                            <ul class="learning-objectives">
+                                <li
+                                    *ngFor="let objective of ['Master JavaScript fundamentals', 'Build interactive web applications', 'Understand modern ES6+ features', 'Debug and optimize code']">
+                                    <mat-icon>check</mat-icon>
+                                    <span>{{ objective }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="overview-section">
+                            <h3>Requirements</h3>
+                            <ul class="requirements-list">
+                                <li
+                                    *ngFor="let requirement of ['Basic computer skills', 'No programming experience required', 'Web browser and internet connection']">
+                                    <mat-icon>circle</mat-icon>
+                                    <span>{{ requirement }}</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="overview-section">
+                            <h3>Description</h3>
+                            <div class="description-content">
+                                <p>{{ vm.course.description }}</p>
+                                <p>This comprehensive course will take you from a complete beginner to a confident
+                                    JavaScript developer.
+                                    You'll learn through hands-on projects and real-world examples that prepare you for
+                                    modern web development.</p>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Instructor Tab -->
+                <mat-tab label="Instructor">
+                    <div class="tab-content instructor-content" *ngIf="vm.course.instructor">
+                        <div class="instructor-profile">
+                            <div class="instructor-avatar">
+                                <mat-icon>account_circle</mat-icon>
+                            </div>
+
+                            <div class="instructor-info">
+                                <h3>{{ getInstructorName(vm.course.instructor) }}</h3>
+                                <p class="instructor-title">Senior Web Developer & Instructor</p>
+                                <p class="instructor-bio">
+                                    Experienced developer with over 8 years in the industry.
+                                    Passionate about teaching and helping students achieve their goals in web
+                                    development.
+                                </p>
+
+                                <div class="instructor-stats">
+                                    <div class="stat">
+                                        <span class="stat-number">10+</span>
+                                        <span class="stat-label">Courses</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-number">5,000+</span>
+                                        <span class="stat-label">Students</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-number">4.8</span>
+                                        <span class="stat-label">Rating</span>
+                                    </div>
+                                </div>
+
+                                <button mat-button color="primary" (click)="onInstructorClick(vm.course.instructor!)">
+                                    View Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Reviews Tab -->
+                <mat-tab label="Reviews">
+                    <div class="tab-content reviews-content">
+                        <div class="reviews-header">
+                            <h3>Student Reviews</h3>
+                            <div class="rating-summary">
+                                <div class="overall-rating">
+                                    <span class="rating-number">4.8</span>
+                                    <div class="rating-stars">
+                                        <mat-icon *ngFor="let star of [1,2,3,4,5]">star</mat-icon>
+                                    </div>
+                                    <span class="rating-count">(245 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reviews List -->
+                        <div class="reviews-list">
+                            <div class="review-item" *ngFor="let review of [1,2,3]">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <mat-icon class="reviewer-avatar">account_circle</mat-icon>
+                                        <div>
+                                            <h4 class="reviewer-name">John Doe</h4>
+                                            <div class="review-rating">
+                                                <mat-icon *ngFor="let star of [1,2,3,4,5]">star</mat-icon>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2 weeks ago</span>
+                                </div>
+                                <p class="review-text">
+                                    Excellent course! The instructor explains complex concepts in a very clear and
+                                    understandable way.
+                                    The hands-on projects really helped me solidify my understanding.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+    </div>
+</div>
+
+<!-- Share Menu -->
+<mat-menu #shareMenu="matMenu" *ngIf="viewModel$ | async as vm">
+    <button mat-menu-item (click)="shareOnSocial('twitter', vm.course)">
+        <mat-icon>share</mat-icon>
+        <span>Share on Twitter</span>
+    </button>
+    <button mat-menu-item (click)="shareOnSocial('facebook', vm.course)">
+        <mat-icon>share</mat-icon>
+        <span>Share on Facebook</span>
+    </button>
+    <button mat-menu-item (click)="shareOnSocial('linkedin', vm.course)">
+        <mat-icon>share</mat-icon>
+        <span>Share on LinkedIn</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="shareOnSocial('copy', vm.course)">
+        <mat-icon>content_copy</mat-icon>
+        <span>Copy Link</span>
+    </button>
+</mat-menu>

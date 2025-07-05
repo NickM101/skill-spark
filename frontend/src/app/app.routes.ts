@@ -11,11 +11,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/home/home').then((m) => m.HomeComponent),
   },
-  // {
-  //   path: 'courses',
-  //   loadChildren: () =>
-  //     import('./features/courses/courses.routes').then((m) => m.coursesRoutes),
-  // },
+  {
+    path: 'courses',
+    loadChildren: () =>
+      import('./features/courses/courses.routes').then((m) => m.coursesRoutes),
+  },
   {
     path: 'auth',
     loadChildren: () =>

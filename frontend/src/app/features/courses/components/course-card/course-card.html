@@ -1,0 +1,93 @@
+<!-- src/app/features/courses/components/course-card/course-card.component.html -->
+
+<mat-card class="course-card" [class.compact]="compact" [class.enrolled]="isEnrolled" (click)="onCourseClick()">
+
+    <!-- Course Thumbnail -->
+    <div class="course-thumbnail">
+        <img [src]="course.thumbnail || '/assets/images/course-placeholder.jpg'" [alt]="course.title"
+            class="thumbnail-image">
+
+        <!-- Level Badge -->
+        <div class="level-badge">
+            <span [class]="'badge ' + getLevelBadgeClass()">
+                {{ course.level | titlecase }}
+            </span>
+        </div>
+
+        <!-- Enrollment Badge -->
+        <div *ngIf="isEnrolled" class="enrollment-badge">
+            <span class="badge badge-success">
+                <mat-icon>check_circle</mat-icon>
+                Enrolled
+            </span>
+        </div>
+    </div>
+
+    <!-- Course Content -->
+    <mat-card-content class="course-content">
+        <!-- Course Meta -->
+        <div class="course-meta">
+            <span class="category">{{ getCategoryName() }}</span>
+            <span class="lesson-count">
+                <mat-icon>play_circle_outline</mat-icon>
+                {{ getLessonCount() }} lessons
+            </span>
+        </div>
+
+        <!-- Course Title -->
+        <h3 class="course-title" [title]="course.title">
+            {{ course.title }}
+        </h3>
+
+        <!-- Course Description -->
+        <p class="course-description" [title]="course.description">
+            {{ course.description }}
+        </p>
+
+        <!-- Instructor Info -->
+        <div class="instructor-info">
+            <mat-icon>person</mat-icon>
+            <span>{{ getInstructorName() }}</span>
+        </div>
+
+        <!-- Progress Bar (if enrolled) -->
+        <div *ngIf="showProgress && isEnrolled" class="progress-section">
+            <div class="progress-header">
+                <span class="progress-label">Progress</span>
+                <span class="progress-value">{{ progress }}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="progress"></div>
+            </div>
+        </div>
+    </mat-card-content>
+
+    <!-- Course Actions -->
+    <mat-card-actions class="course-actions">
+        <div class="price-section">
+            <span class="price">{{ formatPrice() }}</span>
+        </div>
+
+        <div class="action-buttons">
+            <ng-container *ngIf="!isEnrolled">
+                <button mat-stroked-button color="primary" class="details-btn">
+                    Details
+                </button>
+                <button mat-raised-button color="primary" class="enroll-btn" (click)="onEnrollClick($event)">
+                    <mat-icon>school</mat-icon>
+                    Enroll
+                </button>
+            </ng-container>
+
+            <ng-container *ngIf="isEnrolled">
+                <button mat-stroked-button color="primary" class="details-btn">
+                    Details
+                </button>
+                <button mat-raised-button color="primary" class="continue-btn" (click)="onContinueClick($event)">
+                    <mat-icon>play_arrow</mat-icon>
+                    {{ progress > 0 ? 'Continue' : 'Start' }}
+                </button>
+            </ng-container>
+        </div>
+    </mat-card-actions>
+</mat-card>

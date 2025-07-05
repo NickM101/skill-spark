@@ -1,0 +1,264 @@
+<!-- src/app/features/courses/components/course-list/course-list.component.html -->
+
+<div class="course-list-container">
+    <!-- Header Section -->
+    <div class="course-list-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="title-section">
+                    <h1 class="page-title">All Courses</h1>
+                    <p class="page-subtitle">
+                        Discover and learn with our comprehensive course catalog
+                    </p>
+                </div>
+
+                <!-- View Controls -->
+                <div class="view-controls">
+                    <div class="view-mode-toggle">
+                        <button mat-icon-button [class.active]="viewMode === 'grid'" (click)="onViewModeChange('grid')"
+                            matTooltip="Grid View">
+                            <mat-icon>grid_view</mat-icon>
+                        </button>
+                        <button mat-icon-button [class.active]="viewMode === 'list'" (click)="onViewModeChange('list')"
+                            matTooltip="List View">
+                            <mat-icon>list</mat-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <div class="container">
+            <mat-card class="filters-card">
+                <form [formGroup]="filterForm" class="filters-form">
+                    <div class="filters-row">
+                        <!-- Search -->
+                        <mat-form-field appearance="outline" class="search-field">
+                            <mat-label>Search courses...</mat-label>
+                            <input matInput formControlName="search"
+                                placeholder="Enter course title, instructor, or keywords"
+                                />
+                            <mat-icon matSuffix>search</mat-icon>
+                        </mat-form-field>
+
+                        <!-- Category Filter -->
+                        <mat-form-field appearance="outline" class="filter-field">
+                            <mat-label>Category</mat-label>
+                            <mat-select formControlName="categoryId" (selectionChange)="onCategoryChange($event)">
+                                <mat-option value="">All Categories</mat-option>
+                                <mat-option *ngFor="let category of categories$ | async" [value]="category.id">
+                                    {{ category.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <!-- Level Filter -->
+                        <mat-form-field appearance="outline" class="filter-field">
+                            <mat-label>Level</mat-label>
+                            <mat-select formControlName="level" (selectionChange)="onLevelChange($event)">
+                                <mat-option value="">All Levels</mat-option>
+                                <mat-option *ngFor="let level of courseLevels" [value]="level">
+                                    {{ level | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <!-- Price Range -->
+                        <div class="price-range-container">
+                            <mat-form-field appearance="outline" class="price-field">
+                                <mat-label>Min Price</mat-label>
+                                <input matInput type="number" formControlName="minPrice" placeholder="0" min="0"
+                                    (change)="onPriceRangeChange()" />
+                                <span matPrefix>$</span>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="price-field">
+                                <mat-label>Max Price</mat-label>
+                                <input matInput type="number" formControlName="maxPrice" placeholder="1000" min="0"
+                                    (change)="onPriceRangeChange()" />
+                                <span matPrefix>$</span>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Clear Filters -->
+                        <button mat-stroked-button color="accent" (click)="clearFilters()" class="clear-filters-btn">
+                            <mat-icon>clear</mat-icon>
+                            Clear Filters
+                        </button>
+                    </div>
+                </form>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Sort and Results Info -->
+    <div class="results-section">
+        <div class="container">
+            <div class="results-header">
+                <div class="results-info">
+                    <span class="results-count">{{ totalCourses }} courses found</span>
+                </div>
+
+                <div class="sort-controls">
+                    <mat-form-field appearance="outline" class="sort-field">
+                        <mat-label>Sort by</mat-label>
+                        <mat-select [(value)]="sortBy" (selectionChange)="onSortChange($event.value)">
+                            <mat-option value="created">Newest First</mat-option>
+                            <mat-option value="title">Title</mat-option>
+                            <mat-option value="price">Price</mat-option>
+                            <mat-option value="level">Level</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <button mat-icon-button (click)="onSortChange(sortBy)"
+                        [matTooltip]="sortDirection === 'asc' ? 'Sort Descending' : 'Sort Ascending'">
+                        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <div class="container">
+            <div class="loading-spinner">
+                <mat-spinner diameter="50"></mat-spinner>
+                <p>Loading courses...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Section -->
+    <div class="courses-section" *ngIf="!(loading$ | async)">
+        <div class="container">
+            <!-- Grid View -->
+            <div *ngIf="viewMode === 'grid'" class="courses-grid">
+                <div *ngFor="let course of courses$ | async; trackBy: trackByCourseId" class="course-card-wrapper">
+                    <mat-card class="course-card clickable-card" (click)="onCourseClick(course)">
+                        <!-- Thumbnail -->
+                        <div class="course-thumbnail">
+                            <img [src]="course.thumbnail || '/assets/images/course-placeholder.jpg'"
+                                [alt]="course.title" class="thumbnail-image" />
+                            <div class="course-level-badge">
+                                <span [class]="'badge ' + getLevelBadgeClass(course.level)">
+                                    {{ course.level | titlecase }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <mat-card-content class="course-content">
+                            <div class="course-meta">
+                                <span class="category-name">
+                                    {{ getCategoryName(course.categoryId) | async }}
+                                </span>
+                                <span class="lesson-count">
+                                    <mat-icon>play_circle_outline</mat-icon>
+                                    {{ getLessonCount(course) }} lessons
+                                </span>
+                            </div>
+                            <h3 class="course-title">{{ course.title }}</h3>
+                            <p class="course-description">{{ course.description }}</p>
+                            <div class="instructor-info">
+                                <mat-icon>person</mat-icon>
+                                <span>{{ getInstructorName(course) }}</span>
+                            </div>
+                        </mat-card-content>
+
+                        <!-- Actions -->
+                        <mat-card-actions class="course-actions">
+                            <div class="price-section">
+                                <span class="price">{{ formatPrice(course.price) }}</span>
+                            </div>
+                            <div class="action-buttons">
+                                <button mat-stroked-button color="primary">View Details</button>
+                                <button mat-raised-button color="primary" (click)="onEnrollClick(course, $event)">
+                                    <mat-icon>school</mat-icon>
+                                    Enroll Now
+                                </button>
+                            </div>
+                        </mat-card-actions>
+                    </mat-card>
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div *ngIf="viewMode === 'list'" class="courses-list">
+                <mat-card *ngFor="let course of courses$ | async; trackBy: trackByCourseId"
+                    class="course-list-item clickable-card" (click)="onCourseClick(course)">
+                    <div class="list-item-content">
+                        <div class="list-thumbnail">
+                            <img [src]="course.thumbnail || '/assets/images/course-placeholder.jpg'"
+                                [alt]="course.title" class="thumbnail-image" />
+                        </div>
+
+                        <div class="list-course-info">
+                            <div class="course-header">
+                                <h3 class="course-title">{{ course.title }}</h3>
+                                <div class="course-badges">
+                                    <span [class]="'badge ' + getLevelBadgeClass(course.level)">
+                                        {{ course.level | titlecase }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p class="course-description">{{ course.description }}</p>
+
+                            <div class="course-details">
+                                <span class="detail-item">
+                                    <mat-icon>category</mat-icon>
+                                    {{ getCategoryName(course.categoryId) | async }}
+                                </span>
+                                <span class="detail-item">
+                                    <mat-icon>person</mat-icon>
+                                    {{ getInstructorName(course) }}
+                                </span>
+                                <span class="detail-item">
+                                    <mat-icon>play_circle_outline</mat-icon>
+                                    {{ getLessonCount(course) }} lessons
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="list-actions">
+                            <div class="price-display">
+                                <span class="price">{{ formatPrice(course.price) }}</span>
+                            </div>
+                            <div class="action-buttons">
+                                <button mat-stroked-button color="primary">View Details</button>
+                                <button mat-raised-button color="primary" (click)="onEnrollClick(course, $event)">
+                                    <mat-icon>school</mat-icon>
+                                    Enroll
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card>
+            </div>
+
+            <!-- No Results -->
+            <div *ngIf="(courses$ | async)?.length === 0" class="no-results">
+                <div class="no-results-content">
+                    <mat-icon class="no-results-icon">search_off</mat-icon>
+                    <h3>No courses found</h3>
+                    <p>Try adjusting your filters or search terms to find what you're looking for.</p>
+                    <button mat-raised-button color="primary" (click)="clearFilters()">Clear All Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-section">
+        <div class="container">
+            <mat-paginator [length]="totalCourses" [pageSize]="pageSize" [pageSizeOptions]="[6, 12, 24, 48]"
+                [pageIndex]="1" (page)="onPageChange($event.pageIndex + 1)"
+                showFirstLastButtons></mat-paginator>
+        </div>
+    </div>
+</div>
+  
