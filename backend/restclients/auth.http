@@ -1,0 +1,93 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables
+@authToken = 
+
+### Register a new user
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Glass",
+  "lastName": "Gow",
+  "email": "glass.gow@gmail.com",
+  "password": "Password123",
+  "confirmPassword": "Password123"
+}
+### Register an instructor
+# @name registerInstructor
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Instructor",
+  "lastName": "User",
+  "email": "instructor@example.com",
+  "password": "Password123",
+  "confirmPassword": "Password123",
+  "role": "INSTRUCTOR"
+}
+### Register an admin (if allowed)
+# @name registerAdmin
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "firstName": "Admin",
+  "lastName": "User",
+  "email": "melissamakeba@gmail.com",
+  "password": "Password123",
+  "confirmPassword": "Password123",
+  "role": "ADMIN"
+}
+
+### Login with credentials
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "melissamakeba@gmail.com",
+  "password": "MelAdmin123"
+}
+
+### Verify email
+POST {{baseUrl}}/auth/verify-email
+Content-Type: {{contentType}}
+
+{
+  "token": "200405"
+}
+
+### Forgot password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: {{contentType}}
+
+{
+  "email": "melissamakeba@gmail.com"
+}
+
+### Reset password
+POST {{baseUrl}}/auth/reset-password
+Content-Type: {{contentType}}
+
+{
+  "token": "100954",
+  "password": "MelAdmin123",
+  "confirmPassword": "MelAdmin123"
+}
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": " "
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
