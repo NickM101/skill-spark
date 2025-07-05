@@ -1,0 +1,136 @@
+<div class="login-form">
+    <!-- Header -->
+    <div class="form-header">
+        <h1 class="form-title">Welcome Back!</h1>
+        <p class="form-subtitle">Sign in to continue your learning journey</p>
+    </div>
+
+    <!-- Social Login -->
+    <div class="social-login">
+        <button type="button" class="social-btn google-btn" (click)="loginWithGoogle()">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
+            <span>Continue with Google</span>
+        </button>
+
+        <button type="button" class="social-btn github-btn" (click)="loginWithGithub()">
+            <mat-icon>code</mat-icon>
+            <span>Continue with GitHub</span>
+        </button>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider">
+        <mat-divider></mat-divider>
+        <span class="divider-text">or</span>
+        <mat-divider></mat-divider>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email Address</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="Enter your email" autocomplete="email" />
+            <mat-icon matSuffix>email</mat-icon>
+            @if (loginForm.get('email')?.invalid &&
+            loginForm.get('email')?.touched) {
+            <mat-error>
+                @if (loginForm.get('email')?.errors?.['required']) { Email is
+                required } @if (loginForm.get('email')?.errors?.['email']) { Please
+                enter a valid email address }
+            </mat-error>
+            }
+        </mat-form-field>
+
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Password</mat-label>
+            <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
+                placeholder="Enter your password" autocomplete="current-password" />
+            <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
+                [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword()">
+                <mat-icon>{{
+                    hidePassword() ? 'visibility_off' : 'visibility'
+                    }}</mat-icon>
+            </button>
+            @if (loginForm.get('password')?.invalid &&
+            loginForm.get('password')?.touched) {
+            <mat-error>
+                @if (loginForm.get('password')?.errors?.['required']) { Password is
+                required } @if (loginForm.get('password')?.errors?.['minlength']) {
+                Password must be at least 6 characters }
+            </mat-error>
+            }
+        </mat-form-field>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-options">
+            <mat-checkbox formControlName="rememberMe" color="primary">
+                Remember me
+            </mat-checkbox>
+            <a routerLink="../forgot-password" class="forgot-link">
+                Forgot password?
+            </a>
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+        <div class="error-message">
+            <mat-icon>error</mat-icon>
+            <span>{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <!-- Submit Button -->
+        <button mat-raised-button color="primary" type="submit" class="submit-btn"
+            [disabled]="loginForm.invalid || isLoading()">
+            @if (isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Signing in...</span>
+            } @else {
+            <ng-container>
+                <mat-icon>login</mat-icon>
+                <span>Sign In</span>
+            </ng-container>
+            }
+        </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="form-footer">
+        <p>
+            Don't have an account?
+            <a routerLink="../register" class="link">Sign up here</a>
+        </p>
+    </div>
+
+    <!-- Demo Credentials -->
+    <div class="demo-credentials">
+        <h4>Demo Credentials</h4>
+        <div class="demo-options">
+            <button type="button" class="demo-btn" (click)="fillDemoCredentials('student')">
+                <mat-icon>person</mat-icon>
+                <div>
+                    <div class="demo-role">Student</div>
+                    <div class="demo-email">student&#64;demo.com</div>
+                </div>
+            </button>
+
+            <button type="button" class="demo-btn" (click)="fillDemoCredentials('instructor')">
+                <mat-icon>school</mat-icon>
+                <div>
+                    <div class="demo-role">Instructor</div>
+                    <div class="demo-email">instructor&#64;demo.com</div>
+                </div>
+            </button>
+
+            <button type="button" class="demo-btn" (click)="fillDemoCredentials('admin')">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <div>
+                    <div class="demo-role">Admin</div>
+                    <div class="demo-email">admin&#64;demo.com</div>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>

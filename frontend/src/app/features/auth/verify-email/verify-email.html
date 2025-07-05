@@ -1,0 +1,124 @@
+<div class="verify-email-form">
+    @if (isVerifying()) {
+    <!-- Verifying State -->
+    <div class="verifying-content">
+        <div class="icon-container verifying">
+            <mat-spinner diameter="60" strokeWidth="4"></mat-spinner>
+        </div>
+        <h1 class="form-title">Verifying Your Email</h1>
+        <p class="form-subtitle">
+            Please wait while we verify your email address...
+        </p>
+    </div>
+    } @else if (verificationSuccess()) {
+    <!-- Success State -->
+    <div class="success-content">
+        <div class="icon-container success">
+            <mat-icon class="header-icon">verified</mat-icon>
+        </div>
+        <h1 class="form-title">Email Verified!</h1>
+        <p class="form-subtitle">
+            Congratulations! Your email address has been successfully verified.
+            Your account is now active and ready to use.
+        </p>
+
+        <div class="success-details">
+            <div class="detail-item">
+                <mat-icon>check_circle</mat-icon>
+                <div>
+                    <div class="detail-title">Account Activated</div>
+                    <div class="detail-desc">You can now access all features of LearnHub</div>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <mat-icon>school</mat-icon>
+                <div>
+                    <div class="detail-title">Ready to Learn</div>
+                    <div class="detail-desc">Start exploring our courses and begin your learning journey</div>
+                </div>
+            </div>
+
+            <div class="detail-item">
+                <mat-icon>notifications</mat-icon>
+                <div>
+                    <div class="detail-title">Stay Updated</div>
+                    <div class="detail-desc">You'll receive important updates and course notifications</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-actions">
+            <button mat-raised-button color="primary" routerLink="../login" class="action-btn primary">
+                <mat-icon>login</mat-icon>
+                Sign In to Your Account
+            </button>
+
+            <button mat-stroked-button routerLink="/courses" class="action-btn">
+                <mat-icon>explore</mat-icon>
+                Browse Courses
+            </button>
+        </div>
+    </div>
+    } @else {
+    <!-- Error State -->
+    <div class="error-content">
+        <div class="icon-container error">
+            <mat-icon class="header-icon">error</mat-icon>
+        </div>
+        <h1 class="form-title">Verification Failed</h1>
+        <p class="form-subtitle">
+            {{ errorMessage() || 'We couldn\'t verify your email address. The verification link may be invalid or expired.' }}
+        </p>
+
+        <div class="error-details">
+            <div class="detail-item">
+                <mat-icon>info</mat-icon>
+                <div>
+                    <div class="detail-title">Common Issues</div>
+                    <div class="detail-desc">
+                        <ul>
+                            <li>Verification link has expired (valid for 24 hours)</li>
+                            <li>Email address has already been verified</li>
+                            <li>Invalid or corrupted verification token</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-actions">
+            <button mat-raised-button color="primary" (click)="resendVerification()" class="action-btn primary"
+                [disabled]="resendCooldown() > 0">
+                <mat-icon>refresh</mat-icon>
+                @if (resendCooldown() > 0) {
+                Resend in {{ resendCooldown() }}s
+                } @else {
+                Resend Verification Email
+                }
+            </button>
+
+            <button mat-stroked-button routerLink="../login" class="action-btn">
+                <mat-icon>arrow_back</mat-icon>
+                Back to Login
+            </button>
+        </div>
+    </div>
+    }
+
+    <!-- Help Section -->
+    @if (!isVerifying()) {
+    <div class="help-section">
+        <h4>Need Help?</h4>
+        <div class="help-options">
+            <a href="mailto:support@learnhub.com" class="help-link">
+                <mat-icon>email</mat-icon>
+                <div>
+                    <div class="help-title">Help Center</div>
+                    <div class="help-desc">Email verification guide</div>
+                </div>
+            </a>
+        </div>
+    </div>
+    }
+</div>
