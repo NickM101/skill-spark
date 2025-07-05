@@ -23,12 +23,12 @@ model User {
   role              Role     @default(STUDENT)
   isEmailVerified   Boolean  @default(false)
   isActive          Boolean  @default(true)
-  
-  
   verificationCode  String?  
   verificationExpires DateTime? 
   passwordResetCode String?  
-  passwordResetExpires DateTime? 
+  passwordResetExpires DateTime?
+  profilePhotoId    String?
+  profilePhotoUrl   String? 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

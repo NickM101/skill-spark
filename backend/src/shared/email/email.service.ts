@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
@@ -7,6 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import * as tls from 'tls';
 
 @Injectable()
 export class EmailService {
@@ -25,24 +29,40 @@ export class EmailService {
     const smtpPort = parseInt(
       this.configService.get<string>('SMTP_PORT') || '587',
     );
-    const smtpSecure = this.configService.get<string>('SMTP_SECURE') === 'true';
+
+    const smtpSecure =
+      this.configService.get<string>('SMTP_SECURE') !== 'false';
 
     if (!smtpUser || !smtpPassword) {
       this.logger.error('SMTP credentials are missing in env.');
       return;
     }
 
-    const emailConfig = {
+    // Explicitly type the emailConfig object
+    const emailConfig: SMTPTransport.Options = {
       host: smtpHost,
       port: smtpPort,
-      secure: smtpSecure,
+      secure: false, // Force false for port 587
       auth: {
         user: smtpUser,
         pass: smtpPassword,
       },
+      tls: {
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2' as tls.SecureVersion,
+      },
     };
 
     this.transporter = nodemailer.createTransport(emailConfig);
+
+    // Test the connection
+    this.transporter.verify((error) => {
+      if (error) {
+        this.logger.error('SMTP connection failed', error);
+      } else {
+        this.logger.log('SMTP server connection established successfully');
+      }
+    });
   }
 
   async sendWelcomeEmail(

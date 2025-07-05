@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -6,8 +8,10 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CloudinaryService } from '../shared/cloudinary/cloudinary.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,7 +19,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinaryService: CloudinaryService,
+  ) {}
 
   /**
    * Create a new user with hashed password
@@ -39,8 +46,8 @@ export class UsersService {
         email: createUserDto.email,
         password: hashedPassword,
         role: createUserDto.role || 'STUDENT',
-        verificationCode: createUserDto.verificationCode, // Add this line
-        isEmailVerified: createUserDto.isVerified || false, // Add this line
+        verificationCode: createUserDto.verificationCode,
+        isEmailVerified: createUserDto.isVerified || false,
       },
       select: {
         id: true,
@@ -59,7 +66,7 @@ export class UsersService {
   /**
    * Find a user by email
    */
-  async findByEmail(email: string) {
+  findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
     });
@@ -79,9 +86,10 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         isActive: true,
+        profilePhotoUrl: true, // Include profile photo URL
+        profilePhotoId: true, // Include for internal use
         createdAt: true,
         updatedAt: true,
-        // Add other fields you want to return
       },
     });
 
@@ -95,7 +103,7 @@ export class UsersService {
   /**
    * Find a user by verification token
    */
-  async findByVerificationToken(token: string) {
+  findByVerificationToken(token: string) {
     return this.prisma.user.findFirst({
       where: { verificationCode: token },
     });
@@ -104,7 +112,7 @@ export class UsersService {
   /**
    * Find a user by password reset token
    */
-  async findByPasswordResetToken(token: string) {
+  findByPasswordResetToken(token: string) {
     return this.prisma.user.findFirst({
       where: { passwordResetCode: token },
     });
@@ -135,6 +143,7 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         isActive: true,
+        profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -171,6 +180,7 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         isActive: true,
+        profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -249,6 +259,7 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         isActive: true,
+        profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -258,7 +269,7 @@ export class UsersService {
   /**
    * Mark email as verified
    */
-  async markEmailAsVerified(id: string) {
+  markEmailAsVerified(id: string) {
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -271,7 +282,7 @@ export class UsersService {
   /**
    * Set password reset token
    */
-  async setPasswordResetToken(id: string, token: string, expires: Date) {
+  setPasswordResetToken(id: string, token: string, expires: Date) {
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -284,7 +295,7 @@ export class UsersService {
   /**
    * Update password (for password reset)
    */
-  async updatePassword(id: string, password: string) {
+  updatePassword(id: string, password: string) {
     return this.prisma.user.update({
       where: { id },
       data: {
@@ -293,5 +304,148 @@ export class UsersService {
         passwordResetExpires: null,
       },
     });
+  }
+
+  /**
+   * Upload profile photo
+   */
+  async uploadProfilePhoto(userId: string, file: Express.Multer.File) {
+    // Verify user exists
+    const user = await this.findById(userId);
+
+    // Check if file is provided
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    // Check file type
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'image/webp',
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Allowed types: JPEG, PNG, JPG, WEBP',
+      );
+    }
+
+    try {
+      // If user already has a profile photo, delete it first
+      if (user.profilePhotoId) {
+        await this.cloudinaryService
+          .deleteFile(user.profilePhotoId)
+          .catch((error) => {
+            console.error('Failed to delete old profile photo:', error);
+          });
+      }
+
+      // Upload new photo to Cloudinary
+      const result = await this.cloudinaryService.uploadImage(
+        file,
+        'profile-photos',
+      );
+
+      // Check both success flag AND existence of data
+      if (!result.success || !result.data) {
+        throw new InternalServerErrorException(
+          result.error || 'Failed to upload image to cloud storage',
+        );
+      }
+
+      // Now TypeScript knows result.data exists
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          profilePhotoId: result.data.public_id,
+          profilePhotoUrl: result.data.secure_url,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          isEmailVerified: true,
+          isActive: true,
+          profilePhotoUrl: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      if (
+        error instanceof InternalServerErrorException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(
+        `Failed to update profile photo: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Delete user's profile photo
+   */
+  async deleteProfilePhoto(userId: string) {
+    // Verify user exists
+    const user = await this.findById(userId);
+
+    // Check if user has a profile photo
+    if (!user.profilePhotoId) {
+      throw new BadRequestException('User does not have a profile photo');
+    }
+
+    try {
+      // Delete photo from Cloudinary
+      await this.cloudinaryService.deleteFile(user.profilePhotoId);
+
+      // Update user record
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          profilePhotoId: null,
+          profilePhotoUrl: null,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          isEmailVerified: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Failed to delete profile photo: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Delete a user (admin only)
+   */
+  async deleteUser(id: string) {
+    // Check if user exists
+    await this.findById(id);
+
+    // Delete the user
+    await this.prisma.user.delete({
+      where: { id },
+    });
+
+    return { message: 'User deleted successfully' };
   }
 }

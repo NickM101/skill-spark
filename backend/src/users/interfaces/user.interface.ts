@@ -9,6 +9,8 @@ export interface User {
   role: Role;
   isEmailVerified: boolean;
   isActive: boolean;
+  profilePhotoId?: string | null;
+  profilePhotoUrl?: string | null;
   verificationCode?: string | null;
   verificationExpires?: Date | null;
   passwordResetCode?: string | null;

@@ -16,19 +16,21 @@ Content-Type: {{contentType}}
   "password": "Password123",
   "confirmPassword": "Password123"
 }
+
 ### Register an instructor
 # @name registerInstructor
 POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "firstName": "Instructor",
+  "firstName": "Mel",
   "lastName": "User",
-  "email": "instructor@example.com",
-  "password": "Password123",
-  "confirmPassword": "Password123",
-  "role": "INSTRUCTOR"
+  "email": "mellisawanja254@gmail.com",
+  "password": "Chinje123",
+  "confirmPassword": "Chinje123",
+  "role": "STUDENT"
 }
+
 ### Register an admin (if allowed)
 # @name registerAdmin
 POST {{baseUrl}}/auth/register
@@ -49,8 +51,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "melissamakeba@gmail.com",
-  "password": "MelAdmin123"
+  "email": "mellisawanja254@gmail.com",
+  "password": "Toxic321"
 }
 
 ### Verify email
@@ -58,7 +60,7 @@ POST {{baseUrl}}/auth/verify-email
 Content-Type: {{contentType}}
 
 {
-  "token": "200405"
+  "token": "171732"
 }
 
 ### Forgot password
@@ -66,7 +68,7 @@ POST {{baseUrl}}/auth/forgot-password
 Content-Type: {{contentType}}
 
 {
-  "email": "melissamakeba@gmail.com"
+  "email": "mellisawanja254@gmail.com"
 }
 
 ### Reset password
@@ -74,9 +76,9 @@ POST {{baseUrl}}/auth/reset-password
 Content-Type: {{contentType}}
 
 {
-  "token": "100954",
-  "password": "MelAdmin123",
-  "confirmPassword": "MelAdmin123"
+  "token": "301737",
+  "password": "Toxic321",
+  "confirmPassword": "Toxic321"
 }
 
 ### Refresh token

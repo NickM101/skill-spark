@@ -1,13 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -21,8 +20,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { TokenService } from './token.service';
 import { User } from '../users/interfaces/user.interface';
 import { Role } from '../../generated/prisma';
-
-// import { EmailService } from '../email/email.service';
+import { EmailService } from '../shared/email/email.service';
 
 interface TokenPair {
   accessToken: string;
@@ -51,7 +49,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private tokenService: TokenService,
-    // private emailService: EmailService,
+    private emailService: EmailService,
   ) {}
 
   /**
@@ -124,6 +122,19 @@ export class AuthService {
       hasEmailVerified: 'isEmailVerified' in user,
       hasVerified: 'isVerified' in user,
     });
+
+    // Send verification email
+    try {
+      await this.emailService.sendWelcomeEmail(
+        user.email,
+        user.firstName,
+        verificationCode,
+      );
+      console.log('Verification email sent to:', user.email);
+    } catch (error) {
+      // Don't fail registration if email fails, just log the error
+      console.error('Failed to send verification email:', error);
+    }
 
     // Generate tokens
     const tokens = this.generateTokens(user);
@@ -278,14 +289,18 @@ export class AuthService {
       resetTokenExpiry,
     );
 
-    // Comment out email service call since it's not imported
-    /*
-    await this.emailService.sendPasswordResetEmail(
-      user.email,
-      user.firstName,
-      resetCode,
-    );
-    */
+    // Send password reset email
+    try {
+      await this.emailService.sendPasswordResetEmail(
+        user.email,
+        user.firstName,
+        resetCode,
+      );
+      console.log('Password reset email sent to:', user.email);
+    } catch (error) {
+      // Don't expose email sending errors to the client
+      console.error('Failed to send password reset email:', error);
+    }
 
     return { message: 'Password reset instructions sent if email exists' };
   }

@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
   Put,
+  Post,
+  Delete,
   Patch,
   Body,
   Param,
@@ -9,7 +14,10 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -17,7 +25,7 @@ import { Roles } from '../auth/decorators/roles.decorators';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { ApiResponseService } from '../shared/api-rensponse.service';
+import { ApiResponseService } from '../shared/api-rensponse.service'; // Fixed typo in import
 import { Role } from '../../generated/prisma';
 import { User } from './interfaces/user.interface';
 
@@ -75,6 +83,71 @@ export class UsersController {
       return this.apiResponseService.error(
         errorMessage,
         'PROFILE_UPDATE_ERROR',
+      );
+    }
+  }
+
+  /**
+   * Upload profile photo
+   */
+  @Post('add/profile')
+  @UseInterceptors(FileInterceptor('profile')) // Change to match your request
+  async uploadProfilePhoto(
+    @CurrentUser() user: User,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      // Type guard to ensure user.id is a string
+      if (!user?.id || typeof user.id !== 'string') {
+        throw new Error('Invalid user ID');
+      }
+
+      if (!file) {
+        throw new Error('No file uploaded');
+      }
+
+      const updatedProfile = await this.usersService.uploadProfilePhoto(
+        user.id,
+        file,
+      );
+      return this.apiResponseService.success(
+        updatedProfile,
+        'Profile photo uploaded successfully',
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      return this.apiResponseService.error(
+        errorMessage,
+        'PROFILE_PHOTO_UPLOAD_ERROR',
+      );
+    }
+  }
+
+  /**
+   * Delete profile photo
+   */
+  @Delete('delete/profile-photo')
+  async deleteProfilePhoto(@CurrentUser() user: User) {
+    try {
+      // Type guard to ensure user.id is a string
+      if (!user?.id || typeof user.id !== 'string') {
+        throw new Error('Invalid user ID');
+      }
+
+      const updatedProfile = await this.usersService.deleteProfilePhoto(
+        user.id,
+      );
+      return this.apiResponseService.success(
+        updatedProfile,
+        'Profile photo deleted successfully',
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      return this.apiResponseService.error(
+        errorMessage,
+        'PROFILE_PHOTO_DELETE_ERROR',
       );
     }
   }
@@ -175,6 +248,23 @@ export class UsersController {
         errorMessage,
         'USER_STATUS_UPDATE_ERROR',
       );
+    }
+  }
+
+  /**
+   * Delete a user (admin only)
+   */
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @UseGuards(RolesGuard)
+  async deleteUser(@Param('id') id: string) {
+    try {
+      await this.usersService.deleteUser(id);
+      return this.apiResponseService.success(null, 'User deleted successfully');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      return this.apiResponseService.error(errorMessage, 'USER_DELETE_ERROR');
     }
   }
 }

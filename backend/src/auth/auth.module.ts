@@ -10,6 +10,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
 import { ApiResponseService } from 'src/shared/api-rensponse.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailService } from 'src/shared/email/email.service';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
     ApiResponseService,
     ConfigService,
     PrismaService,
+    EmailService,
   ],
   exports: [AuthService, TokenService, JwtModule],
 })
