@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Required: Complete Your Course Soon! - SkillSpark</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        td {
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #ff6f00;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .content p {
+            font-size: 16px;
+            color: #34495e;
+            margin: 0 0 16px 0;
+        }
+
+        .info-section {
+            background-color: #f8f8f8;
+            border: 1px solid #ff6f00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-section h2 {
+            color: #ff6f00;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-section p {
+            color: #34495e;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            margin: 20px auto;
+            background-color: #ff6f00;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            display: block;
+            /* To center the button */
+            width: fit-content;
+            /* To make button width fit content */
+        }
+
+        .footer-section {
+            padding: 20px 30px;
+            background-color: #ff6f00;
+            border-top: 1px solid #ff6f00;
+            text-align: center;
+        }
+
+        .footer-section p {
+            font-size: 14px;
+            color: #ffffff;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+            <td align="center">
+                <table cellpadding="0" cellspacing="0" border="0" width="600" class="container"
+                    style="width: 100%; max-width: 600px;">
+                    <tr>
+                        <td class="header">
+                            <h1>Reminder: Complete Your Course!</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <p>Hello {{studentName}},</p>
+                            <p>We noticed you're making great progress in your course <strong>{{courseName}}</strong> on
+                                SkillSpark!</p>
+                            <p>Just a friendly reminder that the course end date is approaching. Please ensure you
+                                complete all lessons and quizzes by:</p>
+
+                            <div class="info-section">
+                                <h2>Course Deadline</h2>
+                                <p style="text-align: center; font-size: 20px; font-weight: bold; color: #ff6f00;">
+                                    {{courseEndDate}}</p>
+                                <p style="text-align: center;">Don't miss out on completing your learning journey!</p>
+                            </div>
+
+                            <p>Log in now to continue your progress and achieve your course completion.</p>
+                            <a href="#" class="button">Go to Course</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer-section">
+                            <p>Need help? Our support team is always here for you.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
