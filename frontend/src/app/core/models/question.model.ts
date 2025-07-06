@@ -10,7 +10,7 @@ export interface Question {
   quizId: string;
   question: string;
   type: QuestionType;
-  options?: any; // Prefer defining actual structure if possible
+  options?: any;
   correctAnswers: any;
   points: number;
   orderIndex: number;

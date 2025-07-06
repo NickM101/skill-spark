@@ -1,0 +1,389 @@
+// src/app/features/admin/modules/course-management/components/course-form/course-form.component.scss
+
+.course-form-container {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  
+    .page-header {
+      margin-bottom: 2rem;
+  
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+  
+        .page-title {
+          font-size: 2rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0;
+        }
+  
+        .header-actions {
+          display: flex;
+          gap: 1rem;
+        }
+      }
+    }
+  
+    .form-card {
+      margin-bottom: 2rem;
+  
+      .course-form {
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin-bottom: 2rem;
+  
+          .full-width {
+            grid-column: 1 / -1;
+          }
+  
+          .checkbox-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+  
+            .checkbox-hint {
+              font-size: 0.75rem;
+              color: var(--text-secondary);
+              margin-left: 0;
+            }
+          }
+        }
+  
+        .form-actions {
+          border-top: 1px solid var(--divider-color);
+          padding-top: 1.5rem;
+  
+          .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            flex-wrap: wrap;
+  
+            button {
+              min-width: 120px;
+              height: 44px;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+  
+              mat-spinner {
+                margin-right: 0.5rem;
+              }
+            }
+          }
+        }
+      }
+    }
+  
+    .preview-card {
+      .course-preview {
+        .preview-thumbnail {
+          width: 100%;
+          height: 200px;
+          border-radius: var(--border-radius);
+          overflow: hidden;
+          background-color: var(--background-color);
+          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+  
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+  
+          .thumbnail-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+  
+            mat-icon {
+              font-size: 3rem;
+              width: 3rem;
+              height: 3rem;
+            }
+  
+            span {
+              font-size: 0.875rem;
+            }
+          }
+        }
+  
+        .preview-details {
+          .preview-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+          }
+  
+          .preview-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+          }
+  
+          .preview-meta {
+            margin-bottom: 1.5rem;
+  
+            mat-chip-set {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+            }
+  
+            mat-chip {
+              font-size: 0.75rem;
+              height: 28px;
+            }
+          }
+  
+          .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+  
+            .stat-item {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0.75rem;
+              background-color: var(--background-color);
+              border-radius: var(--border-radius);
+  
+              mat-icon {
+                font-size: 1.25rem;
+                width: 1.25rem;
+                height: 1.25rem;
+                color: var(--primary-color);
+              }
+  
+              span {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Form field styling
+  .mat-mdc-form-field {
+    width: 100%;
+  
+    &.full-width {
+      grid-column: 1 / -1;
+    }
+  
+    .mat-mdc-text-field-wrapper {
+      .mat-mdc-form-field-flex {
+        .mat-mdc-floating-label {
+          font-weight: 500;
+        }
+      }
+    }
+  
+    .mat-mdc-form-field-hint-wrapper {
+      .mat-mdc-form-field-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+    }
+  
+    .mat-mdc-form-field-error-wrapper {
+      .mat-mdc-form-field-error {
+        font-size: 0.75rem;
+        color: var(--warn-color);
+      }
+    }
+  
+    // Input focus styles
+    &.mat-focused {
+      .mat-mdc-text-field-wrapper {
+        .mat-mdc-form-field-flex {
+          .mat-mdc-floating-label {
+            color: var(--primary-color);
+          }
+        }
+      }
+  
+      .mat-mdc-form-field-focus-overlay {
+        background-color: var(--primary-color);
+        opacity: 0.1;
+      }
+    }
+  
+    // Error state styles
+    &.mat-form-field-invalid {
+      .mat-mdc-text-field-wrapper {
+        .mat-mdc-form-field-flex {
+          .mat-mdc-floating-label {
+            color: var(--warn-color);
+          }
+        }
+      }
+  
+      .mat-mdc-form-field-outline {
+        color: var(--warn-color);
+      }
+    }
+  }
+  
+  // Checkbox styling
+  .mat-mdc-checkbox {
+    .mat-mdc-checkbox-frame {
+      border-color: var(--text-secondary);
+    }
+  
+    &.mat-mdc-checkbox-checked {
+      .mat-mdc-checkbox-background {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+  
+      .mat-mdc-checkbox-checkmark {
+        fill: white;
+      }
+    }
+  }
+  
+  // Button styling
+  .mat-mdc-button,
+  .mat-mdc-outlined-button,
+  .mat-mdc-raised-button {
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    text-transform: none;
+  
+    .mat-icon {
+      margin-right: 0.25rem;
+    }
+  }
+  
+  .mat-mdc-raised-button.mat-primary {
+    background-color: var(--primary-color);
+    color: white;
+  
+    &:hover:not(:disabled) {
+      background-color: var(--primary-dark);
+    }
+  
+    &:disabled {
+      background-color: var(--text-disabled);
+      color: white;
+    }
+  }
+  
+  // Responsive Design
+  @media (max-width: 768px) {
+    .course-form-container {
+      padding: 1rem;
+  
+      .page-header {
+        .header-content {
+          flex-direction: column;
+          align-items: stretch;
+  
+          .page-title {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+          }
+  
+          .header-actions {
+            justify-content: center;
+          }
+        }
+      }
+  
+      .form-card {
+        .course-form {
+          .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+  
+            .full-width {
+              grid-column: 1;
+            }
+          }
+  
+          .form-actions {
+            .action-buttons {
+              justify-content: center;
+              flex-direction: column-reverse;
+  
+              button {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+  
+      .preview-card {
+        .course-preview {
+          .preview-stats {
+            grid-template-columns: 1fr;
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .course-form-container {
+      padding: 0.5rem;
+  
+      .form-card,
+      .preview-card {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+        border-radius: 0;
+      }
+  
+      .page-header {
+        .header-content {
+          .page-title {
+            font-size: 1.25rem;
+          }
+  
+          .header-actions {
+            button {
+              font-size: 0.875rem;
+              padding: 0.5rem 1rem;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Loading state
+  .mat-mdc-button:disabled,
+  .mat-mdc-outlined-button:disabled,
+  .mat-mdc-raised-button:disabled {
+    cursor: not-allowed;
+  }
+  
+  // Custom spinner in button
+  .mat-mdc-button mat-spinner,
+  .mat-mdc-raised-button mat-spinner {
+    .mat-spinner-svg {
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }

@@ -1,0 +1,298 @@
+<!-- src/app/features/admin/modules/course-management/components/course-detail/course-detail.component.html -->
+
+<div class="course-detail-container" *ngIf="course">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <button mat-icon-button (click)="onBackToCourses()" class="back-button">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h1 class="page-title">{{ course.title }}</h1>
+            <div class="header-actions">
+                <button mat-button [matMenuTriggerFor]="actionsMenu" class="actions-trigger">
+                    <mat-icon>more_vert</mat-icon>
+                    Actions
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                    <button mat-menu-item (click)="onEditCourse()">
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit Course</span>
+                    </button>
+                    <button mat-menu-item (click)="onDuplicateCourse()">
+                        <mat-icon>content_copy</mat-icon>
+                        <span>Duplicate Course</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="onPublishCourse()">
+                        <mat-icon>{{ getPublishButtonIcon() }}</mat-icon>
+                        <span>{{ getPublishButtonText() }}</span>
+                    </button>
+                    <mat-divider></mat-divider>
+                    <button mat-menu-item (click)="onDeleteCourse()" class="delete-action">
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete Course</span>
+                    </button>
+                </mat-menu>
+
+                <button mat-raised-button color="primary" (click)="onEditCourse()">
+                    <mat-icon>edit</mat-icon>
+                    Edit Course
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Overview Section -->
+    <div class="overview-section">
+        <div class="overview-grid">
+            <!-- Course Details Card -->
+            <mat-card class="details-card">
+                <mat-card-header>
+                    <mat-card-title>Course Details</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="course-thumbnail">
+                        <img *ngIf="course.thumbnail" [src]="course.thumbnail" [alt]="course.title">
+                        <div *ngIf="!course.thumbnail" class="thumbnail-placeholder">
+                            <mat-icon>image</mat-icon>
+                            <span>No thumbnail</span>
+                        </div>
+                    </div>
+
+                    <div class="course-info">
+                        <h2 class="course-title">{{ course.title }}</h2>
+                        <p class="course-description" *ngIf="course.description">
+                            {{ course.description }}
+                        </p>
+                        <p class="no-description" *ngIf="!course.description">
+                            No description provided
+                        </p>
+
+                        <div class="course-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Price:</span>
+                                <span class="meta-value price">{{ formatPrice(course.price) }}</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Level:</span>
+                                <mat-chip [color]="getLevelColor(course.level)" selected>
+                                    {{ course.level | titlecase }}
+                                </mat-chip>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Category:</span>
+                                <mat-chip *ngIf="course.category" color="primary" selected>
+                                    {{ course.category.name }}
+                                </mat-chip>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Status:</span>
+                                <mat-chip [color]="getStatusChipColor(course.isPublished)" selected>
+                                    {{ getStatusText(course.isPublished) }}
+                                </mat-chip>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Instructor:</span>
+                                <span class="meta-value" *ngIf="course.instructor">
+                                    {{ course.instructor.firstName }} {{ course.instructor.lastName }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Statistics Card -->
+            <mat-card class="stats-card">
+                <mat-card-header>
+                    <mat-card-title>Course Statistics</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="primary">people</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ course._count?.enrollments || 0 }}</div>
+                                <div class="stat-label">Enrollments</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="accent">play_lesson</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ course._count?.lessons || 0 }}</div>
+                                <div class="stat-label">Lessons</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="primary">quiz</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ course._count?.quizzes || 0 }}</div>
+                                <div class="stat-label">Quizzes</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="primary">attach_money</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">${{ getRevenue().toFixed(2) }}</div>
+                                <div class="stat-label">Revenue</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="accent">trending_up</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ getEnrollmentRate() }}%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-icon">
+                                <mat-icon color="primary">check_circle</mat-icon>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value">{{ getCompletionRate() }}%</div>
+                                <div class="stat-label">Completion Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Content Management Section -->
+    <div class="content-section">
+        <mat-card class="content-card">
+            <mat-card-header>
+                <mat-card-title>Course Content</mat-card-title>
+                <mat-card-subtitle>Manage lessons and quizzes</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="content-summary">
+                    <div class="summary-item">
+                        <mat-icon>play_lesson</mat-icon>
+                        <span>{{ course._count?.lessons || 0 }} Lessons</span>
+                    </div>
+                    <div class="summary-item">
+                        <mat-icon>quiz</mat-icon>
+                        <span>{{ course._count?.quizzes || 0 }} Quizzes</span>
+                    </div>
+                </div>
+
+                <div class="content-actions">
+                    <button mat-stroked-button disabled>
+                        <mat-icon>add</mat-icon>
+                        Add Lesson
+                    </button>
+                    <button mat-stroked-button disabled>
+                        <mat-icon>quiz</mat-icon>
+                        Add Quiz
+                    </button>
+                    <span class="coming-soon">Content management coming soon</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Course Metadata Section -->
+    <div class="metadata-section">
+        <mat-card class="metadata-card">
+            <mat-card-header>
+                <mat-card-title>Course Metadata</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <span class="metadata-label">Course ID:</span>
+                        <span class="metadata-value code">{{ course.id }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Created:</span>
+                        <span class="metadata-value">{{ formatDate(course.createdAt) }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Last Updated:</span>
+                        <span class="metadata-value">{{ formatDate(course.updatedAt) }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Category ID:</span>
+                        <span class="metadata-value code">{{ course.categoryId }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Instructor ID:</span>
+                        <span class="metadata-value code">{{ course.instructorId }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Instructor Email:</span>
+                        <span class="metadata-value" *ngIf="course.instructor">
+                            {{ course.instructor.email }}
+                        </span>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="quick-actions-section">
+        <mat-card class="actions-card">
+            <mat-card-header>
+                <mat-card-title>Quick Actions</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="actions-grid">
+                    <button mat-raised-button color="primary" (click)="onEditCourse()">
+                        <mat-icon>edit</mat-icon>
+                        Edit Course
+                    </button>
+
+                    <button mat-raised-button [color]="course.isPublished ? 'warn' : 'accent'"
+                        (click)="onPublishCourse()">
+                        <mat-icon>{{ getPublishButtonIcon() }}</mat-icon>
+                        {{ getPublishButtonText() }}
+                    </button>
+
+                    <button mat-stroked-button (click)="onDuplicateCourse()">
+                        <mat-icon>content_copy</mat-icon>
+                        Duplicate Course
+                    </button>
+
+                    <button mat-stroked-button color="warn" (click)="onDeleteCourse()">
+                        <mat-icon>delete</mat-icon>
+                        Delete Course
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading$ | async" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="loading-text">Loading course details...</p>
+</div>
+
+<!-- Error State -->
+<div *ngIf="!course && !(loading$ | async)" class="error-state">
+    <mat-icon class="error-icon">error</mat-icon>
+    <h3>Course not found</h3>
+    <p>The course you're looking for doesn't exist or has been deleted.</p>
+    <button mat-raised-button color="primary" (click)="onBackToCourses()">
+        Back to Courses
+    </button>
+    </div>

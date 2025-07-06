@@ -1,4 +1,6 @@
+import { Course } from './course.model';
 import { Progress } from './progress.model';
+import { User } from './user.model';
 
 export enum EnrollmentStatus {
   ACTIVE = 'ACTIVE',
@@ -14,5 +16,6 @@ export interface Enrollment {
   completedAt?: Date;
   progressPercent: number;
   status: EnrollmentStatus;
-  progress?: Progress[];
+  user?: User;
+  course?: Course;
 }

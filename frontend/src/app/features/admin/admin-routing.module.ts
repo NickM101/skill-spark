@@ -28,6 +28,14 @@ export const routes: Routes = [
           ),
         title: 'User Management',
       },
+      {
+        path: 'courses',
+        loadChildren: () =>
+          import('./modules/course-management/course-management').then(
+            (m) => m.CourseManagementModule
+          ),
+        title: 'Course Management',
+      },
     ],
   },
 ];

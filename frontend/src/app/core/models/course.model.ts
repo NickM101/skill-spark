@@ -29,4 +29,31 @@ export interface Course {
   lessons?: Lesson[];
   enrollments?: Enrollment[];
   quizzes?: Quiz[];
+  _count?: {
+    enrollments: number;
+    lessons: number;
+    quizzes: number;
+  };
+}
+
+
+export interface CourseFilters {
+  search?: string;
+  categoryId?: string;
+  level?: CourseLevel;
+  isPublished?: boolean;
+  instructorId?: string;
+  sortBy?: 'title' | 'createdAt' | 'updatedAt' | 'enrollments';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+export interface CourseStats {
+  totalCourses: number;
+  publishedCourses: number;
+  draftCourses: number;
+  totalEnrollments: number;
+  totalRevenue: number;
+  avgRating: number;
 }
