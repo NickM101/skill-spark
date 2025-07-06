@@ -1,0 +1,102 @@
+<div class="category-list-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="page-title">Category Management</h1>
+            <p class="page-subtitle">Manage and organize your course categories</p>
+        </div>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()" [disabled]="loading$ | async">
+            <mat-icon>add</mat-icon>
+            Create Category
+        </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-text">Loading categories...</p>
+    </div>
+
+    <!-- Categories Grid -->
+    <div *ngIf="!(loading$ | async)" class="categories-grid">
+        <ng-container *ngIf="((categories$ | async)?.length ?? 0) > 0; else emptyState">
+            <mat-card class="category-card" *ngFor="let category of categories$ | async; trackBy: trackByCategory">
+                <mat-card-header>
+                    <div class="category-icon">
+                        <mat-icon>category</mat-icon>
+                    </div>
+                    <div>
+                        <mat-card-title>{{ category.name }}</mat-card-title>
+                        <mat-card-subtitle>
+                            {{ getCourseCount(category) }} course{{ getCourseCount(category) !== 1 ? 's' : '' }}
+                        </mat-card-subtitle>
+                    </div>
+                    <button mat-icon-button [matMenuTriggerFor]="menu">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="openEditDialog(category)">
+                            <mat-icon>edit</mat-icon>
+                            Edit
+                        </button>
+                        <button mat-menu-item (click)="deleteCategory(category)"
+                            [disabled]="getCourseCount(category) > 0">
+                            <mat-icon>delete</mat-icon>
+                            Delete
+                        </button>
+                    </mat-menu>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <p *ngIf="category.description; else noDescription">
+                        {{ category.description }}
+                    </p>
+                    <ng-template #noDescription>
+                        <p class="text-muted">No description available.</p>
+                    </ng-template>
+
+                    <div class="category-stats">
+                        <div>
+                            <strong>Created:</strong>
+                            {{ category.createdAt | date: 'shortDate' }}
+                        </div>
+                        <div *ngIf="category.updatedAt !== category.createdAt">
+                            <strong>Updated:</strong>
+                            {{ category.updatedAt | date: 'shortDate' }}
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                    <button mat-button color="primary" (click)="openEditDialog(category)">
+                        <mat-icon>edit</mat-icon>
+                        Edit
+                    </button>
+                    <button mat-button color="warn" (click)="deleteCategory(category)"
+                        [disabled]="getCourseCount(category) > 0">
+                        <mat-icon>delete</mat-icon>
+                        Delete
+                    </button>
+                    <mat-icon *ngIf="getCourseCount(category) > 0"
+                        matTooltip="Cannot delete category with associated courses" class="warn-icon">
+                        warning
+                    </mat-icon>
+                </mat-card-actions>
+            </mat-card>
+        </ng-container>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+        <div class="empty-state">
+            <mat-icon class="empty-icon">category</mat-icon>
+            <h2>No Categories Found</h2>
+            <p>Start by creating your first category</p>
+            <button mat-raised-button color="primary" (click)="openCreateDialog()">
+                <mat-icon>add</mat-icon>
+                Create First Category
+            </button>
+        </div>
+    </ng-template>
+</div>
+  

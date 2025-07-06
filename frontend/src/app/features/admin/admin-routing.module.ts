@@ -36,6 +36,14 @@ export const routes: Routes = [
           ),
         title: 'Course Management',
       },
+      {
+        path: 'categories',
+        loadChildren: () =>
+          import('./modules/category-management/category-management').then(
+            (m) => m.CategoryManagementModule
+          ),
+        title: 'Category Management',
+      }
     ],
   },
 ];

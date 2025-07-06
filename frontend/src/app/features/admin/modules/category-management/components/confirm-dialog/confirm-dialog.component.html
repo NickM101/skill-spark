@@ -1,0 +1,27 @@
+<!-- src/app/shared/components/confirm-dialog/confirm-dialog.component.html -->
+
+<div class="confirm-dialog-container">
+    <!-- Dialog Header -->
+    <div class="dialog-header">
+        <h2 mat-dialog-title class="dialog-title">
+            <mat-icon class="title-icon">{{ data.confirmColor === 'warn' ? 'warning' : 'help_outline' }}</mat-icon>
+            {{ data.title }}
+        </h2>
+    </div>
+
+    <!-- Dialog Content -->
+    <div mat-dialog-content class="dialog-content">
+        <p class="dialog-message">{{ data.message }}</p>
+    </div>
+
+    <!-- Dialog Actions -->
+    <div mat-dialog-actions class="dialog-actions">
+        <button mat-button (click)="onCancel()" class="cancel-button">
+            {{ data.cancelText }}
+        </button>
+
+        <button mat-raised-button [color]="data.confirmColor" (click)="onConfirm()" class="confirm-button">
+            {{ data.confirmText }}
+        </button>
+    </div>
+    </div>
