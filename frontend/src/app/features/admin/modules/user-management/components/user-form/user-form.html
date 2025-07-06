@@ -1,0 +1,142 @@
+<!-- src/app/features/admin/modules/user-management/components/user-form/user-form.component.html -->
+
+<div class="user-form-dialog">
+    <div class="dialog-header">
+        <h2 mat-dialog-title>{{dialogTitle}}</h2>
+        <button mat-icon-button mat-dialog-close>
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <mat-dialog-content>
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form">
+
+            <!-- Personal Information -->
+            <div class="form-section">
+                <h3 class="section-title">Personal Information</h3>
+
+                <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>First Name</mat-label>
+                        <input matInput formControlName="firstName" placeholder="Enter first name">
+                        <mat-error *ngIf="hasFieldError('firstName')">
+                            {{getFieldError('firstName')}}
+                        </mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Last Name</mat-label>
+                        <input matInput formControlName="lastName" placeholder="Enter last name">
+                        <mat-error *ngIf="hasFieldError('lastName')">
+                            {{getFieldError('lastName')}}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Email Address</mat-label>
+                    <input matInput type="email" formControlName="email" placeholder="Enter email address">
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="hasFieldError('email')">
+                        {{getFieldError('email')}}
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Authentication (for new users only) -->
+            <div class="form-section" *ngIf="!isEdit">
+                <h3 class="section-title">Authentication</h3>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Password</mat-label>
+                    <input matInput type="password" formControlName="password" placeholder="Enter password">
+                    <mat-icon matSuffix>lock</mat-icon>
+                    <mat-error *ngIf="hasFieldError('password')">
+                        {{getFieldError('password')}}
+                    </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Confirm Password</mat-label>
+                    <input matInput type="password" formControlName="confirmPassword" placeholder="Confirm password">
+                    <mat-icon matSuffix>lock</mat-icon>
+                    <mat-error *ngIf="hasFieldError('confirmPassword')">
+                        {{getFieldError('confirmPassword')}}
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Role and Permissions -->
+            <div class="form-section">
+                <h3 class="section-title">Role & Permissions</h3>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                    <mat-label>Role</mat-label>
+                    <mat-select formControlName="role">
+                        <mat-option *ngFor="let role of roleOptions" [value]="role.value">
+                            <div class="role-option">
+                                <mat-icon>
+                                    {{role.value === 'ADMIN' ? 'admin_panel_settings' :
+                                    role.value === 'INSTRUCTOR' ? 'school' : 'person'}}
+                                </mat-icon>
+                                <span>{{role.label}}</span>
+                            </div>
+                        </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="hasFieldError('role')">
+                        {{getFieldError('role')}}
+                    </mat-error>
+                </mat-form-field>
+
+                <!-- Status Settings (for edit mode) -->
+                <div class="status-settings" *ngIf="isEdit">
+                    <div class="form-row">
+                        <mat-slide-toggle formControlName="isActive" class="status-toggle">
+                            <span class="toggle-label">
+                                <mat-icon>{{userForm.get('isActive')?.value ? 'check_circle' : 'cancel'}}</mat-icon>
+                                Account Active
+                            </span>
+                        </mat-slide-toggle>
+
+                        <mat-slide-toggle formControlName="isEmailVerified" class="status-toggle">
+                            <span class="toggle-label">
+                                <mat-icon>{{userForm.get('isEmailVerified')?.value ? 'verified' : 'warning'}}</mat-icon>
+                                Email Verified
+                            </span>
+                        </mat-slide-toggle>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Description -->
+            <div class="role-info" *ngIf="userForm.get('role')?.value">
+                <mat-card class="info-card">
+                    <mat-card-content>
+                        <div class="role-description">
+                            <mat-icon class="role-icon">
+                                {{userForm.get('role')?.value === 'ADMIN' ? 'admin_panel_settings' :
+                                userForm.get('role')?.value === 'INSTRUCTOR' ? 'school' : 'person'}}
+                            </mat-icon>
+                            <div class="role-details">
+                                <h4>{{getUserRoleLabel()}} Permissions</h4>
+                                <p>{{getUserRoleDescription()}}</p>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions class="dialog-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting">
+            Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" (click)="onSubmit()"
+            [disabled]="userForm.invalid || isSubmitting">
+            <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+            <span *ngIf="!isSubmitting">{{isEdit ? 'Update User' : 'Create User'}}</span>
+            <span *ngIf="isSubmitting">{{isEdit ? 'Updating...' : 'Creating...'}}</span>
+        </button>
+    </mat-dialog-actions>
+    </div>

@@ -1,0 +1,39 @@
+<!-- File: src/app/features/admin/components/admin-layout/admin-layout.component.html -->
+
+<div class="admin-layout">
+    <mat-sidenav-container class="sidenav-container" autosize>
+
+        <!-- Sidebar Navigation -->
+        <mat-sidenav #drawer class="sidenav" [class.collapsed]="!sidebarExpanded" fixedInViewport
+            [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'" [mode]="(isHandset$ | async) ? 'over' : 'side'"
+            [opened]="(isHandset$ | async) === false" (backdropClick)="onSidebarBackdropClick()">
+
+            <app-admin-sidebar [expanded]="sidebarExpanded" [activeRoute]="activeRoute"
+                [currentUser]="currentUser$ | async" [isHandset]="(isHandset$ | async) || false"
+                (toggleSidebar)="onSidebarToggle()">
+            </app-admin-sidebar>
+        </mat-sidenav>
+
+        <!-- Main Content Area -->
+        <mat-sidenav-content class="main-content">
+
+            <!-- Header -->
+            <app-admin-header [pageTitle]="pageTitle" [currentUser]="currentUser$ | async"
+                [isHandset]="(isHandset$ | async) || false" (menuClick)="onMenuClick()"
+                (searchSubmit)="onSearchSubmit($event)" (notificationsClick)="onNotificationsClick()"
+                (userMenuAction)="onUserMenuAction($event)">
+            </app-admin-header>
+
+            <!-- Page Content -->
+            <main class="page-content">
+                <div class="content-wrapper">
+                    <router-outlet></router-outlet>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <app-admin-footer></app-admin-footer>
+
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+    </div>

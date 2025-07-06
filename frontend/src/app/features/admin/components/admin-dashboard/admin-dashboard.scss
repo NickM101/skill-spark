@@ -1,0 +1,648 @@
+// File: src/app/features/admin/components/admin-dashboard/admin-dashboard.component.scss
+
+.admin-dashboard {
+  padding: 1.5rem;
+  min-height: 100vh;
+  background-color: var(--background-color);
+
+  // Dashboard Header
+  .dashboard-header {
+    margin-bottom: 2rem;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .header-info {
+      flex: 1;
+
+      .dashboard-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .dashboard-subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin: 0;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+  }
+
+  // Statistics Section
+  .stats-section {
+    margin-bottom: 3rem;
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .secondary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+
+      .stat-card {
+        .mat-mdc-card-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem;
+        }
+
+        .stat-info {
+          display: flex;
+          flex-direction: column;
+
+          .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+          }
+
+          .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+          }
+        }
+
+        .stat-percentage {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--primary-color);
+          background: rgba(245, 81, 8, 0.1);
+          padding: 0.25rem 0.5rem;
+          border-radius: 12px;
+        }
+      }
+    }
+  }
+
+  // Quick Actions Section
+  .quick-actions-section {
+    margin-bottom: 3rem;
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+
+      .action-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border: 2px solid transparent;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-medium);
+          border-color: var(--primary-color);
+        }
+
+        .mat-mdc-card-content {
+          text-align: center;
+          padding: 2rem 1rem;
+
+          mat-icon {
+            font-size: 2.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            margin-bottom: 1rem;
+
+            &.text-primary {
+              color: var(--primary-color);
+            }
+
+            &.text-accent {
+              color: var(--accent-color);
+            }
+
+            &.text-warn {
+              color: var(--warn-color);
+            }
+          }
+
+          h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+
+  // Recent Activity Section
+  .recent-activity-section {
+    margin-bottom: 3rem;
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1.5rem;
+
+      .activity-card {
+        height: fit-content;
+
+        .mat-mdc-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--divider-color);
+
+          .mat-mdc-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 500;
+
+            mat-icon {
+              color: var(--primary-color);
+            }
+          }
+
+          .card-actions {
+            button {
+              color: var(--text-secondary);
+
+              &:hover {
+                color: var(--primary-color);
+              }
+            }
+          }
+        }
+
+        .mat-mdc-card-content {
+          padding-top: 1rem;
+        }
+      }
+    }
+
+    // Loading State
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      gap: 1rem;
+
+      span {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+    }
+
+    // User List
+    .user-list {
+      .user-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--divider-color);
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .user-avatar {
+          mat-icon {
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
+            color: var(--text-secondary);
+          }
+        }
+
+        .user-info {
+          flex: 1;
+
+          .user-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+          }
+
+          .user-email {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+          }
+
+          .user-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+
+            .user-role {
+              font-size: 0.75rem;
+              padding: 0.25rem 0.5rem;
+              border-radius: 12px;
+              font-weight: 500;
+
+              &.role-admin {
+                background: rgba(244, 67, 54, 0.1);
+                color: var(--warn-color);
+              }
+
+              &.role-instructor {
+                background: rgba(255, 152, 0, 0.1);
+                color: var(--accent-color);
+              }
+
+              &.role-student {
+                background: rgba(76, 175, 80, 0.1);
+                color: var(--success-color);
+              }
+            }
+
+            .user-date {
+              font-size: 0.75rem;
+              color: var(--text-secondary);
+            }
+          }
+        }
+
+        .user-status {
+          mat-icon {
+            &.text-success {
+              color: var(--success-color);
+            }
+
+            &.text-warn {
+              color: var(--warn-color);
+            }
+          }
+        }
+      }
+    }
+
+    // Course List
+    .course-list {
+      .course-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--divider-color);
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .course-info {
+          flex: 1;
+
+          .course-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+          }
+
+          .course-instructor {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+          }
+
+          .course-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+
+            .course-category {
+              font-size: 0.75rem;
+              color: var(--text-secondary);
+            }
+
+            .course-level {
+              font-size: 0.75rem;
+              padding: 0.25rem 0.5rem;
+              border-radius: 12px;
+              font-weight: 500;
+
+              &.level-beginner {
+                background: rgba(76, 175, 80, 0.1);
+                color: var(--success-color);
+              }
+
+              &.level-intermediate {
+                background: rgba(255, 152, 0, 0.1);
+                color: var(--accent-color);
+              }
+
+              &.level-advanced {
+                background: rgba(244, 67, 54, 0.1);
+                color: var(--warn-color);
+              }
+            }
+          }
+        }
+
+        .course-stats {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+
+          .stat-item {
+            text-align: center;
+
+            .stat-value {
+              display: block;
+              font-weight: 600;
+              color: var(--text-primary);
+            }
+
+            .stat-label {
+              font-size: 0.75rem;
+              color: var(--text-secondary);
+            }
+          }
+
+          .course-status {
+            mat-icon {
+              &.text-success {
+                color: var(--success-color);
+              }
+
+              &.text-warn {
+                color: var(--warn-color);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Enrollment List
+    .enrollment-list {
+      .enrollment-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--divider-color);
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .enrollment-info {
+          flex: 1;
+
+          .student-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+          }
+
+          .course-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+          }
+
+          .enrollment-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+          }
+        }
+
+        .enrollment-progress {
+          min-width: 120px;
+          text-align: right;
+
+          .progress-info {
+            margin-bottom: 0.5rem;
+
+            .progress-text {
+              font-size: 0.875rem;
+              font-weight: 500;
+              color: var(--text-primary);
+            }
+          }
+
+          mat-progress-bar {
+            margin-bottom: 0.5rem;
+
+            &.progress-active {
+              --mdc-linear-progress-active-indicator-color: var(--primary-color);
+            }
+
+            &.progress-completed {
+              --mdc-linear-progress-active-indicator-color: var(--success-color);
+            }
+
+            &.progress-dropped {
+              --mdc-linear-progress-active-indicator-color: var(--warn-color);
+            }
+          }
+
+          .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+
+            &.status-active {
+              background: rgba(245, 81, 8, 0.1);
+              color: var(--primary-color);
+            }
+
+            &.status-completed {
+              background: rgba(76, 175, 80, 0.1);
+              color: var(--success-color);
+            }
+
+            &.status-dropped {
+              background: rgba(244, 67, 54, 0.1);
+              color: var(--warn-color);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // System Status Section
+  .system-status-section {
+    .status-card {
+      .mat-mdc-card-header {
+        .mat-mdc-card-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.25rem;
+          font-weight: 500;
+
+          mat-icon {
+            color: var(--primary-color);
+          }
+        }
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+
+        .status-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: var(--background-color);
+          border-radius: var(--border-radius);
+          border: 1px solid var(--divider-color);
+
+          mat-icon {
+            &.text-success {
+              color: var(--success-color);
+            }
+
+            &.text-warn {
+              color: var(--warn-color);
+            }
+
+            &.text-error {
+              color: var(--warn-color);
+            }
+          }
+
+          .status-label {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+          }
+
+          .status-value {
+            font-size: 0.875rem;
+            font-weight: 500;
+
+            &.text-success {
+              color: var(--success-color);
+            }
+
+            &.text-warn {
+              color: var(--warn-color);
+            }
+
+            &.text-error {
+              color: var(--warn-color);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 768px) {
+    padding: 1rem;
+
+    .dashboard-header {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .dashboard-title {
+        font-size: 1.5rem;
+      }
+    }
+
+    .stats-section {
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .secondary-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+    }
+
+    .quick-actions-section {
+      .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+
+        .action-card {
+          .mat-mdc-card-content {
+            padding: 1.5rem 1rem;
+
+            mat-icon {
+              font-size: 2rem;
+              width: 2rem;
+              height: 2rem;
+            }
+
+            h3 {
+              font-size: 0.875rem;
+            }
+          }
+        }
+      }
+    }
+
+    .recent-activity-section {
+      .activity-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .enrollment-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+
+        .enrollment-progress {
+          width: 100%;
+          text-align: left;
+        }
+      }
+    }
+
+    .system-status-section {
+      .status-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .secondary-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

@@ -7,26 +7,6 @@
         </p>
     </div>
 
-    <!-- Social Registration -->
-    <div class="social-login">
-        <button type="button" class="social-btn google-btn" (click)="registerWithGoogle()">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
-            <span>Sign up with Google</span>
-        </button>
-
-        <button type="button" class="social-btn github-btn" (click)="registerWithGithub()">
-            <mat-icon>code</mat-icon>
-            <span>Sign up with GitHub</span>
-        </button>
-    </div>
-
-    <!-- Divider -->
-    <div class="divider">
-        <mat-divider></mat-divider>
-        <span class="divider-text">or</span>
-        <mat-divider></mat-divider>
-    </div>
-
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
         <!-- Personal Information -->
@@ -75,7 +55,18 @@
             <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Role</mat-label>
                 <mat-select formControlName="role">
-                    <mat-option value="student">
+                    <mat-select-trigger>
+                        <mat-icon class="role-icon">
+                            {{
+                            registerForm.get('role')?.value === 'student' ? 'school' :
+                            registerForm.get('role')?.value === 'instructor' ? 'person' : ''
+                            }}
+                        </mat-icon>
+                        {{ registerForm.get('role')?.value === 'student' ? 'Student' :
+                        registerForm.get('role')?.value === 'instructor' ? 'Instructor' : '' }}
+                    </mat-select-trigger>
+            
+                    <mat-option [value]="'student'">
                         <div class="role-option">
                             <mat-icon>school</mat-icon>
                             <div>
@@ -84,23 +75,23 @@
                             </div>
                         </div>
                     </mat-option>
-                    <mat-option value="instructor">
+            
+                    <mat-option [value]="'instructor'">
                         <div class="role-option">
                             <mat-icon>person</mat-icon>
                             <div>
                                 <div class="role-name">Instructor</div>
-                                <div class="role-desc">
-                                    I want to teach and share knowledge
-                                </div>
+                                <div class="role-desc">I want to teach and share knowledge</div>
                             </div>
                         </div>
                     </mat-option>
                 </mat-select>
-                @if (registerForm.get('role')?.invalid &&
-                registerForm.get('role')?.touched) {
-                <mat-error>Please select your role</mat-error>
-                }
+            
+                <mat-error *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
+                    Please select your role
+                </mat-error>
             </mat-form-field>
+              
         </div>
 
         <!-- Security -->

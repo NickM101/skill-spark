@@ -5,25 +5,6 @@
         <p class="form-subtitle">Sign in to continue your learning journey</p>
     </div>
 
-    <!-- Social Login -->
-    <div class="social-login">
-        <button type="button" class="social-btn google-btn" (click)="loginWithGoogle()">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" />
-            <span>Continue with Google</span>
-        </button>
-
-        <button type="button" class="social-btn github-btn" (click)="loginWithGithub()">
-            <mat-icon>code</mat-icon>
-            <span>Continue with GitHub</span>
-        </button>
-    </div>
-
-    <!-- Divider -->
-    <div class="divider">
-        <mat-divider></mat-divider>
-        <span class="divider-text">or</span>
-        <mat-divider></mat-divider>
-    </div>
 
     <!-- Login Form -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">

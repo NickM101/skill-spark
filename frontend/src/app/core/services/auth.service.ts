@@ -1,6 +1,7 @@
 // src/app/core/services/auth.service.ts
 
 import { Injectable } from '@angular/core';
+import { User, Role } from '@core/models/user.model';
 import {
   Observable,
   BehaviorSubject,
@@ -10,7 +11,6 @@ import {
   catchError,
   throwError,
 } from 'rxjs';
-import { User } from '../models/course.model';
 
 export interface LoginCredentials {
   email: string;
@@ -41,33 +41,36 @@ export class AuthService {
       email: 'student@example.com',
       firstName: 'John',
       lastName: 'Doe',
-      role: 'STUDENT',
+      role: Role.STUDENT,
       isEmailVerified: true,
       isActive: true,
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
+      password: ''
     },
     {
       id: '2',
       email: 'instructor@example.com',
       firstName: 'Jane',
       lastName: 'Smith',
-      role: 'INSTRUCTOR',
+      role: Role.INSTRUCTOR,
       isEmailVerified: true,
       isActive: true,
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
+      password: ''
     },
     {
       id: '3',
       email: 'admin@example.com',
       firstName: 'Admin',
       lastName: 'User',
-      role: 'ADMIN',
+      role: Role.ADMIN,
       isEmailVerified: true,
       isActive: true,
       createdAt: new Date('2024-01-01'),
       updatedAt: new Date('2024-01-01'),
+      password: ''
     },
   ];
 
@@ -140,11 +143,12 @@ export class AuthService {
           email: userData.email,
           firstName: userData.firstName,
           lastName: userData.lastName,
-          role: userData.role || 'STUDENT',
+          role: Role.STUDENT,
           isEmailVerified: false,
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
+          password: ''
         };
 
         // Add to mock users

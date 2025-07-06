@@ -1,0 +1,62 @@
+<!-- File: src/app/features/admin/components/admin-sidebar/admin-sidebar.component.html -->
+
+<div class="sidenav-content" [class.collapsed]="!expanded">
+    <!-- Logo/Header -->
+    <div class="sidenav-header">
+        <div class="logo-container" [class.collapsed]="!expanded">
+            <mat-icon class="logo-icon">school</mat-icon>
+            <span class="logo-text" *ngIf="expanded">LearnHub Admin</span>
+        </div>
+        <button mat-icon-button class="sidebar-toggle" (click)="onToggleSidebar()" *ngIf="!isHandset"
+            [matTooltip]="expanded ? 'Collapse' : 'Expand'">
+            <mat-icon>{{ expanded ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+        </button>
+    </div>
+
+    <!-- User Info -->
+    <div class="user-info" *ngIf="currentUser" [class.collapsed]="!expanded">
+        <div class="user-avatar">
+            <mat-icon>account_circle</mat-icon>
+        </div>
+        <div class="user-details" *ngIf="expanded">
+            <div class="user-name">{{ formatUserName(currentUser) }}</div>
+            <div class="user-role">{{ currentUser.role }}</div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="navigation-menu">
+        <div class="nav-section">
+            <div class="nav-section-title" *ngIf="expanded">Main</div>
+            <div class="nav-items">
+                <a *ngFor="let item of navigationItems" class="nav-item" [class.active]="isRouteActive(item.route)"
+                    [routerLink]="item.route" [matTooltip]="!expanded ? item.title : ''" matTooltipPosition="right">
+
+                    <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                    <span class="nav-label" *ngIf="expanded">{{ item.title }}</span>
+                    <span class="nav-badge" *ngIf="expanded && getBadgeCount(item.route)">
+                        {{ getBadgeCount(item.route) }}
+                    </span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions" *ngIf="expanded">
+        <div class="quick-actions-title">Quick Actions</div>
+        <div class="quick-actions-grid">
+            <button *ngFor="let action of quickActions" mat-mini-fab [matTooltip]="action.title"
+                (click)="onQuickAction(action)" class="quick-action-btn">
+                <mat-icon>{{ action.icon }}</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidenav-footer" *ngIf="expanded">
+        <div class="version-info">
+            <span class="version-label">Version 1.0.0</span>
+        </div>
+    </div>
+    </div>
