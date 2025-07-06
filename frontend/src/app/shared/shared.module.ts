@@ -19,10 +19,15 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 
 @NgModule({
   declarations: [],
-  imports: [],
+  imports: [MatButtonToggleGroup, MatTabGroup],
   exports: [
     CommonModule,
     ReactiveFormsModule,
@@ -40,7 +45,14 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
+    MatProgressBarModule,
     MatCheckboxModule,
+    MatButtonToggleModule,
+    MatButtonToggleGroup,
+    MatOptionModule,
+    MatDividerModule,
+    MatTabsModule,
+    MatTabGroup,
   ],
 })
 export class SharedModule {}

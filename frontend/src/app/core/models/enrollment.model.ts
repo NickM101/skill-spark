@@ -16,6 +16,8 @@ export interface Enrollment {
   completedAt?: Date;
   progressPercent: number;
   status: EnrollmentStatus;
+  // Relations
   user?: User;
   course?: Course;
+  progress?: Progress[];
 }

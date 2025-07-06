@@ -19,4 +19,11 @@ export interface Lesson {
   createdAt: Date;
   updatedAt: Date;
   progress?: Progress[];
+
+  // Progress tracking (populated at runtime)
+  isCompleted?: boolean;
+  completedAt?: Date;
+  lastAccessedAt?: Date;
+  timeSpent?: number; // in seconds
+  position?: number; // for video time or PDF page tracking
 }

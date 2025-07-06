@@ -40,10 +40,12 @@ export interface Course {
 export interface CourseFilters {
   search?: string;
   categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
   level?: CourseLevel;
   isPublished?: boolean;
   instructorId?: string;
-  sortBy?: 'title' | 'createdAt' | 'updatedAt' | 'enrollments';
+  sortBy?: 'title' | 'price' | 'createdAt' | 'level' | 'updatedAt' | 'enrollments';
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
@@ -56,4 +58,11 @@ export interface CourseStats {
   totalEnrollments: number;
   totalRevenue: number;
   avgRating: number;
+}
+
+export interface CourseResponse {
+  courses: Course[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
 }

@@ -1,4 +1,6 @@
 import { Answer } from './answer.model';
+import { Quiz } from './quiz.model';
+import { User } from './user.model';
 
 export enum AttemptStatus {
   IN_PROGRESS = 'IN_PROGRESS',
@@ -16,5 +18,8 @@ export interface QuizAttempt {
   startedAt: Date;
   submittedAt?: Date;
   status: AttemptStatus;
+  // Relations
+  user?: User;
+  quiz?: Quiz;
   answers?: Answer[];
 }

@@ -1,0 +1,391 @@
+<!-- src/app/features/public/courses/components/course-detail/course-detail.component.html -->
+
+<div class="course-detail-container" *ngIf="!isLoading && course">
+    <!-- Hero Section -->
+    <div class="course-hero">
+        <div class="hero-background">
+            <img [src]="course.thumbnail || 'https://via.placeholder.com/1200x400/f55108/FFFFFF?text=Course'"
+                [alt]="course.title" class="hero-image">
+            <div class="hero-overlay"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="breadcrumb">
+                <button mat-button class="back-button" (click)="onBackToCourses()">
+                    <mat-icon>arrow_back</mat-icon>
+                    Back to Courses
+                </button>
+            </div>
+
+            <div class="hero-info">
+                <div class="course-badges">
+                    <span class="category-badge">
+                        <mat-icon>{{ getCategoryIcon() }}</mat-icon>
+                        {{ course.category?.name || 'Uncategorized' }}
+                    </span>
+
+                    <span class="level-badge" [ngClass]="'level-' + course.level.toLowerCase()">
+                        <mat-icon>{{ getLevelIcon(course.level) }}</mat-icon>
+                        {{ course.level }}
+                    </span>
+                </div>
+
+                <h1 class="course-title">{{ course.title }}</h1>
+
+                <p class="course-description">{{ course.description }}</p>
+
+                <div class="course-meta">
+                    <div class="meta-item">
+                        <mat-icon>person</mat-icon>
+                        <span>{{ getInstructorName() }}</span>
+                    </div>
+
+                    <div class="meta-item">
+                        <mat-icon>play_circle</mat-icon>
+                        <span>{{ getLessonCount() }} lessons</span>
+                    </div>
+
+                    <div class="meta-item">
+                        <mat-icon>schedule</mat-icon>
+                        <span>{{ getEstimatedDuration() }}</span>
+                    </div>
+
+                    <div class="meta-item">
+                        <mat-icon>attach_money</mat-icon>
+                        <span>{{ formatPrice(course.price) }}</span>
+                    </div>
+                </div>
+
+                <!-- Progress Bar (if enrolled) -->
+                <div class="progress-section" *ngIf="isEnrolled">
+                    <div class="progress-info">
+                        <span class="progress-label">Your Progress</span>
+                        <span class="progress-percentage">{{ progress }}%</span>
+                    </div>
+                    <mat-progress-bar mode="determinate" [value]="progress" class="progress-bar"></mat-progress-bar>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="hero-actions">
+                    <ng-container *ngIf="!isEnrolled; else enrolledActions">
+                        <button mat-raised-button color="primary" size="large" class="enroll-button"
+                            (click)="onEnrollClick()">
+                            <mat-icon>add_circle</mat-icon>
+                            Enroll Now
+                        </button>
+                    </ng-container>
+
+                    <ng-template #enrolledActions>
+                        <button mat-raised-button color="accent" size="large" class="continue-button"
+                            (click)="onContinueClick()">
+                            <mat-icon>play_arrow</mat-icon>
+                            Continue Learning
+                        </button>
+                    </ng-template>
+
+                    <!-- Share Menu -->
+                    <button mat-button [matMenuTriggerFor]="shareMenu" class="share-button">
+                        <mat-icon>share</mat-icon>
+                        Share
+                    </button>
+
+                    <mat-menu #shareMenu="matMenu">
+                        <button mat-menu-item (click)="shareOnSocial('twitter')">
+                            <mat-icon>share</mat-icon>
+                            Share on Twitter
+                        </button>
+                        <button mat-menu-item (click)="shareOnSocial('facebook')">
+                            <mat-icon>share</mat-icon>
+                            Share on Facebook
+                        </button>
+                        <button mat-menu-item (click)="shareOnSocial('linkedin')">
+                            <mat-icon>share</mat-icon>
+                            Share on LinkedIn
+                        </button>
+                        <mat-divider></mat-divider>
+                        <button mat-menu-item (click)="copyLink()">
+                            <mat-icon>link</mat-icon>
+                            Copy Link
+                        </button>
+                    </mat-menu>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Content Tabs -->
+    <div class="course-content">
+        <div class="content-container">
+            <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)">
+
+                <!-- Curriculum Tab -->
+                <mat-tab label="Curriculum">
+                    <div class="tab-content curriculum-tab">
+                        <div class="curriculum-header">
+                            <h3>Course Curriculum</h3>
+                            <p>{{ getLessonCount() }} lessons • {{ getEstimatedDuration() }}</p>
+                        </div>
+
+                        <div class="lessons-list" *ngIf="course.lessons && course.lessons.length > 0; else noLessons">
+                            <div class="lesson-item" *ngFor="let lesson of course.lessons; let i = index"
+                                [class.locked]="!isEnrolled">
+
+                                <div class="lesson-info">
+                                    <div class="lesson-header">
+                                        <div class="lesson-number">{{ i + 1 }}</div>
+                                        <div class="lesson-icon">
+                                            <mat-icon>{{ getLessonIcon(lesson.type) }}</mat-icon>
+                                        </div>
+                                        <div class="lesson-details">
+                                            <h4 class="lesson-title">{{ lesson.title }}</h4>
+                                            <div class="lesson-meta">
+                                                <span class="lesson-type">{{ lesson.type }}</span>
+                                                <span class="lesson-duration">~15 min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="lesson-description" *ngIf="lesson.content">
+                                        {{ lesson.content }}
+                                    </div>
+                                </div>
+
+                                <div class="lesson-actions">
+                                    <ng-container *ngIf="isEnrolled; else lockedLesson">
+                                        <button mat-button color="primary" (click)="onStartLessonClick(lesson)">
+                                            <mat-icon>play_arrow</mat-icon>
+                                            Start Lesson
+                                        </button>
+                                    </ng-container>
+
+                                    <ng-template #lockedLesson>
+                                        <mat-icon class="locked-icon"
+                                            matTooltip="Enroll to access this lesson">lock</mat-icon>
+                                    </ng-template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ng-template #noLessons>
+                            <div class="no-lessons">
+                                <mat-icon>school</mat-icon>
+                                <h4>No lessons available yet</h4>
+                                <p>The instructor is still preparing the course content.</p>
+                            </div>
+                        </ng-template>
+                    </div>
+                </mat-tab>
+
+                <!-- Overview Tab -->
+                <mat-tab label="Overview">
+                    <div class="tab-content overview-tab">
+                        <div class="overview-section">
+                            <h3>About This Course</h3>
+                            <p class="course-overview">{{ course.description }}</p>
+                        </div>
+
+                        <div class="overview-section">
+                            <h3>What You'll Learn</h3>
+                            <ul class="learning-objectives">
+                                <li>Master the fundamentals of {{ course.title.split(' ')[0] }}</li>
+                                <li>Build practical projects to reinforce your learning</li>
+                                <li>Understand best practices and industry standards</li>
+                                <li>Get hands-on experience with real-world examples</li>
+                            </ul>
+                        </div>
+
+                        <div class="overview-section">
+                            <h3>Prerequisites</h3>
+                            <p class="prerequisites">
+                                <ng-container [ngSwitch]="course.level">
+                                    <span *ngSwitchCase="CourseLevelEnum.BEGINNER">
+                                        No prior experience required. This course is perfect for beginners!
+                                    </span>
+                                    <span *ngSwitchCase="CourseLevelEnum.INTERMEDIATE">
+                                        Basic understanding of the subject matter is recommended.
+                                    </span>
+                                    <span *ngSwitchCase="CourseLevelEnum.ADVANCED">
+                                        Strong foundation in the subject area and some practical experience required.
+                                    </span>
+                                </ng-container>
+                            </p>
+                        </div>
+
+                        <div class="overview-section">
+                            <h3>Course Details</h3>
+                            <div class="course-details">
+                                <div class="detail-item">
+                                    <strong>Level:</strong> {{ course.level }}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Category:</strong> {{ course.category?.name || 'Uncategorized' }}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Duration:</strong> {{ getEstimatedDuration() }}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Lessons:</strong> {{ getLessonCount() }}
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Price:</strong> {{ formatPrice(course.price) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Instructor Tab -->
+                <mat-tab label="Instructor">
+                    <div class="tab-content instructor-tab">
+                        <div class="instructor-info" *ngIf="course.instructor">
+                            <div class="instructor-header">
+                                <div class="instructor-avatar">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                                <div class="instructor-details">
+                                    <h3>{{ getInstructorName() }}</h3>
+                                    <p class="instructor-title">Course Instructor</p>
+                                    <p class="instructor-email">{{ course.instructor.email }}</p>
+                                </div>
+                            </div>
+
+                            <div class="instructor-bio">
+                                <h4>About the Instructor</h4>
+                                <p>
+                                    {{ getInstructorName() }} is an experienced educator with expertise in
+                                    {{ course.category?.name || 'this field' }}. They bring practical knowledge
+                                    and industry experience to help students learn effectively.
+                                </p>
+                            </div>
+
+                            <div class="instructor-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">1</div>
+                                    <div class="stat-label">Course</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">4.8</div>
+                                    <div class="stat-label">Rating</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ course.instructor.role === 'INSTRUCTOR' ? 'Verified' :
+                                        'New' }}</div>
+                                    <div class="stat-label">Status</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="no-instructor" *ngIf="!course.instructor">
+                            <mat-icon>person_off</mat-icon>
+                            <h4>Instructor information not available</h4>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Reviews Tab -->
+                <mat-tab label="Reviews">
+                    <div class="tab-content reviews-tab">
+                        <div class="reviews-summary">
+                            <div class="rating-overview">
+                                <div class="overall-rating">
+                                    <span class="rating-number">4.8</span>
+                                    <div class="rating-stars">
+                                        <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                                            [class.filled]="star <= 4.8">star</mat-icon>
+                                    </div>
+                                    <span class="rating-count">(24 reviews)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reviews-list">
+                            <!-- Sample reviews -->
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">
+                                            <mat-icon>person</mat-icon>
+                                        </div>
+                                        <div class="reviewer-details">
+                                            <h5>Sarah Johnson</h5>
+                                            <div class="review-rating">
+                                                <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                                                    [class.filled]="star <= 5">star</mat-icon>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2 weeks ago</span>
+                                </div>
+                                <p class="review-text">
+                                    Excellent course! The instructor explains concepts clearly and the practical
+                                    examples really helped me understand the material. Highly recommended!
+                                </p>
+                            </div>
+
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">
+                                            <mat-icon>person</mat-icon>
+                                        </div>
+                                        <div class="reviewer-details">
+                                            <h5>Mike Chen</h5>
+                                            <div class="review-rating">
+                                                <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                                                    [class.filled]="star <= 4">star</mat-icon>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">1 month ago</span>
+                                </div>
+                                <p class="review-text">
+                                    Great content and well-structured lessons. I learned a lot and can apply
+                                    the knowledge immediately in my work projects.
+                                </p>
+                            </div>
+
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">
+                                            <mat-icon>person</mat-icon>
+                                        </div>
+                                        <div class="reviewer-details">
+                                            <h5>Emma Wilson</h5>
+                                            <div class="review-rating">
+                                                <mat-icon *ngFor="let star of [1,2,3,4,5]"
+                                                    [class.filled]="star <= 5">star</mat-icon>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2 months ago</span>
+                                </div>
+                                <p class="review-text">
+                                    Perfect for beginners! The step-by-step approach made it easy to follow along.
+                                    Looking forward to more courses from this instructor.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="add-review" *ngIf="isEnrolled">
+                            <h4>Write a Review</h4>
+                            <p>Share your experience with other students</p>
+                            <button mat-raised-button color="primary">
+                                <mat-icon>rate_review</mat-icon>
+                                Write Review
+                            </button>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+    </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="isLoading">
+    <div class="loading-content">
+        <mat-progress-spinner diameter="60" mode="indeterminate"></mat-progress-spinner>
+        <p>Loading course details...</p>
+    </div>
+    </div>

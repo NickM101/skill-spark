@@ -1,3 +1,4 @@
+import { Course } from './course.model';
 import { Question } from './question.model';
 import { QuizAttempt } from './quiz-attempt.model';
 
@@ -11,6 +12,8 @@ export interface Quiz {
   isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // Relations
+  course?: Course;
   questions?: Question[];
   attempts?: QuizAttempt[];
 }

@@ -1,3 +1,6 @@
+import { Question } from "./question.model";
+import { QuizAttempt } from "./quiz-attempt.model";
+
 export interface Answer {
   id: string;
   questionId: string;
@@ -6,4 +9,7 @@ export interface Answer {
   isCorrect?: boolean;
   pointsEarned: number;
   createdAt: Date;
+  // Relations
+  question?: Question;
+  attempt?: QuizAttempt;
 }

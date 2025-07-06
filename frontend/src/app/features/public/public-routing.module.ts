@@ -20,12 +20,12 @@ const routes: Routes = [
         data: { title: 'Dashboard' },
       },
       // Lazy load other admin modules
-      // {
-      //   path: 'courses',
-      //   loadChildren: () =>
-      //     import('./courses/courses.module').then((m) => m.CoursesModule),
-      //   data: { title: 'Courses Management' },
-      // },
+      {
+        path: 'courses',
+        loadChildren: () =>
+          import('./courses/courses.module').then((m) => m.CoursesModule),
+        data: { title: 'Courses' },
+      },
     ],
   },
 ];

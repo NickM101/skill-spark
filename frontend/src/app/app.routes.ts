@@ -1,9 +1,12 @@
+
+// src/app/app.routes.ts
+
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () =>
+    loadChildren: () =>
       import('./features/public/public.module').then((m) => m.PublicModule),
   },
   {

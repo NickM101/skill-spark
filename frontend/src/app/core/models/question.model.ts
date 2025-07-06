@@ -1,4 +1,5 @@
 import { Answer } from './answer.model';
+import { Quiz } from './quiz.model';
 
 export enum QuestionType {
   MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
@@ -16,5 +17,7 @@ export interface Question {
   orderIndex: number;
   createdAt: Date;
   updatedAt: Date;
+  // Relations
+  quiz?: Quiz;
   answers?: Answer[];
 }
