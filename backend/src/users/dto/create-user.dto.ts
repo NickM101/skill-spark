@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsEmail,
   IsNotEmpty,
   IsString,
   MinLength,
   MaxLength,
-  Matches,
+  IsOptional,
+  IsDate,
+  IsBoolean,
+  IsEnum,
 } from 'class-validator';
 import { Role } from '../../../generated/prisma';
 
@@ -29,15 +31,22 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(8)
-  @MaxLength(32)
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message:
-      'Password must contain uppercase, lowercase, and numbers/special characters',
-  })
+  @MaxLength(128)
   password: string;
 
+  @IsOptional()
+  @IsEnum(Role)
   role?: Role;
+
+  @IsOptional()
+  @IsString()
   verificationCode?: string;
+
+  @IsOptional()
+  @IsDate()
   verificationExpires?: Date;
-  isVerified: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isEmailVerified: boolean;
 }

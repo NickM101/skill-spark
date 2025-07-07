@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Injectable,
   NotFoundException,
@@ -16,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserWithoutPassword } from './interfaces/user.interface';
 
 @Injectable()
 export class UsersService {
@@ -34,20 +32,17 @@ export class UsersService {
       throw new ConflictException('Email is already in use');
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
-    // Create the user
+    // Create the user (password should already be hashed when passed in)
     return this.prisma.user.create({
       data: {
         firstName: createUserDto.firstName,
         lastName: createUserDto.lastName,
         email: createUserDto.email,
-        password: hashedPassword,
+        password: createUserDto.password,
         role: createUserDto.role || 'STUDENT',
         verificationCode: createUserDto.verificationCode,
-        isEmailVerified: createUserDto.isVerified || false,
+        verificationExpires: createUserDto.verificationExpires,
+        isEmailVerified: createUserDto.isEmailVerified || false,
       },
       select: {
         id: true,
@@ -75,7 +70,7 @@ export class UsersService {
   /**
    * Find a user by ID
    */
-  async findById(id: string) {
+  async findById(id: string): Promise<UserWithoutPassword> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -86,8 +81,8 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         isActive: true,
-        profilePhotoUrl: true, // Include profile photo URL
-        profilePhotoId: true, // Include for internal use
+        profilePhotoUrl: true,
+        profilePhotoId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -105,7 +100,12 @@ export class UsersService {
    */
   findByVerificationToken(token: string) {
     return this.prisma.user.findFirst({
-      where: { verificationCode: token },
+      where: {
+        verificationCode: token,
+        verificationExpires: {
+          gt: new Date(),
+        },
+      },
     });
   }
 
@@ -267,7 +267,7 @@ export class UsersService {
   }
 
   /**
-   * Mark email as verified
+   * Mark email as verified and clear verification fields
    */
   markEmailAsVerified(id: string) {
     return this.prisma.user.update({
@@ -275,6 +275,7 @@ export class UsersService {
       data: {
         isEmailVerified: true,
         verificationCode: null,
+        verificationExpires: null,
       },
     });
   }
@@ -441,9 +442,78 @@ export class UsersService {
     // Check if user exists
     await this.findById(id);
 
-    // Delete the user
-    await this.prisma.user.delete({
-      where: { id },
+    // Use transaction to ensure all related data is deleted properly
+    await this.prisma.$transaction(async (prisma) => {
+      // Delete all related refresh tokens first
+      await prisma.refreshToken.deleteMany({
+        where: { userId: id },
+      });
+
+      // Delete all related progress records
+      await prisma.progress.deleteMany({
+        where: { userId: id },
+      });
+
+      // Delete all related quiz attempts and their answers
+      const quizAttempts = await prisma.quizAttempt.findMany({
+        where: { userId: id },
+        select: { id: true },
+      });
+
+      if (quizAttempts.length > 0) {
+        // Delete answers for all quiz attempts
+        await prisma.answer.deleteMany({
+          where: {
+            attemptId: {
+              in: quizAttempts.map((attempt) => attempt.id),
+            },
+          },
+        });
+
+        // Delete quiz attempts
+        await prisma.quizAttempt.deleteMany({
+          where: { userId: id },
+        });
+      }
+
+      // Delete all enrollments
+      await prisma.enrollment.deleteMany({
+        where: { userId: id },
+      });
+
+      // For instructors: Handle courses they've created
+      const userCourses = await prisma.course.findMany({
+        where: { instructorId: id },
+        select: { id: true },
+      });
+
+      if (userCourses.length > 0) {
+        throw new BadRequestException(
+          'Cannot delete user with existing courses. Please reassign or delete courses first.',
+        );
+      }
+
+      // Delete the user's profile photo from Cloudinary if exists
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: { profilePhotoId: true },
+      });
+
+      if (user?.profilePhotoId) {
+        try {
+          await this.cloudinaryService.deleteFile(user.profilePhotoId);
+        } catch (error) {
+          console.error(
+            'Failed to delete profile photo from Cloudinary:',
+            error,
+          );
+        }
+      }
+
+      // Finally, delete the user
+      await prisma.user.delete({
+        where: { id },
+      });
     });
 
     return { message: 'User deleted successfully' };

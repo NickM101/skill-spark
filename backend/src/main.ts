@@ -7,8 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const apiResponseService = app.get(ApiResponseService);
+  app.enableCors({
+    origin: 'https://a6bb-197-136-183-18.ngrok-free.app',
+  });
   app.useGlobalFilters(new HttpExceptionFilter(apiResponseService));
 
   await app.listen(3000);
 }
-bootstrap();
+void bootstrap();

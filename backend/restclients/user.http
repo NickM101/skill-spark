@@ -2,8 +2,8 @@
 @contentType = application/json
 
 ### Variables - Run the login request in auth.http first
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NWI5MjFmOS03NDI1LTRhNTQtYTFjNC0xM2NiNzdkYjQ3YTYiLCJlbWFpbCI6Im1lbGxpc2F3YW5qYTI1NEBnbWFpbC5jb20iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc1MTczODA2OSwiZXhwIjoxNzUxNzQxNjY5fQ._SdU9WUysKmgs_cOJ9GPcJkY3hi-fsmpemcg39cvAU4
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGViNWJmZi05ZmJhLTRjNWItOTI4MC0wMzIyMDE4MzM3ZGEiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxNzM2NDMwLCJleHAiOjE3NTE3NDAwMzB9.9tkry6L7aKtbKa1K8HVjMkCzxkbUWG5f-8wdi3df2gw
+@userToken = 
+@adminToken = 
 ### Get current user profile
 GET {{baseUrl}}/users/profile/me
 Authorization: Bearer {{userToken}}
@@ -47,5 +47,5 @@ GET {{baseUrl}}/users?page=1&limit=10
 Authorization: Bearer {{adminToken}}
 
 ### Delete user (admin only)
-DELETE {{baseUrl}}/users/6b2134e1-81c8-4331-9025-11351f5dbcbf
+DELETE {{baseUrl}}/users/19e24192-5aef-4938-8020-a9bb79ad9952
 Authorization: Bearer {{adminToken}}
