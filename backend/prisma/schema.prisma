@@ -1,0 +1,256 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              Role     @default(STUDENT)
+  isEmailVerified   Boolean  @default(false)
+  isActive          Boolean  @default(true)
+  verificationCode  String?  
+  verificationExpires DateTime? 
+  passwordResetCode String?  
+  passwordResetExpires DateTime?
+  profilePhotoId    String?
+  profilePhotoUrl   String? 
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  instructorCourses Course[]     @relation("CourseInstructor")
+  enrollments      Enrollment[]
+  quizAttempts     QuizAttempt[]
+  progressRecords  Progress[]
+  refreshTokens    RefreshToken []
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+model Course {
+  id               String      @id @default(uuid())
+  title            String
+  description      String?
+  thumbnail        String?
+  price            Decimal?    @db.Decimal(10, 2)
+  level            CourseLevel @default(BEGINNER)
+  isPublished      Boolean     @default(false)
+  categoryId       String
+  instructorId     String?     
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relations
+  category         Category    @relation(fields: [categoryId], references: [id])
+  instructor       User?       @relation("CourseInstructor", fields: [instructorId], references: [id]) 
+  lessons          Lesson[]
+  quizzes          Quiz[]
+  enrollments      Enrollment[]
+
+  @@index([categoryId])
+  @@index([instructorId])
+  @@index([isPublished])
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses     Course[]
+
+  @@map("categories")
+}
+
+// Simplified Content Management - MVP (No modules, direct lessons)
+model Lesson {
+  id          String      @id @default(uuid())
+  title       String
+  content     String?
+  type        LessonType  @default(TEXT)
+  videoUrl    String?
+  fileUrl     String?
+  orderIndex  Int
+  courseId    String
+  isPublished Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relationships
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress    Progress[]
+
+  @@map("lessons")
+}
+
+enum LessonType {
+  TEXT
+  VIDEO
+  PDF
+}
+
+// Essential Enrollment & Progress - MVP
+model Enrollment {
+  id               String            @id @default(uuid())
+  userId           String
+  courseId         String
+  enrolledAt       DateTime          @default(now())
+  completedAt      DateTime?
+  progressPercent  Float             @default(0)
+  status           EnrollmentStatus  @default(ACTIVE)
+
+  // Relationships
+  user             User              @relation(fields: [userId], references: [id])
+  course           Course            @relation(fields: [courseId], references: [id])
+  progress         Progress[]
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+}
+
+model Progress {
+  id              String     @id @default(uuid())
+  userId          String
+  courseId        String
+  lessonId        String
+  enrollmentId    String
+  isCompleted     Boolean    @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relationships
+  user            User       @relation(fields: [userId], references: [id])
+  lesson          Lesson     @relation(fields: [lessonId], references: [id])
+  enrollment      Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  @@unique([userId, lessonId])
+  @@map("progress")
+}
+
+// Basic Quiz System - MVP
+model Quiz {
+  id              String        @id @default(uuid())
+  title           String
+  description     String?
+  courseId        String
+  timeLimit       Int?          // in minutes
+  passingScore    Int           @default(70)
+  isPublished     Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relationships
+  course          Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions       Question[]
+  attempts        QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model Question {
+  id              String        @id @default(uuid())
+  quizId          String
+  question        String
+  type            QuestionType  @default(MULTIPLE_CHOICE)
+  options         Json?         // Array of options for MCQ
+  correctAnswers  Json          // Array of correct answers
+  points          Int           @default(1)
+  orderIndex      Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relationships
+  quiz            Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers         Answer[]
+
+  @@map("questions")
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+model QuizAttempt {
+  id              String    @id @default(uuid())
+  userId          String
+  quizId          String
+  score           Int?
+  maxScore        Int
+  isPassed        Boolean   @default(false)
+  startedAt       DateTime  @default(now())
+  submittedAt     DateTime?
+  status          AttemptStatus @default(IN_PROGRESS)
+
+  // Relationships
+  user            User      @relation(fields: [userId], references: [id])
+  quiz            Quiz      @relation(fields: [quizId], references: [id])
+  answers         Answer[]
+
+  @@map("quiz_attempts")
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
+model Answer {
+  id              String      @id @default(uuid())
+  questionId      String
+  attemptId       String
+  answer          Json        
+  isCorrect       Boolean?
+  pointsEarned    Int         @default(0)
+  createdAt       DateTime    @default(now())
+
+  // Relationships
+  question        Question    @relation(fields: [questionId], references: [id])
+  attempt         QuizAttempt @relation(fields: [attemptId], references: [id])
+
+  @@map("answers")
+}
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

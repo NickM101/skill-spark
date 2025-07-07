@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables - Run the login request in auth.http first
+@userToken = 
+@adminToken = 
+### Get current user profile
+GET {{baseUrl}}/users/profile/me
+Authorization: Bearer {{userToken}}
+
+
+### Update user profile
+PUT {{baseUrl}}/users/update/profile
+Content-Type: {{contentType}}
+Authorization: Bearer {{userToken}}
+
+{
+  "firstName": "John",
+  "lastName": "Updated"
+}
+
+### Update password
+POST {{baseUrl}}/users/update-password
+Content-Type: {{contentType}}
+Authorization: Bearer {{userToken}}
+
+{
+  "currentPassword": "Password123!",
+  "newPassword": "NewSecurePassword456!",
+  "confirmPassword": "NewSecurePassword456!"
+}
+
+### Upload profile picture
+POST {{baseUrl}}/users/add/profile
+Authorization: Bearer {{userToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="profile"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< /home/mel/Documents/icon.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Get all users (admin only)
+GET {{baseUrl}}/users?page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Delete user (admin only)
+DELETE {{baseUrl}}/users/65161e81-7fc1-4cfe-a962-dffe5638952a
+Authorization: Bearer {{adminToken}}
