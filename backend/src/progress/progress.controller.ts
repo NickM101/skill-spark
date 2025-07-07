@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Controller, Post, Param, UseGuards } from '@nestjs/common';
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

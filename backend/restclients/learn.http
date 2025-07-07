@@ -1,14 +1,14 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@adminToken = 
-@instructorToken =
-@studentToken =
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmN2RhMmE4Ny1jZmIzLTQ1YzYtODI4Ni0xNTljMjU3OGE0NWUiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxODgxODQ5LCJleHAiOjE3NTE4ODU0NDl9.3N1gG2a-byrPfgvhlIq_isMk228lUvp1fd99sQ5Sv4w
+@instructorToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzMWU0NzAwMy01YjMzLTQ5MDctOGU5OS00MzhlMjM1ZjdjZjAiLCJlbWFpbCI6Im1lbGxpc2F3YW5qYTI1NEBnbWFpbC5jb20iLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTg4MTgxMywiZXhwIjoxNzUxODg1NDEzfQ.XbIj8QEIcZPADmLA1-iBUuXT4455Il8NNY3V1loCB8E
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDc5MjgxMy1iNmU0LTRjYTYtYjFhNS0xOTc4NGI2NTEzMjUiLCJlbWFpbCI6Im5lcG93b2g5MDNAYmluYWZleC5jb20iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc1MTg4MTc1MywiZXhwIjoxNzUxODg1MzUzfQ.X2uO09l15MfOi_maP2cOYNKxYDewEbvpCEFq8F2ce4s
 
-@categoryId = 
-@courseId = 
-@lessonId = 
-@instructorId = 
-@enrollmentId = 
+@categoryId = 7e5ca3ed-2952-4c67-905e-59e1d453f662
+@courseId = 4e08f3df-38b7-4de0-b358-2d51e91c1bd4
+@lessonId = ["725ebcd7-3618-471c-bb44-47ca83ca8429", "6b293f1a-9750-422a-8c8d-dd45bc5b19f0", "bde63780-c012-4d1c-b65c-9c9a0dbba70c"]
+@instructorId = 31e47003-5b33-4907-8e99-438e235f7cf0
+@enrollmentId = 9982d70f-f826-4647-8810-56517cf990a3
 @quizId = 
 @questionId = 
 @attemptId = 
@@ -246,6 +246,42 @@ Content-Type: {{contentType}}
 
 ### Delete Lesson (Instructor)
 DELETE {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+
+### Publish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Unpublish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/unpublish
+Authorization: Bearer {{instructorToken}}
+
+### Publish All Lessons at Once (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/publish-all
+Authorization: Bearer {{instructorToken}}
+
+### Get Lesson Statistics (Instructor)
+GET {{baseUrl}}/courses/{{courseId}}/lessons/stats
+Authorization: Bearer {{instructorToken}}
+
+### Test Workflow - Create, Publish Lesson, then Publish Course
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "New React Lesson",
+  "content": "This lesson covers React fundamentals",
+  "type": "TEXT",
+  "orderIndex": 4
+}
+
+### Publish the lesson
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Now publish the course (should work)
+POST {{baseUrl}}/courses/{{courseId}}/publish
 Authorization: Bearer {{instructorToken}}
 
 ### Test Lesson Access Control - Student should fail

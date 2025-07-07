@@ -1,8 +1,6 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-
-### Variables
-@authToken 
+@authToken =
 
 ### Register a new student
 # @name register
