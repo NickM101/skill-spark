@@ -1,0 +1,92 @@
+<!-- src/app/features/courses/components/lesson-player/lesson-player.component.html -->
+
+<div class="lesson-player" *ngIf="course && currentLesson">
+
+    <!-- Simple Header -->
+    <div class="lesson-header">
+        <button mat-icon-button (click)="goBackToCourse()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="lesson-info">
+            <h2>{{ currentLesson.title }}</h2>
+            <p>{{ course.title }} - Lesson {{ currentLessonIndex + 1 }} of {{ course.lessons?.length }}</p>
+        </div>
+
+        <button mat-raised-button color="primary" (click)="toggleComplete()" [disabled]="isUpdating"
+            class="complete-button">
+            <mat-icon>{{ currentLesson.isCompleted ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            {{ currentLesson.isCompleted ? 'Mark Incomplete' : 'Mark Complete' }}
+        </button>
+    </div>
+
+    <!-- Lesson Content -->
+    <div class="lesson-content">
+
+        <!-- Text Content -->
+        <div *ngIf="currentLesson.type === LessonType.TEXT" class="content-section text-content">
+            <div class="content-wrapper" [innerHTML]="currentLesson.content"></div>
+        </div>
+
+        <!-- Video Content -->
+        <div *ngIf="currentLesson.type === LessonType.VIDEO" class="content-section video-content">
+            <div class="video-container">
+                <!-- YouTube Video -->
+                <iframe *ngIf="isYouTubeVideo(currentLesson.videoUrl)"
+                    [src]="getYouTubeEmbedUrl(currentLesson.videoUrl)" frameborder="0" allowfullscreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+
+                <!-- Regular Video -->
+                <video *ngIf="!isYouTubeVideo(currentLesson.videoUrl)" [src]="currentLesson.videoUrl" controls
+                    class="video-player">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <!-- PDF Content -->
+        <div *ngIf="currentLesson.type === LessonType.PDF" class="content-section pdf-content">
+            <div class="pdf-container">
+                <iframe [src]="getPdfViewerUrl(currentLesson.fileUrl)" frameborder="0" class="pdf-viewer">
+                </iframe>
+            </div>
+
+            <div class="pdf-actions">
+                <a [href]="currentLesson.fileUrl" target="_blank" mat-raised-button color="accent"
+                    class="download-button">
+                    <mat-icon>download</mat-icon>
+                    Download PDF
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Simple Navigation -->
+    <div class="lesson-navigation">
+        <button mat-button [disabled]="currentLessonIndex === 0" (click)="previousLesson()" class="nav-button">
+            <mat-icon>chevron_left</mat-icon>
+            Previous
+        </button>
+
+        <div class="progress-info">
+            <span class="progress-text">{{ currentLessonIndex + 1 }} / {{ course.lessons?.length }}</span>
+            <mat-progress-bar mode="determinate"
+                [value]="((currentLessonIndex + 1) / (course.lessons?.length || 1)) * 100" class="progress-bar">
+            </mat-progress-bar>
+        </div>
+
+        <button mat-button [disabled]="currentLessonIndex === (course.lessons?.length || 1) - 1" (click)="nextLesson()"
+            class="nav-button">
+            Next
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+    </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="!course || !currentLesson" class="loading-state">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading lesson...</p>
+</div>

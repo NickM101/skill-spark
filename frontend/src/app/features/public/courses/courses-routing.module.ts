@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { CourseListComponent } from './components/course-list/course-list.component';
 import { CourseDetailComponent } from './components/course-detail/course-detail.component';
+import { LessonPlayerComponent } from './components/lesson-player/lesson-player.component';
 
 const routes: Routes = [
   {
@@ -21,6 +22,13 @@ const routes: Routes = [
     data: {
       title: 'Course Details',
       description: 'View detailed information about this course',
+    },
+  },
+  {
+    path: ':courseId/lesson/:lessonId',
+    component: LessonPlayerComponent,
+    data: {
+      title: ''
     },
   },
   {

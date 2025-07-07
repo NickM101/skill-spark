@@ -60,10 +60,9 @@
                 <div class="progress-section" *ngIf="isEnrolled">
                     <div class="progress-info">
                         <span class="progress-label">Your Progress</span>
-                        <span class="progress-percentage">{{ progress }}%</span>
+                        <span class="progress-percentage">{{ getCourseProgress() }}%</span>
                     </div>
-                    <mat-progress-bar mode="determinate" [value]="progress" class="progress-bar"></mat-progress-bar>
-                </div>
+                    <mat-progress-bar mode="determinate" [value]="getCourseProgress()" class="progress-bar"></mat-progress-bar>                   </div>
 
                 <!-- Action Buttons -->
                 <div class="hero-actions">
@@ -77,9 +76,9 @@
 
                     <ng-template #enrolledActions>
                         <button mat-raised-button color="accent" size="large" class="continue-button"
-                            (click)="onContinueClick()">
-                            <mat-icon>play_arrow</mat-icon>
-                            Continue Learning
+                            (click)="getCourseProgress() > 0 ? onContinueLearning() : onStartLearning()">
+                            <mat-icon>{{ getCourseProgress() > 0 ? 'play_arrow' : 'school' }}</mat-icon>
+                            {{ getCourseProgress() > 0 ? 'Continue Learning' : 'Start Learning' }}
                         </button>
                     </ng-template>
 
@@ -134,13 +133,15 @@
                                     <div class="lesson-header">
                                         <div class="lesson-number">{{ i + 1 }}</div>
                                         <div class="lesson-icon">
-                                            <mat-icon>{{ getLessonIcon(lesson.type) }}</mat-icon>
+                                            <mat-icon *ngIf="isLessonCompleted(lesson)" class="completion-icon">check_circle</mat-icon>
+                                            <mat-icon *ngIf="!isLessonCompleted(lesson)">{{ getLessonIcon(lesson.type) }}</mat-icon>
                                         </div>
                                         <div class="lesson-details">
                                             <h4 class="lesson-title">{{ lesson.title }}</h4>
                                             <div class="lesson-meta">
                                                 <span class="lesson-type">{{ lesson.type }}</span>
                                                 <span class="lesson-duration">~15 min</span>
+                                                <span *ngIf="isLessonCompleted(lesson)" class="completion-status">Completed</span>
                                             </div>
                                         </div>
                                     </div>
@@ -152,10 +153,10 @@
 
                                 <div class="lesson-actions">
                                     <ng-container *ngIf="isEnrolled; else lockedLesson">
-                                        <button mat-button color="primary" (click)="onStartLessonClick(lesson)">
-                                            <mat-icon>play_arrow</mat-icon>
-                                            Start Lesson
-                                        </button>
+                                        <button mat-raised-button color="primary" (click)="onStartLessonClick(lesson)"
+                                            [class.completed-button]="isLessonCompleted(lesson)">
+                                            <mat-icon>{{ isLessonCompleted(lesson) ? 'replay' : 'play_arrow' }}</mat-icon>
+                                            {{ isLessonCompleted(lesson) ? 'Review' : 'Start' }} Lesson           </button>
                                     </ng-container>
 
                                     <ng-template #lockedLesson>

@@ -1,4 +1,4 @@
-// src/app/features/public/courses/components/course-detail/course-detail.component.ts
+// src/app/features/public/courses/components/course-detail/course-detail.component.ts (Updated)
 
 import {
   Component,
@@ -103,28 +103,107 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
     // and navigate to the first lesson or show a confirmation
   }
 
-  onContinueClick(): void {
-    if (!this.course) return;
+  // NEW METHOD: Start learning from first lesson
+  onStartLearning(): void {
+    if (
+      !this.course ||
+      !this.course.lessons ||
+      this.course.lessons.length === 0
+    ) {
+      console.error('No lessons available in this course');
+      return;
+    }
 
-    // Navigate to first incomplete lesson or course content
-    console.log('Continuing course:', this.course.title);
-    // this.router.navigate(['/learn', this.course.id]);
+    const firstLesson = this.course.lessons[0];
+    this.router.navigate([
+      '/courses',
+      this.course.id,
+      'lesson',
+      firstLesson.id,
+    ]);
   }
 
+  // NEW METHOD: Continue learning from last accessed or next incomplete lesson
+  onContinueLearning(): void {
+    if (!this.course || !this.course.lessons) return;
+
+    // Find the first incomplete lesson or fallback to first lesson
+    const nextLesson = this.findNextLesson() || this.course.lessons[0];
+    this.router.navigate(['/courses', this.course.id, 'lesson', nextLesson.id]);
+  }
+
+  // NEW METHOD: Start specific lesson
   onStartLessonClick(lesson: Lesson): void {
     if (!this.isEnrolled) {
       this.onEnrollClick();
       return;
     }
 
-    console.log('Starting lesson:', lesson.title);
-    // this.router.navigate(['/learn', this.course!.id, 'lesson', lesson.id]);
+    if (!this.course) return;
+    this.router.navigate(['/courses', this.course.id, 'lesson', lesson.id]);
+  }
+
+  // NEW METHOD: Find next lesson to continue with
+  private findNextLesson(): Lesson | null {
+    if (!this.course?.lessons) return null;
+
+    // Check localStorage for lesson progress
+    for (const lesson of this.course.lessons) {
+      const progressKey = `lesson_progress_${lesson.id}`;
+      const progress = localStorage.getItem(progressKey);
+
+      if (!progress) {
+        // No progress found, this is the next lesson
+        return lesson;
+      }
+
+      const progressData = JSON.parse(progress);
+      if (!progressData.isCompleted) {
+        // Found incomplete lesson
+        return lesson;
+      }
+    }
+
+    // All lessons completed, return last lesson
+    return this.course.lessons[this.course.lessons.length - 1];
+  }
+
+  // NEW METHOD: Get lesson progress from localStorage
+  getLessonProgress(lesson: Lesson): {
+    isCompleted: boolean;
+    completedAt?: string;
+  } {
+    const progressKey = `lesson_progress_${lesson.id}`;
+    const progress = localStorage.getItem(progressKey);
+
+    if (progress) {
+      return JSON.parse(progress);
+    }
+
+    return { isCompleted: false };
+  }
+
+  // NEW METHOD: Check if lesson is completed
+  isLessonCompleted(lesson: Lesson): boolean {
+    return this.getLessonProgress(lesson).isCompleted;
+  }
+
+  // NEW METHOD: Get overall course progress
+  getCourseProgress(): number {
+    if (!this.course?.lessons || this.course.lessons.length === 0) return 0;
+
+    const completedLessons = this.course.lessons.filter((lesson) =>
+      this.isLessonCompleted(lesson)
+    ).length;
+
+    return Math.round((completedLessons / this.course.lessons.length) * 100);
   }
 
   onBackToCourses(): void {
     this.router.navigate(['/courses']);
   }
 
+  // Existing methods remain the same...
   getLevelIcon(level: CourseLevel): string {
     switch (level) {
       case CourseLevel.BEGINNER:

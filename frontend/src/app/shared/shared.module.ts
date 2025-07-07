@@ -24,6 +24,7 @@ import { MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/b
 import { MatOptionModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatSliderModule } from '@angular/material/slider';
 
 @NgModule({
   declarations: [],
@@ -53,6 +54,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
     MatDividerModule,
     MatTabsModule,
     MatTabGroup,
+    MatSliderModule,
   ],
 })
 export class SharedModule {}

@@ -1,4 +1,4 @@
-// src/app/features/public/courses/components/course-card/course-card.component.ts
+// src/app/features/public/courses/components/course-card/course-card.component.ts (Small Update)
 
 import {
   Component,
@@ -7,6 +7,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { Course, CourseLevel } from '@core/models/course.model';
 import { SharedModule } from '@shared/shared.module';
 
@@ -30,6 +31,8 @@ export class CourseCardComponent {
 
   readonly CourseLevelEnum = CourseLevel;
 
+  constructor(private router: Router) {}
+
   onCourseClick(): void {
     this.courseClick.emit(this.course);
   }
@@ -42,6 +45,44 @@ export class CourseCardComponent {
   onContinueClick(event: Event): void {
     event.stopPropagation();
     this.continueClick.emit(this.course);
+  }
+
+  // NEW METHOD: Quick start learning
+  onQuickStartClick(event: Event): void {
+    event.stopPropagation();
+
+    if (!this.course.lessons || this.course.lessons.length === 0) {
+      console.error('No lessons available');
+      return;
+    }
+
+    // Navigate directly to first lesson
+    const firstLesson = this.course.lessons[0];
+    this.router.navigate([
+      '/courses',
+      this.course.id,
+      'lesson',
+      firstLesson.id,
+    ]);
+  }
+
+  // NEW METHOD: Get course progress from localStorage
+  getCourseProgress(): number {
+    if (!this.course.lessons || this.course.lessons.length === 0) return 0;
+
+    const completedLessons = this.course.lessons.filter((lesson) => {
+      const progressKey = `lesson_progress_${lesson.id}`;
+      const progress = localStorage.getItem(progressKey);
+
+      if (progress) {
+        const progressData = JSON.parse(progress);
+        return progressData.isCompleted;
+      }
+
+      return false;
+    }).length;
+
+    return Math.round((completedLessons / this.course.lessons.length) * 100);
   }
 
   getLevelIcon(level: CourseLevel): string {
@@ -74,7 +115,7 @@ export class CourseCardComponent {
     if (price === undefined || price === 0) {
       return 'Free';
     }
-    return `${price.toFixed(2)}`;
+    return `$${price.toFixed(2)}`;
   }
 
   getLessonCount(): number {
