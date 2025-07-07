@@ -8,11 +8,11 @@ POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "firstName": "Glass",
-  "lastName": "Gow",
-  "email": "nepowoh903@binafex.com",
-  "password": "Password123",
-  "confirmPassword": "Password123"
+  "firstName": "Kim",
+  "lastName": "Now",
+  "email": "yeloh19487@fuasha.com",
+  "password": "Passw123",
+  "confirmPassword": "Passw123"
 }
 
 
@@ -22,8 +22,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "nepowoh903@binafex.com",
-  "password": "Toxi356"
+  "email": "yeloh19487@fuasha.com",
+  "password": "Passw123"
 }
 
 
@@ -80,7 +80,7 @@ POST {{baseUrl}}/auth/verify-email
 Content-Type: {{contentType}}
 
 {
-  "token": "670694"
+  "token": "505592"
 }
 
 ### Forgot password

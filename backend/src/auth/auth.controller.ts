@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
@@ -8,8 +6,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  Get,
-  BadRequestException,
   UnauthorizedException,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -19,15 +15,11 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterResponseDto, LoginResponseDto } from './dto/auth-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Public } from './decorators/public.decorator';
 import { ApiResponseService } from '../shared/api-rensponse.service';
-import {
-  ApiResponse,
-  LoginResponse,
-  RegisterResponse,
-} from '../shared/interfaces/api-rensponse.interface';
 import { User } from '../users/interfaces/user.interface';
 
 @Controller('auth')
@@ -39,15 +31,11 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  async register(
-    @Body() registerDto: RegisterDto,
-  ): Promise<ApiResponse<RegisterResponse['data']>> {
+  async register(@Body() registerDto: RegisterDto) {
     try {
-      const result = await this.authService.register(registerDto);
-      return this.apiResponseService.success(
-        result,
-        'Registration successful. Please check your email for verification.',
-      );
+      const result: RegisterResponseDto =
+        await this.authService.register(registerDto);
+      return this.apiResponseService.success(result.user, result.message);
     } catch (error) {
       return this.apiResponseService.error(
         error instanceof Error ? error.message : 'Registration failed',
@@ -59,15 +47,13 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: LoginDto,
-  ): Promise<ApiResponse<LoginResponse['data']>> {
+  async login(@Body() loginDto: LoginDto) {
     try {
-      const result = await this.authService.login(loginDto);
+      const result: LoginResponseDto = await this.authService.login(loginDto);
       return this.apiResponseService.success(result, 'Login successful');
     } catch (error) {
       // Throw appropriate HTTP exception
-      if (error.message === 'Invalid credentials') {
+      if (error instanceof Error && error.message === 'Invalid credentials') {
         throw new UnauthorizedException({
           message: error.message,
           code: 'LOGIN_ERROR',
@@ -82,7 +68,7 @@ export class AuthController {
 
   @Public()
   @Post('verify-email')
-  async verifyEmail(@Body() body: { token: string }): Promise<ApiResponse> {
+  async verifyEmail(@Body() body: { token: string }) {
     try {
       const result = await this.authService.verifyEmail(body.token);
       return this.apiResponseService.success(
