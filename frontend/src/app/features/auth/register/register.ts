@@ -1,22 +1,13 @@
 import { Component, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
   Validators,
-  ReactiveFormsModule,
   AbstractControl,
 } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatStepperModule } from '@angular/material/stepper';
+import { Router } from '@angular/router';
+import { AuthService, RegisterData } from '@core/services/auth.service';
+import { SharedModule } from '@shared/shared.module';
 
 // Custom validator for password confirmation
 function passwordMatchValidator(control: AbstractControl) {
@@ -32,20 +23,7 @@ function passwordMatchValidator(control: AbstractControl) {
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatSelectModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatStepperModule,
-  ],
+  imports: [SharedModule],
   templateUrl: 'register.html',
   styleUrl: 'register.scss',
 })
@@ -81,7 +59,7 @@ export class RegisterComponent {
     { validators: passwordMatchValidator }
   );
 
-  constructor() {
+  constructor(private authService: AuthService, private router: Router) {
     // Watch password changes for strength indicator
     this.registerForm.get('password')?.valueChanges.subscribe((password) => {
       this.updatePasswordStrength(password);
@@ -136,37 +114,45 @@ export class RegisterComponent {
     return 'Strong password';
   }
 
-  onSubmit() {
+  onSubmit(): void {
     if (this.registerForm.valid && !this.isLoading()) {
       this.isLoading.set(true);
       this.errorMessage.set('');
 
-      // Simulate API call
-      setTimeout(() => {
-        const formData = this.registerForm.value;
-        console.log('Registration data:', formData);
+      const formValue = this.registerForm.value;
 
-        // Mock successful registration
-        console.log('Registration successful');
-        // Redirect to email verification or login
+      const payload: RegisterData = {
+        firstName: formValue.firstName,
+        lastName: formValue.lastName,
+        email: formValue.email,
+        password: formValue.password,
+        confirmPassword: formValue.confirmPassword,
+        role: formValue.role.toUpperCase(),
+      };
 
-        this.isLoading.set(false);
-      }, 2000);
+      this.authService.register(payload).subscribe({
+        next: (response) => {
+          console.log('Registration success:', response);
+          this.router.navigate(['/auth/verify-email'], {
+            queryParams: { email: formValue.email },
+          });
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Registration failed:', err);
+          this.errorMessage.set(err.message || 'Something went wrong.');
+          this.isLoading.set(false);
+
+        },
+        complete: () => {
+          this.isLoading.set(false);
+        },
+      });
     } else {
-      // Mark all fields as touched to show validation errors
+      // Show validation errors
       Object.keys(this.registerForm.controls).forEach((key) => {
         this.registerForm.get(key)?.markAsTouched();
       });
     }
-  }
-
-  registerWithGoogle() {
-    console.log('Register with Google');
-    // Implement Google OAuth
-  }
-
-  registerWithGithub() {
-    console.log('Register with GitHub');
-    // Implement GitHub OAuth
   }
 }

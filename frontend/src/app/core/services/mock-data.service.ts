@@ -120,7 +120,7 @@ export class MockDataService {
       id: 'lesson-4',
       title: 'React Basics',
       content: 'Getting started with React',
-      type: LessonType.VIDEO,
+      type: LessonType.QUIZ,
       videoUrl: 'https://example.com/video3',
       orderIndex: 1,
       courseId: 'course-2',

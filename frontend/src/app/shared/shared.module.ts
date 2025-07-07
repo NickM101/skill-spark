@@ -25,10 +25,11 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSelectModule, MatSelectTrigger } from '@angular/material/select';
 
 @NgModule({
   declarations: [],
-  imports: [MatButtonToggleGroup, MatTabGroup],
+  imports: [MatButtonToggleGroup, MatTabGroup, MatSelectTrigger],
   exports: [
     CommonModule,
     ReactiveFormsModule,
@@ -55,6 +56,8 @@ import { MatSliderModule } from '@angular/material/slider';
     MatTabsModule,
     MatTabGroup,
     MatSliderModule,
+    MatSelectModule,
+    MatSelectTrigger,
   ],
 })
 export class SharedModule {}

@@ -1,4 +1,4 @@
-<!-- src/app/features/courses/components/lesson-player/lesson-player.component.html -->
+<!-- src/app/features/courses/components/lesson-player/lesson-player.component.html (Quiz Support) -->
 
 <div class="lesson-player" *ngIf="course && currentLesson">
 
@@ -13,11 +13,20 @@
             <p>{{ course.title }} - Lesson {{ currentLessonIndex + 1 }} of {{ course.lessons?.length }}</p>
         </div>
 
-        <button mat-raised-button color="primary" (click)="toggleComplete()" [disabled]="isUpdating"
-            class="complete-button">
-            <mat-icon>{{ currentLesson.isCompleted ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-            {{ currentLesson.isCompleted ? 'Mark Incomplete' : 'Mark Complete' }}
-        </button>
+        <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="toggleComplete()" [disabled]="isUpdating"
+                class="complete-button">
+                <mat-icon>{{ currentLesson.isCompleted ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                {{ currentLesson.isCompleted ? 'Mark Incomplete' : 'Mark Complete' }}
+            </button>
+
+            <!-- NEW: Quiz Button -->
+            <button mat-raised-button color="accent" (click)="goToQuiz()" [disabled]="!hasAvailableQuiz()"
+                class="quiz-button" *ngIf="currentLesson.isCompleted || hasQuizForCurrentLesson()">
+                <mat-icon>quiz</mat-icon>
+                {{ getQuizButtonText() }}
+            </button>
+        </div>
     </div>
 
     <!-- Lesson Content -->
@@ -61,9 +70,22 @@
             </div>
         </div>
 
+        <!-- Quiz Content -->
+        <div *ngIf="currentLesson.type === 'QUIZ'" class="content-section quiz-content">
+            <div class="quiz-placeholder">
+                <mat-icon class="quiz-icon">quiz</mat-icon>
+                <h3>Quiz: {{ currentLesson.title }}</h3>
+                <p>Test your knowledge from this lesson</p>
+                <button mat-raised-button color="primary" class="start-quiz-button">
+                    <mat-icon>play_arrow</mat-icon>
+                    Start Quiz
+                </button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Simple Navigation -->
+    <!-- Enhanced Navigation with Quiz Info -->
     <div class="lesson-navigation">
         <button mat-button [disabled]="currentLessonIndex === 0" (click)="previousLesson()" class="nav-button">
             <mat-icon>chevron_left</mat-icon>
@@ -75,6 +97,12 @@
             <mat-progress-bar mode="determinate"
                 [value]="((currentLessonIndex + 1) / (course.lessons?.length || 1)) * 100" class="progress-bar">
             </mat-progress-bar>
+
+            <!-- NEW: Quiz availability indicator -->
+            <div class="quiz-info" *ngIf="hasAvailableQuiz()">
+                <mat-icon class="quiz-available-icon">quiz</mat-icon>
+                <span class="quiz-text">{{ hasQuizForCurrentLesson() ? 'Quiz available' : 'Quiz coming up' }}</span>
+            </div>
         </div>
 
         <button mat-button [disabled]="currentLessonIndex === (course.lessons?.length || 1) - 1" (click)="nextLesson()"
@@ -83,10 +111,41 @@
             <mat-icon>chevron_right</mat-icon>
         </button>
     </div>
+
+    <!-- NEW: Completion Actions Panel -->
+    <div class="completion-actions" *ngIf="currentLesson.isCompleted">
+        <div class="completion-message">
+            <mat-icon class="completion-icon">check_circle</mat-icon>
+            <span>Lesson completed! What's next?</span>
+        </div>
+
+        <div class="action-buttons">
+            <!-- Quiz Button -->
+            <button mat-raised-button color="accent" (click)="goToQuiz()" *ngIf="hasAvailableQuiz()"
+                class="action-button">
+                <mat-icon>quiz</mat-icon>
+                {{ getQuizButtonText() }}
+            </button>
+
+            <!-- Next Lesson Button -->
+            <button mat-raised-button color="primary" (click)="nextLesson()"
+                *ngIf="currentLessonIndex < (course.lessons?.length || 1) - 1" class="action-button">
+                <mat-icon>arrow_forward</mat-icon>
+                Next Lesson
+            </button>
+
+            <!-- Course Complete Button -->
+            <button mat-raised-button color="success" (click)="goBackToCourse()"
+                *ngIf="currentLessonIndex === (course.lessons?.length || 1) - 1" class="action-button">
+                <mat-icon>school</mat-icon>
+                Course Complete!
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Loading State -->
 <div *ngIf="!course || !currentLesson" class="loading-state">
     <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
     <p>Loading lesson...</p>
-</div>
+    </div>

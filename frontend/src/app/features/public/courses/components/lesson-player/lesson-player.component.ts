@@ -1,4 +1,4 @@
-// src/app/features/courses/components/lesson-player/lesson-player.component.ts
+// src/app/features/courses/components/lesson-player/lesson-player.component.ts (Quiz Support)
 
 import {
   Component,
@@ -105,6 +105,84 @@ export class LessonPlayerComponent implements OnInit, OnDestroy {
       this.isUpdating = false;
       this.cdr.markForCheck();
     }, 500);
+  }
+
+  // NEW: Go to quiz for current lesson
+  goToQuiz(): void {
+    if (!this.course || !this.currentLesson) return;
+
+    // Check if current lesson has a quiz
+    const hasQuiz = this.hasQuizForCurrentLesson();
+
+    if (hasQuiz) {
+      // Navigate to quiz route
+      this.router.navigate([
+        '/courses',
+        this.course.id,
+        'lesson',
+        this.currentLesson.id,
+        'quiz',
+      ]);
+    } else {
+      // Check if there's a quiz in the next lessons
+      const nextQuizLesson = this.findNextQuizLesson();
+      if (nextQuizLesson) {
+        this.router.navigate([
+          '/courses',
+          this.course.id,
+          'lesson',
+          nextQuizLesson.id,
+          'quiz',
+        ]);
+      } else {
+        console.log('No quiz available for this lesson');
+      }
+    }
+  }
+
+  // NEW: Check if current lesson has associated quiz
+  hasQuizForCurrentLesson(): boolean {
+    if (!this.currentLesson) return false;
+
+    // Check if lesson type is quiz or if lesson has quiz property
+    return (
+      this.currentLesson.type === 'QUIZ' ||
+      (this.currentLesson as any).hasQuiz === true
+    );
+  }
+
+  // NEW: Find next lesson that is a quiz
+  findNextQuizLesson(): Lesson | null {
+    if (!this.course?.lessons) return null;
+
+    // Look for next quiz lesson starting from current position
+    for (
+      let i = this.currentLessonIndex + 1;
+      i < this.course.lessons.length;
+      i++
+    ) {
+      const lesson = this.course.lessons[i];
+      if (lesson.type === 'QUIZ' || (lesson as any).hasQuiz) {
+        return lesson;
+      }
+    }
+
+    return null;
+  }
+
+  // NEW: Check if there's a quiz available (current or next)
+  hasAvailableQuiz(): boolean {
+    return this.hasQuizForCurrentLesson() || this.findNextQuizLesson() !== null;
+  }
+
+  // NEW: Get quiz button text
+  getQuizButtonText(): string {
+    if (this.hasQuizForCurrentLesson()) {
+      return 'Take Quiz';
+    } else if (this.findNextQuizLesson()) {
+      return 'Go to Quiz';
+    }
+    return 'No Quiz Available';
   }
 
   previousLesson(): void {

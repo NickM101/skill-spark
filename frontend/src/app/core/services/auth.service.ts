@@ -1,16 +1,12 @@
-// src/app/core/services/auth.service.ts
-
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
 import { User, Role } from '@core/models/user.model';
-import {
-  Observable,
-  BehaviorSubject,
-  of,
-  delay,
-  map,
-  catchError,
-  throwError,
-} from 'rxjs';
+import { ApiResponse } from './api.service';
 
 export interface LoginCredentials {
   email: string;
@@ -20,341 +16,189 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
+  confirmPassword?: string;
   firstName: string;
   lastName: string;
-  role?: 'STUDENT' | 'INSTRUCTOR';
+  phoneNumber?: string;
+  role?: Role;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly API_URL = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private tokenSubject = new BehaviorSubject<string | null>(null);
+  private jwtHelper = new JwtHelperService();
+
   public currentUser$ = this.currentUserSubject.asObservable();
+  public token$ = this.tokenSubject.asObservable();
 
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-  public loading$ = this.loadingSubject.asObservable();
-
-  private mockUsers: User[] = [
-    {
-      id: '1',
-      email: 'student@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      role: Role.STUDENT,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
-      password: ''
-    },
-    {
-      id: '2',
-      email: 'instructor@example.com',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      role: Role.INSTRUCTOR,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
-      password: ''
-    },
-    {
-      id: '3',
-      email: 'admin@example.com',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: Role.ADMIN,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
-      password: ''
-    },
-  ];
-
-  constructor() {
-    // Check for stored user session
-    this.initializeUserSession();
+  constructor(private http: HttpClient, private router: Router) {
+    this.initializeAuth();
   }
 
-  private initializeUserSession(): void {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        this.currentUserSubject.next(user);
-      } catch (error) {
-        localStorage.removeItem('currentUser');
-      }
+  private initializeAuth(): void {
+    const token = localStorage.getItem('accessToken');
+    const user = localStorage.getItem('currentUser');
+
+    if (token && user && !this.jwtHelper.isTokenExpired(token)) {
+      this.tokenSubject.next(token);
+      this.currentUserSubject.next(JSON.parse(user));
+    } else {
+      this.logout();
     }
   }
 
-  // Login
-  login(credentials: LoginCredentials): Observable<User> {
-    this.loadingSubject.next(true);
+  login(credentials: LoginCredentials): Observable<AuthResponse> {
+    return this.http
+      .post<ApiResponse<AuthResponse>>(`${this.API_URL}/login`, credentials)
+      .pipe(
+        map((res) => res.data),
+        tap((res: AuthResponse) => this.setSession(res)),
+        catchError(this.handleError)
+      );
+  }
 
-    return of(null).pipe(
-      delay(1000), // Simulate API call
-      map(() => {
-        // For demo purposes, accept any password
-        const user = this.mockUsers.find((u) => u.email === credentials.email);
+  register(data: RegisterData): Observable<AuthResponse> {
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_URL}/register`, data).pipe(
+      map((res) => res.data),
+      tap((res: AuthResponse) => this.setSession(res)),
+      catchError(this.handleError)
+    );
+  }
 
-        if (!user) {
-          throw new Error('Invalid email or password');
-        }
+  refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
 
-        if (!user.isActive) {
-          throw new Error('Account is deactivated');
-        }
+    return this.http
+      .post<any>(`${this.API_URL}/refresh-token`, { refreshToken })
+      .pipe(
+        map((res) => res.data),
+        tap((res: AuthResponse) => this.setSession(res)),
+        catchError((error) => {
+          this.logout();
+          return throwError(() => error);
+        })
+      );
+  }
 
-        // Store user session
-        localStorage.setItem('currentUser', JSON.stringify(user));
+  logout(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('currentUser');
+    this.currentUserSubject.next(null);
+    this.tokenSubject.next(null);
+    this.router.navigate(['/home']);
+  }
+
+  changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Observable<any> {
+    return this.http
+      .patch<any>(`${this.API_URL}/change-password`, {
+        currentPassword,
+        newPassword,
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http
+      .post<any>(`${this.API_URL}/forgot-password`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http
+      .post<any>(`${this.API_URL}/reset-password`, { token, newPassword })
+      .pipe(catchError(this.handleError));
+  }
+
+  verifyEmail(token: string): Observable<any> {
+    return this.http
+      .get<any>(`${this.API_URL}/verify-email/${token}`)
+      .pipe(catchError(this.handleError));
+  }
+
+  resendVerificationEmail(email: string): Observable<any> {
+    return this.http
+      .post<any>(`${this.API_URL}/resend-verification-email`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
+  getProfile(): Observable<User> {
+    return this.http.get<any>(`${this.API_URL}/me`).pipe(
+      map((res) => res.data || res),
+      tap((user: User) => {
         this.currentUserSubject.next(user);
-        this.loadingSubject.next(false);
-
-        return user;
+        localStorage.setItem('currentUser', JSON.stringify(user));
       }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
+      catchError(this.handleError)
     );
   }
 
-  // Register
-  register(userData: RegisterData): Observable<User> {
-    this.loadingSubject.next(true);
-
-    return of(null).pipe(
-      delay(1200), // Simulate API call
-      map(() => {
-        // Check if user already exists
-        const existingUser = this.mockUsers.find(
-          (u) => u.email === userData.email
-        );
-        if (existingUser) {
-          throw new Error('User with this email already exists');
-        }
-
-        const newUser: User = {
-          id: Date.now().toString(),
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          role: Role.STUDENT,
-          isEmailVerified: false,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          password: ''
-        };
-
-        // Add to mock users
-        this.mockUsers.push(newUser);
-
-        // Auto-login after registration
-        localStorage.setItem('currentUser', JSON.stringify(newUser));
-        this.currentUserSubject.next(newUser);
-        this.loadingSubject.next(false);
-
-        return newUser;
-      }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
-    );
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken');
   }
 
-  // Logout
-  logout(): Observable<boolean> {
-    return of(true).pipe(
-      delay(300),
-      map(() => {
-        localStorage.removeItem('currentUser');
-        this.currentUserSubject.next(null);
-        return true;
-      })
-    );
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
   }
 
-  // Get current user
+  isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    return token ? !this.jwtHelper.isTokenExpired(token) : false;
+  }
+
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
-  // Check if user is logged in
-  isLoggedIn(): boolean {
-    return !!this.currentUserSubject.value;
+  getToken(): string | null {
+    return this.tokenSubject.value;
   }
 
-  // Check if user has specific role
-  hasRole(role: string | string[]): boolean {
-    const user = this.currentUserSubject.value;
-    if (!user) return false;
-
-    if (Array.isArray(role)) {
-      return role.includes(user.role);
-    }
-
-    return user.role === role;
+  hasRole(role: Role): boolean {
+    return this.currentUserSubject.value?.role === role;
   }
 
-  // Update user profile
-  updateProfile(updates: Partial<User>): Observable<User> {
-    this.loadingSubject.next(true);
-
-    return of(null).pipe(
-      delay(800),
-      map(() => {
-        const currentUser = this.currentUserSubject.value;
-        if (!currentUser) {
-          throw new Error('No user logged in');
-        }
-
-        const updatedUser: User = {
-          ...currentUser,
-          ...updates,
-          updatedAt: new Date(),
-        };
-
-        // Update in mock users array
-        const userIndex = this.mockUsers.findIndex(
-          (u) => u.id === currentUser.id
-        );
-        if (userIndex !== -1) {
-          this.mockUsers[userIndex] = updatedUser;
-        }
-
-        // Update session
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-        this.currentUserSubject.next(updatedUser);
-        this.loadingSubject.next(false);
-
-        return updatedUser;
-      }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
-    );
+  hasAnyRole(roles: Role[]): boolean {
+    return roles.includes(this.currentUserSubject.value?.role as Role);
   }
 
-  // Change password
-  changePassword(
-    currentPassword: string,
-    newPassword: string
-  ): Observable<boolean> {
-    this.loadingSubject.next(true);
-
-    return of(null).pipe(
-      delay(800),
-      map(() => {
-        const user = this.currentUserSubject.value;
-        if (!user) {
-          throw new Error('No user logged in');
-        }
-
-        // In a real app, you would verify the current password
-        // For demo purposes, we'll just simulate success
-
-        this.loadingSubject.next(false);
-        return true;
-      }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
-    );
+  get isAdmin(): boolean {
+    return this.hasRole(Role.ADMIN);
   }
 
-  // Request password reset
-  requestPasswordReset(email: string): Observable<boolean> {
-    this.loadingSubject.next(true);
-
-    return of(null).pipe(
-      delay(1000),
-      map(() => {
-        const user = this.mockUsers.find((u) => u.email === email);
-        if (!user) {
-          throw new Error('No user found with this email');
-        }
-
-        // In a real app, this would send a password reset email
-        this.loadingSubject.next(false);
-        return true;
-      }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
-    );
+  get isInstructor(): boolean {
+    return this.hasRole(Role.INSTRUCTOR);
   }
 
-  // Verify email
-  verifyEmail(token: string): Observable<boolean> {
-    this.loadingSubject.next(true);
-
-    return of(null).pipe(
-      delay(800),
-      map(() => {
-        const currentUser = this.currentUserSubject.value;
-        if (!currentUser) {
-          throw new Error('No user logged in');
-        }
-
-        const updatedUser: User = {
-          ...currentUser,
-          isEmailVerified: true,
-          updatedAt: new Date(),
-        };
-
-        // Update in mock users array
-        const userIndex = this.mockUsers.findIndex(
-          (u) => u.id === currentUser.id
-        );
-        if (userIndex !== -1) {
-          this.mockUsers[userIndex] = updatedUser;
-        }
-
-        // Update session
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-        this.currentUserSubject.next(updatedUser);
-        this.loadingSubject.next(false);
-
-        return true;
-      }),
-      catchError((error) => {
-        this.loadingSubject.next(false);
-        return throwError(() => error);
-      })
-    );
+  get isStudent(): boolean {
+    return this.hasRole(Role.STUDENT);
   }
 
-  // Get user by ID (for admin purposes)
-  getUserById(id: string): Observable<User | null> {
-    return of(null).pipe(
-      delay(300),
-      map(() => {
-        return this.mockUsers.find((u) => u.id === id) || null;
-      })
-    );
+  private setSession(auth: AuthResponse): void {
+    localStorage.setItem('accessToken', auth.token);
+    // localStorage.setItem('refreshToken', auth.refreshToken);
+    localStorage.setItem('currentUser', JSON.stringify(auth.user));
+    this.tokenSubject.next(auth.token);
+    this.currentUserSubject.next(auth.user);
   }
 
-  // Get all users (for admin purposes)
-  getAllUsers(): Observable<User[]> {
-    return of(null).pipe(
-      delay(500),
-      map(() => {
-        const currentUser = this.currentUserSubject.value;
-        if (!currentUser || currentUser.role !== 'ADMIN') {
-          throw new Error('Unauthorized');
-        }
-
-        return [...this.mockUsers];
-      })
-    );
+  private handleError(error: any): Observable<never> {
+    const message =
+      error?.error?.message || error?.message || 'An unknown error occurred';
+    console.error('AuthService Error:', message);
+    return throwError(() => new Error(message));
   }
 }
