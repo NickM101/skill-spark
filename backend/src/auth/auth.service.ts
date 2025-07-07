@@ -42,6 +42,10 @@ interface AuthResult {
   token: string;
 }
 
+interface RegisterResult {
+  user: UserResponse;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -62,7 +66,7 @@ export class AuthService {
     return code.toString().padStart(6, '0');
   }
 
-  async register(registerDto: RegisterDto): Promise<AuthResult> {
+  async register(registerDto: RegisterDto): Promise<RegisterResult> {
     // Remove this check - it will be handled by frontend
     // if (registerDto.password !== registerDto.confirmPassword) {
     //   throw new BadRequestException('Passwords do not match');
@@ -100,6 +104,7 @@ export class AuthService {
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
       email: registerDto.email,
+      password: registerDto.password,
       verificationCode,
     });
 
@@ -110,7 +115,7 @@ export class AuthService {
       email: registerDto.email,
       password: hashedPassword,
       verificationCode: verificationCode, // Make sure this matches what UsersService expects
-      isVerified: false,
+      isEmailVerified: false,
       role: registerDto.role || Role.STUDENT, // Use role from DTO or default
     });
 
@@ -151,7 +156,6 @@ export class AuthService {
         isVerified: 'isEmailVerified' in user ? user.isEmailVerified : false,
         createdAt: user.createdAt,
       },
-      token: tokens.accessToken,
     };
   }
 
@@ -174,7 +178,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         isVerified: 'isEmailVerified' in user ? user.isEmailVerified : false,
-        createdAt: user.createdAt,
+        createdAt: user.createdAt ?? new Date(0),
       },
       token: tokens.accessToken,
     };
@@ -197,10 +201,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // TEMPORARILY COMMENT OUT EMAIL VERIFICATION CHECK FOR TESTING
-    // if (user.isEmailVerified === false) {
-    //   throw new UnauthorizedException('Please verify your email before logging in');
-    // }
+    if (user.isEmailVerified === false) {
+      throw new UnauthorizedException(
+        'Please verify your email before logging in',
+      );
+    }
 
     return user;
   }

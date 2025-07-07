@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables
+@studentToken = 
+@instructorToken =
+@courseId = 
+@lessonId = 
+
+### Mark lesson as complete
+POST {{baseUrl}}/progress/lessons/{{lessonId}}/complete
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+### Mark lesson as incomplete
+DELETE {{baseUrl}}/progress/lessons/{{lessonId}}/complete
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+### Get user's course progress
+GET {{baseUrl}}/progress/courses/{{courseId}}
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+### Get all students' progress for a course (instructor only)
+GET {{baseUrl}}/progress/courses/{{courseId}}/students
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+### Get user's overall progress stats
+GET {{baseUrl}}/progress/stats
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}

@@ -47,7 +47,7 @@ export class UsersService {
         password: hashedPassword,
         role: createUserDto.role || 'STUDENT',
         verificationCode: createUserDto.verificationCode,
-        isEmailVerified: createUserDto.isVerified || false,
+        isEmailVerified: createUserDto.isEmailVerified || false,
       },
       select: {
         id: true,
@@ -69,6 +69,17 @@ export class UsersService {
   findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true, // Explicitly include password
+        firstName: true,
+        lastName: true,
+        role: true,
+        isEmailVerified: true,
+        isActive: true,
+        // Include other needed fields
+      },
     });
   }
 

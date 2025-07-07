@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EmailService } from './shared/email/email.service';
 import { CloudinaryService } from './shared/cloudinary/cloudinary.service';
+import { ProgressModule } from './progress/progress.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { CloudinaryService } from './shared/cloudinary/cloudinary.service';
     }),
     AuthModule,
     UsersModule,
+    ProgressModule,
+    QuizModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, CloudinaryService],

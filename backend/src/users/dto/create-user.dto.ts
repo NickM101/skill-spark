@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   IsEmail,
   IsNotEmpty,
@@ -39,5 +38,7 @@ export class CreateUserDto {
   role?: Role;
   verificationCode?: string;
   verificationExpires?: Date;
-  isVerified: boolean;
+  isEmailVerified: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
