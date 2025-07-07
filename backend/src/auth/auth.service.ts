@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import {
   Injectable,
   BadRequestException,
@@ -109,8 +106,8 @@ export class AuthService {
       lastName: registerDto.lastName,
       email: registerDto.email,
       password: hashedPassword,
-      verificationCode: verificationCode, // Make sure this matches what UsersService expects
-      isVerified: false,
+      verificationCode: verificationCode,
+      isEmailVerified: false,
       role: registerDto.role || Role.STUDENT, // Use role from DTO or default
     });
 

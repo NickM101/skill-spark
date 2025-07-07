@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import {
   Injectable,
   NotFoundException,
@@ -47,7 +44,7 @@ export class UsersService {
         password: hashedPassword,
         role: createUserDto.role || 'STUDENT',
         verificationCode: createUserDto.verificationCode,
-        isEmailVerified: createUserDto.isVerified || false,
+        isEmailVerified: createUserDto.isEmailVerified || false,
       },
       select: {
         id: true,

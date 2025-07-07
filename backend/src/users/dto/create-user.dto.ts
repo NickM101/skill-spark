@@ -39,5 +39,5 @@ export class CreateUserDto {
   role?: Role;
   verificationCode?: string;
   verificationExpires?: Date;
-  isVerified: boolean;
+  isEmailVerified: boolean;
 }
