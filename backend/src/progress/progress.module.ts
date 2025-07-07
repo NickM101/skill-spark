@@ -11,5 +11,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   controllers: [ProgressController],
   providers: [ProgressService, EmailService, PrismaService, ConfigService],
   exports: [ProgressService],
+import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { ApiResponseService } from '../shared/api-rensponse.service';
+
+@Module({
+  imports: [EnrollmentModule],
+  controllers: [ProgressController],
+  providers: [ProgressService, ApiResponseService],
 })
 export class ProgressModule {}

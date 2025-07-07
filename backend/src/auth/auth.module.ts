@@ -22,7 +22,7 @@ import { EmailService } from 'src/shared/email/email.service';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: configService.get('JWT_ACCESS_EXPIRATION', '24hr'),
+          expiresIn: configService.get('JWT_ACCESS_EXPIRATION', '24h'),
         },
       }),
     }),

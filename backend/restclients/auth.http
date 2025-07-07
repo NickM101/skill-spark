@@ -1,21 +1,31 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
+@authToken =
 
-### Variables
-@authToken = 
-
-### Register a new user
+### Register a new student
 # @name register
 POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "firstName": "Glass",
-  "lastName": "Gow",
-  "email": "glass.gow@gmail.com",
-  "password": "Password123",
-  "confirmPassword": "Password123"
+  "firstName": "Kim",
+  "lastName": "Now",
+  "email": "yeloh19487@fuasha.com",
+  "password": "Passw123",
+  "confirmPassword": "Passw123"
 }
+
+
+### Login with credentials
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "yeloh19487@fuasha.com",
+  "password": "Passw123"
+}
+
 
 ### Register an instructor
 # @name registerInstructor
@@ -28,7 +38,17 @@ Content-Type: {{contentType}}
   "email": "mellisawanja254@gmail.com",
   "password": "Chinje123",
   "confirmPassword": "Chinje123",
-  "role": "STUDENT"
+  "role": "INSTRUCTOR"
+}
+
+### Login with credentials
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "mellisawanja254@gmail.com",
+  "password": "Toxic356"
 }
 
 ### Register an admin (if allowed)
@@ -51,7 +71,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "mellisawanja254@gmail.com",
+  "email": "melissamakeba@gmail.com",
   "password": "Toxic321"
 }
 
@@ -60,7 +80,7 @@ POST {{baseUrl}}/auth/verify-email
 Content-Type: {{contentType}}
 
 {
-  "token": "171732"
+  "token": "505592"
 }
 
 ### Forgot password
@@ -68,7 +88,7 @@ POST {{baseUrl}}/auth/forgot-password
 Content-Type: {{contentType}}
 
 {
-  "email": "mellisawanja254@gmail.com"
+  "email": "nepowoh903@binafex.com"
 }
 
 ### Reset password
@@ -76,9 +96,9 @@ POST {{baseUrl}}/auth/reset-password
 Content-Type: {{contentType}}
 
 {
-  "token": "301737",
-  "password": "Toxic321",
-  "confirmPassword": "Toxic321"
+  "token": "332675",
+  "password": "Toxi356",
+  "confirmPassword": "Toxi356"
 }
 
 ### Refresh token

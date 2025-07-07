@@ -1,0 +1,775 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmN2RhMmE4Ny1jZmIzLTQ1YzYtODI4Ni0xNTljMjU3OGE0NWUiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxODgxODQ5LCJleHAiOjE3NTE4ODU0NDl9.3N1gG2a-byrPfgvhlIq_isMk228lUvp1fd99sQ5Sv4w
+@instructorToken =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzMWU0NzAwMy01YjMzLTQ5MDctOGU5OS00MzhlMjM1ZjdjZjAiLCJlbWFpbCI6Im1lbGxpc2F3YW5qYTI1NEBnbWFpbC5jb20iLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTg4MTgxMywiZXhwIjoxNzUxODg1NDEzfQ.XbIj8QEIcZPADmLA1-iBUuXT4455Il8NNY3V1loCB8E
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NDc5MjgxMy1iNmU0LTRjYTYtYjFhNS0xOTc4NGI2NTEzMjUiLCJlbWFpbCI6Im5lcG93b2g5MDNAYmluYWZleC5jb20iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc1MTg4MTc1MywiZXhwIjoxNzUxODg1MzUzfQ.X2uO09l15MfOi_maP2cOYNKxYDewEbvpCEFq8F2ce4s
+
+@categoryId = 7e5ca3ed-2952-4c67-905e-59e1d453f662
+@courseId = 4e08f3df-38b7-4de0-b358-2d51e91c1bd4
+@lessonId = ["725ebcd7-3618-471c-bb44-47ca83ca8429", "6b293f1a-9750-422a-8c8d-dd45bc5b19f0", "bde63780-c012-4d1c-b65c-9c9a0dbba70c"]
+@instructorId = 31e47003-5b33-4907-8e99-438e235f7cf0
+@enrollmentId = 9982d70f-f826-4647-8810-56517cf990a3
+@quizId = 
+@questionId = 
+@attemptId = 
+
+
+### Create Category (Admin)
+POST {{baseUrl}}/categories
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Software Development",
+  "description": "Learn modern Software development technologies"
+}
+
+### Get All Categories
+GET {{baseUrl}}/categories
+Authorization: Bearer {{adminToken}}
+
+### Get Category by ID
+GET {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+
+### Update Category (Admin)
+PATCH {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Full Stack Web Development",
+  "description": "Complete web development course covering frontend and backend"
+}
+
+### Delete Category (Admin) - Should fail if has courses
+DELETE {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+
+### Test Category Access Control - Student should fail
+POST {{baseUrl}}/categories
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Unauthorized Category",
+  "description": "This should fail"
+}
+
+### ============== COURSES ==============
+
+### Create Course (Admin)
+POST {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React.js Fundamentals",
+  "description": "Learn React.js from scratch",
+  "price": 99.99,
+  "level": "BEGINNER",
+  "categoryId": "{{categoryId}}"
+}
+
+### Create Course without Instructor (Admin)
+POST {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Node.js Complete Course",
+  "description": "Master Node.js development",
+  "price": 199.99,
+  "level": "INTERMEDIATE",
+  "categoryId": "{{categoryId}}"
+}
+
+### Get All Courses (Admin/Instructor view)
+GET {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+
+### Get All Courses (Student view - only published)
+GET {{baseUrl}}/courses
+Authorization: Bearer {{studentToken}}
+
+### Get Courses with Filters
+GET {{baseUrl}}/courses?search=React&level=BEGINNER&isPublished=true&page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Get Course by ID
+GET {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+
+### Update Course (Admin)
+PATCH {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Advanced React.js",
+  "description": "Master React.js with advanced concepts",
+  "price": 149.99,
+  "level": "INTERMEDIATE"
+}
+
+### Assign Instructor to Course (Admin)
+PATCH {{baseUrl}}/courses/{{courseId}}/assign-instructor
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "instructorId": "{{instructorId}}"
+}
+
+### Get My Courses (Instructor)
+GET {{baseUrl}}/courses/my-courses
+Authorization: Bearer {{instructorToken}}
+
+### Update Course (Instructor)
+PATCH {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React.js Complete Guide",
+  "description": "Complete React.js course with projects",
+  "thumbnail": "https://example.com/thumbnail.jpg"
+}
+
+### Publish Course (Instructor) - Should fail if no lessons
+POST {{baseUrl}}/courses/{{courseId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Unpublish Course (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/unpublish
+Authorization: Bearer {{instructorToken}}
+
+### Delete Course (Admin)
+DELETE {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+
+### Test Course Access Control - Student should fail
+POST {{baseUrl}}/courses
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Unauthorized Course",
+  "description": "This should fail",
+  "categoryId": "{{categoryId}}"
+}
+
+### Test Course Access - Wrong Instructor should fail
+GET {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{instructorToken}}
+
+### ============== LESSONS ==============
+
+### Create Text Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Introduction to React",
+  "content": "In this lesson, we'll cover the basics of React.js",
+  "type": "TEXT",
+  "orderIndex": 1
+}
+
+### Create Video Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React Components",
+  "content": "Learn how to create React components",
+  "type": "VIDEO",
+  "videoUrl": "https://example.com/video.mp4",
+  "orderIndex": 2
+}
+
+### Create PDF Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React Cheat Sheet",
+  "content": "Download the React cheat sheet",
+  "type": "PDF",
+  "fileUrl": "https://example.com/cheatsheet.pdf",
+  "orderIndex": 3
+}
+
+### OR Update existing lesson to publish it
+PATCH {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "isPublished": true
+}
+
+### Get All Lessons for Course (Instructor)
+GET {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+
+### Get All Lessons for Course (Student - only published)
+GET {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{studentToken}}
+
+### Get Lesson by ID
+GET {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+
+### Update Lesson (Instructor)
+PATCH {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Introduction to React - Updated",
+  "content": "Updated lesson content",
+  "isPublished": true
+}
+
+### Reorder Lessons (Instructor)
+PATCH {{baseUrl}}/courses/{{courseId}}/lessons/reorder
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "lessonIds": ["lesson1-id", "lesson2-id", "lesson3-id"]
+}
+
+### Delete Lesson (Instructor)
+DELETE {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+
+### Publish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Unpublish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/unpublish
+Authorization: Bearer {{instructorToken}}
+
+### Publish All Lessons at Once (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/publish-all
+Authorization: Bearer {{instructorToken}}
+
+### Get Lesson Statistics (Instructor)
+GET {{baseUrl}}/courses/{{courseId}}/lessons/stats
+Authorization: Bearer {{instructorToken}}
+
+### Test Workflow - Create, Publish Lesson, then Publish Course
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "New React Lesson",
+  "content": "This lesson covers React fundamentals",
+  "type": "TEXT",
+  "orderIndex": 4
+}
+
+### Publish the lesson
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Now publish the course (should work)
+POST {{baseUrl}}/courses/{{courseId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Test Lesson Access Control - Student should fail
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Unauthorized Lesson",
+  "content": "This should fail",
+  "type": "TEXT",
+  "orderIndex": 1
+}
+
+### Test Lesson Access - Wrong Instructor should fail
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Unauthorized Lesson",
+  "content": "This should fail",
+  "type": "TEXT",
+  "orderIndex": 1
+}
+
+### ============== ENROLLMENTS ==============
+
+### Student enrolls in course
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### Get All Enrollments (Admin)
+GET {{baseUrl}}/enrollments
+Authorization: Bearer {{adminToken}}
+
+### Get Enrollments with Filters
+GET {{baseUrl}}/enrollments?courseId={{courseId}}&status=ACTIVE&page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### Get my enrollments (Student)
+GET {{baseUrl}}/enrollments/my-enrollments
+Authorization: Bearer {{studentToken}}
+
+### Get course enrollments (Instructor)
+GET {{baseUrl}}/enrollments/course/{{courseId}}
+Authorization: Bearer {{instructorToken}}
+
+### Get specific enrollment
+GET {{baseUrl}}/enrollments/{{enrollmentId}}
+Authorization: Bearer {{studentToken}}
+
+### Update enrollment status (Admin)
+PATCH {{baseUrl}}/enrollments/{{enrollmentId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "status": "COMPLETED"
+}
+
+### Get enrollment progress
+GET {{baseUrl}}/enrollments/{{enrollmentId}}/progress
+Authorization: Bearer {{studentToken}}
+
+### Mark lesson as completed (Student)
+POST {{baseUrl}}/lessons/{{lessonId}}/progress
+Authorization: Bearer {{studentToken}}
+
+### Student drops enrollment
+DELETE {{baseUrl}}/enrollments/{{enrollmentId}}
+Authorization: Bearer {{studentToken}}
+
+### Test Enrollment Access Control - Instructor enrolling in own course should fail
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### Test Enrollment in Unpublished Course - Should fail
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### ============== QUIZZES ==============
+
+### Create Quiz (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/quizzes
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React Fundamentals Quiz",
+  "description": "Test your React knowledge",
+  "timeLimit": 30,
+  "passingScore": 70
+}
+
+### Get All Quizzes for Course (Instructor)
+GET {{baseUrl}}/courses/{{courseId}}/quizzes
+Authorization: Bearer {{instructorToken}}
+
+### Get All Quizzes for Course (Student - only published)
+GET {{baseUrl}}/courses/{{courseId}}/quizzes
+Authorization: Bearer {{studentToken}}
+
+### Get Quiz by ID
+GET {{baseUrl}}/courses/{{courseId}}/quizzes/{{quizId}}
+Authorization: Bearer {{instructorToken}}
+
+### Update Quiz (Instructor)
+PATCH {{baseUrl}}/courses/{{courseId}}/quizzes/{{quizId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "React Fundamentals Quiz - Updated",
+  "description": "Updated quiz description",
+  "timeLimit": 45,
+  "passingScore": 75,
+  "isPublished": true
+}
+
+### Delete Quiz (Instructor)
+DELETE {{baseUrl}}/courses/{{courseId}}/quizzes/{{quizId}}
+Authorization: Bearer {{instructorToken}}
+
+### ============== QUESTIONS ==============
+
+### Create Multiple Choice Question (Instructor)
+POST {{baseUrl}}/quizzes/{{quizId}}/questions
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "question": "What is React?",
+  "type": "MULTIPLE_CHOICE",
+  "options": ["A JavaScript library", "A programming language", "A database", "An operating system"],
+  "correctAnswers": ["A JavaScript library"],
+  "points": 10,
+  "orderIndex": 1
+}
+
+### Create True/False Question (Instructor)
+POST {{baseUrl}}/quizzes/{{quizId}}/questions
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "question": "React is maintained by Facebook",
+  "type": "TRUE_FALSE",
+  "correctAnswers": ["true"],
+  "points": 5,
+  "orderIndex": 2
+}
+
+### Get All Questions for Quiz (Instructor)
+GET {{baseUrl}}/quizzes/{{quizId}}/questions
+Authorization: Bearer {{instructorToken}}
+
+### Get Question by ID
+GET {{baseUrl}}/quizzes/{{quizId}}/questions/{{questionId}}
+Authorization: Bearer {{instructorToken}}
+
+### Update Question (Instructor)
+PATCH {{baseUrl}}/quizzes/{{quizId}}/questions/{{questionId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "question": "What is React? (Updated)",
+  "options": ["A JavaScript library for building UIs", "A programming language", "A database", "An operating system"],
+  "correctAnswers": ["A JavaScript library for building UIs"],
+  "points": 15
+}
+
+### Delete Question (Instructor)
+DELETE {{baseUrl}}/quizzes/{{quizId}}/questions/{{questionId}}
+Authorization: Bearer {{instructorToken}}
+
+### ============== QUIZ ATTEMPTS ==============
+
+### Start Quiz Attempt (Student)
+POST {{baseUrl}}/quizzes/{{quizId}}/attempts
+Authorization: Bearer {{studentToken}}
+
+### Get My Quiz Attempts (Student)
+GET {{baseUrl}}/users/me/quiz-attempts
+Authorization: Bearer {{studentToken}}
+
+### Get Quiz Attempts for Quiz (Instructor)
+GET {{baseUrl}}/quizzes/{{quizId}}/attempts
+Authorization: Bearer {{instructorToken}}
+
+### Get Quiz Attempt Details
+GET {{baseUrl}}/quiz-attempts/{{attemptId}}
+Authorization: Bearer {{studentToken}}
+
+### Submit Answers (Student)
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/answers
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "answers": [
+    {
+      "questionId": "{{questionId}}",
+      "answer": "A JavaScript library for building UIs"
+    }
+  ]
+}
+
+### Submit Quiz (Student)
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/submit
+Authorization: Bearer {{studentToken}}
+
+### ============== COMPLETE WORKFLOW TESTS ==============
+
+### 1. Admin creates category
+POST {{baseUrl}}/categories
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Frontend Development",
+  "description": "Learn frontend technologies"
+}
+
+### 2. Admin creates course
+POST {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Vue.js Mastery",
+  "description": "Master Vue.js framework",
+  "price": 129.99,
+  "level": "INTERMEDIATE",
+  "categoryId": "{{categoryId}}"
+}
+
+### 3. Admin assigns instructor
+PATCH {{baseUrl}}/courses/{{courseId}}/assign-instructor
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "instructorId": "{{instructorId}}"
+}
+
+### 4. Instructor creates lessons
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Vue.js Basics",
+  "content": "Introduction to Vue.js framework",
+  "type": "VIDEO",
+  "videoUrl": "https://example.com/vue-basics.mp4",
+  "orderIndex": 1
+}
+
+### 5. Instructor publishes lesson
+PATCH {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "isPublished": true
+}
+
+### 6. Instructor creates quiz
+POST {{baseUrl}}/courses/{{courseId}}/quizzes
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Vue.js Quiz",
+  "description": "Test your Vue.js knowledge",
+  "timeLimit": 20,
+  "passingScore": 80
+}
+
+### 7. Instructor adds questions
+POST {{baseUrl}}/quizzes/{{quizId}}/questions
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "question": "What is Vue.js?",
+  "type": "MULTIPLE_CHOICE",
+  "options": ["A JavaScript framework", "A CSS framework", "A database", "A server"],
+  "correctAnswers": ["A JavaScript framework"],
+  "points": 10,
+  "orderIndex": 1
+}
+
+### 8. Instructor publishes quiz
+PATCH {{baseUrl}}/courses/{{courseId}}/quizzes/{{quizId}}
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "isPublished": true
+}
+
+### 9. Instructor publishes course
+POST {{baseUrl}}/courses/{{courseId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### 10. Student enrolls in course
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### 11. Student marks lesson as completed
+POST {{baseUrl}}/lessons/{{lessonId}}/progress
+Authorization: Bearer {{studentToken}}
+
+### 12. Student starts quiz
+POST {{baseUrl}}/quizzes/{{quizId}}/attempts
+Authorization: Bearer {{studentToken}}
+
+### 13. Student submits answers
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/answers
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "answers": [
+    {
+      "questionId": "{{questionId}}",
+      "answer": "A JavaScript framework"
+    }
+  ]
+}
+
+### 14. Student submits quiz
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/submit
+Authorization: Bearer {{studentToken}}
+
+### ============== ERROR SCENARIOS ==============
+
+### Try to publish course without lessons
+POST {{baseUrl}}/courses/{{courseId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Try to unpublish course with enrollments
+POST {{baseUrl}}/courses/{{courseId}}/unpublish
+Authorization: Bearer {{instructorToken}}
+
+### Try to delete course with enrollments
+DELETE {{baseUrl}}/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+
+### Try to delete category with courses
+DELETE {{baseUrl}}/categories/{{categoryId}}
+Authorization: Bearer {{adminToken}}
+
+### Try to enroll in unpublished course
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### Try to access other user's enrollment
+GET {{baseUrl}}/enrollments/{{enrollmentId}}
+Authorization: Bearer {{instructorToken}}
+
+### Try to submit quiz twice
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/submit
+Authorization: Bearer {{studentToken}}
+
+### Try to answer after quiz submission
+POST {{baseUrl}}/quiz-attempts/{{attemptId}}/answers
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "answers": [
+    {
+      "questionId": "{{questionId}}",
+      "answer": "Late answer"
+    }
+  ]
+}
+
+### ============== PERFORMANCE TESTS ==============
+
+### Large pagination test
+GET {{baseUrl}}/courses?page=1&limit=100
+Authorization: Bearer {{adminToken}}
+
+### Search performance test
+GET {{baseUrl}}/courses?search=javascript&categoryId={{categoryId}}&level=BEGINNER
+Authorization: Bearer {{studentToken}}
+
+### Bulk lesson creation test
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Lesson {{$randomInt}}",
+  "content": "Content for lesson {{$randomInt}}",
+  "type": "TEXT",
+  "orderIndex": {{$randomInt}}
+}
+
+### ============== EDGE CASES ==============
+
+### Create course with minimum required fields
+POST {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Minimal Course",
+  "categoryId": "{{categoryId}}"
+}
+
+### Create lesson with all optional fields
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Complete Lesson",
+  "content": "Full lesson content",
+  "type": "VIDEO",
+  "videoUrl": "https://example.com/video.mp4",
+  "fileUrl": "https://example.com/document.pdf",
+  "orderIndex": 1
+}
+
+### Test duplicate enrollment
+POST {{baseUrl}}/enrollments
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "courseId": "{{courseId}}"
+}
+
+### Test invalid category ID
+POST {{baseUrl}}/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Invalid Category Course",
+  "categoryId": "invalid-uuid"
+}
+
+### Test invalid instructor assignment
+PATCH {{baseUrl}}/courses/{{courseId}}/assign-instructor
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "instructorId": "invalid-uuid"
+}
+
+### Test assigning student as instructor
+PATCH {{baseUrl}}/courses/{{courseId}}/assign-instructor
+Authorization: Bearer {{adminToken}}
+Content-Type: {{contentType}}
+
+{
+  "instructorId": "{{studentToken}}"
+}

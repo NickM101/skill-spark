@@ -53,19 +53,22 @@ model Course {
   thumbnail        String?
   price            Decimal?    @db.Decimal(10, 2)
   level            CourseLevel @default(BEGINNER)
-  categoryId       String
-  instructorId     String
   isPublished      Boolean     @default(false)
+  categoryId       String
+  instructorId     String?     
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
+  // Relations
   category         Category    @relation(fields: [categoryId], references: [id])
-  instructor       User        @relation("CourseInstructor", fields: [instructorId], references: [id])
+  instructor       User?       @relation("CourseInstructor", fields: [instructorId], references: [id]) 
   lessons          Lesson[]
-  enrollments      Enrollment[]
   quizzes          Quiz[]
+  enrollments      Enrollment[]
 
-  @@map("courses")
+  @@index([categoryId])
+  @@index([instructorId])
+  @@index([isPublished])
 }
 
 enum CourseLevel {

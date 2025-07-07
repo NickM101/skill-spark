@@ -18,3 +18,5 @@ export interface User {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export type UserWithoutPassword = Omit<User, 'password'>;
