@@ -1,15 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
-  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../shared/email/email.service';
+import { CourseService } from '../course/course.service';
+import { EnrollmentService } from '../enrollment/enrollment.service';
+import { LessonService } from '../lesson/lesson.service';
 import { CourseProgressDto } from './dto/course-progress.dto';
 import { ProgressStatsDto } from './dto/progress-stats.dto';
 import { StudentProgressDto } from './dto/student-progress.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Role } from 'generated/prisma';
 
 @Injectable()
 export class ProgressService {
@@ -18,32 +24,34 @@ export class ProgressService {
   constructor(
     private prisma: PrismaService,
     private emailService: EmailService,
+    private courseService: CourseService,
+    private enrollmentService: EnrollmentService,
+    private lessonService: LessonService,
   ) {}
 
   /**
    * Mark a lesson as completed by a user
    */
-  async markLessonComplete(userId: string, lessonId: string): Promise<void> {
-    // Verify the lesson exists
-    const lesson = await this.prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: { course: true },
-    });
+  async markLessonComplete(
+    userId: string,
+    lessonId: string,
+    userRole: Role,
+    courseId: string,
+  ): Promise<void> {
+    const lesson = await this.lessonService.findOne(
+      courseId,
+      lessonId,
+      userRole,
+      userId,
+    );
+    if (!lesson) throw new NotFoundException('Lesson not found');
 
-    if (!lesson) {
-      throw new NotFoundException('Lesson not found');
-    }
-
-    // Verify user is enrolled in the course
-    const enrollment = await this.prisma.enrollment.findFirst({
-      where: {
+    const enrollment =
+      await this.enrollmentService.findEnrollmentByUserAndCourse(
         userId,
-        courseId: lesson.courseId,
-        status: 'ACTIVE',
-      },
-    });
-
-    if (!enrollment) {
+        lesson.courseId,
+      );
+    if (!enrollment || enrollment.status !== 'ACTIVE') {
       throw new ForbiddenException(
         'You must be enrolled in this course to track progress',
       );
@@ -70,6 +78,7 @@ export class ProgressService {
         userId,
         lessonId,
         completed: true,
+        completedAt: new Date(),
       },
     });
 
@@ -77,33 +86,32 @@ export class ProgressService {
     await this.updateEnrollmentProgress(userId, lesson.courseId);
 
     // Check if course is completed
-    await this.checkCourseCompletion(userId, lesson.courseId);
+    await this.checkCourseCompletion(userId, lesson.courseId, userRole);
   }
 
   /**
    * Mark a lesson as incomplete by a user
    */
-  async markLessonIncomplete(userId: string, lessonId: string): Promise<void> {
-    // Verify the lesson exists
-    const lesson = await this.prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: { course: true },
-    });
+  async markLessonIncomplete(
+    userId: string,
+    lessonId: string,
+    courseId: string,
+    userRole: Role,
+  ): Promise<void> {
+    const lesson = await this.lessonService.findOne(
+      lessonId,
+      courseId,
+      userRole,
+      userId,
+    );
+    if (!lesson) throw new NotFoundException('Lesson not found');
 
-    if (!lesson) {
-      throw new NotFoundException('Lesson not found');
-    }
-
-    // Verify user is enrolled in the course
-    const enrollment = await this.prisma.enrollment.findFirst({
-      where: {
+    const enrollment =
+      await this.enrollmentService.findEnrollmentByUserAndCourse(
         userId,
-        courseId: lesson.courseId,
-        status: 'ACTIVE',
-      },
-    });
-
-    if (!enrollment) {
+        lesson.courseId,
+      );
+    if (!enrollment || enrollment.status !== 'ACTIVE') {
       throw new ForbiddenException(
         'You must be enrolled in this course to track progress',
       );
@@ -127,27 +135,20 @@ export class ProgressService {
   async getUserProgress(
     userId: string,
     courseId: string,
+    userRole: Role = 'STUDENT',
   ): Promise<CourseProgressDto> {
-    // Verify user is enrolled in the course
-    const enrollment = await this.prisma.enrollment.findFirst({
-      where: {
+    // Use EnrollmentService to check enrollment
+    const enrollment =
+      await this.enrollmentService.findEnrollmentByUserAndCourse(
         userId,
         courseId,
-      },
-    });
-
+      );
     if (!enrollment) {
       throw new ForbiddenException('You are not enrolled in this course');
     }
 
-    // Get course with lessons
-    const course = await this.prisma.course.findUnique({
-      where: { id: courseId },
-      include: {
-        lessons: true,
-      },
-    });
-
+    // Use CourseService to get course with lessons
+    const course = await this.courseService.findOne(courseId, userRole, userId);
     if (!course) {
       throw new NotFoundException('Course not found');
     }
@@ -165,7 +166,7 @@ export class ProgressService {
       },
     });
 
-    const totalLessons = course.lessons.length;
+    const totalLessons = (course.lessons ?? []).length;
     const completedCount = completedLessons.length;
     const progressPercentage =
       totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
@@ -187,42 +188,30 @@ export class ProgressService {
   /**
    * Get all students' progress for a specific course
    */
-  async getCourseProgress(courseId: string): Promise<StudentProgressDto[]> {
-    // Verify course exists
-    const course = await this.prisma.course.findUnique({
-      where: { id: courseId },
-      include: {
-        lessons: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
+  async getCourseProgress(
+    courseId: string,
+    userRole: Role,
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<StudentProgressDto[]> {
+    // Use CourseService to get course with lessons
+    const course = await this.courseService.findOne(courseId, userRole, userId);
     if (!course) {
       throw new NotFoundException('Course not found');
     }
 
-    const totalLessons = course.lessons.length;
+    const totalLessons = (course.lessons ?? []).length;
 
-    // Get all enrollments for the course
-    const enrollments = await this.prisma.enrollment.findMany({
-      where: {
-        courseId,
-        status: 'ACTIVE',
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-    });
+    // Use EnrollmentService to get all enrollments for the course
+    const { enrollments } = await this.enrollmentService.getCourseEnrollments(
+      courseId,
+      userId,
+      '', // lessonId is not used here, so pass an empty string or the appropriate value
+      page,
+      limit,
+      userRole,
+    );
 
     // Get progress for each enrolled student
     const studentsProgress: StudentProgressDto[] = await Promise.all(
@@ -250,6 +239,17 @@ export class ProgressService {
             ? completedLessons[0].completedAt
             : undefined;
 
+        if (!enrollment.user) {
+          return {
+            userId: enrollment.userId,
+            fullName: '',
+            email: '',
+            progressPercentage,
+            completedLessons: completedCount,
+            totalLessons,
+            lastActivity,
+          };
+        }
         return {
           userId: enrollment.user.id,
           fullName: `${enrollment.user.firstName} ${enrollment.user.lastName}`,
@@ -273,23 +273,14 @@ export class ProgressService {
   async calculateCourseProgress(
     userId: string,
     courseId: string,
+    userRole: Role = 'STUDENT',
   ): Promise<number> {
-    const course = await this.prisma.course.findUnique({
-      where: { id: courseId },
-      include: {
-        lessons: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
+    const course = await this.courseService.findOne(courseId, userRole);
     if (!course) {
       throw new NotFoundException('Course not found');
     }
 
-    const totalLessons = course.lessons.length;
+    const totalLessons = (course.lessons ?? []).length;
 
     if (totalLessons === 0) {
       return 0;
@@ -310,25 +301,16 @@ export class ProgressService {
   /**
    * Get overall progress statistics for a user
    */
-  async getProgressStats(userId: string): Promise<ProgressStatsDto> {
-    // Get all active enrollments
-    const enrollments = await this.prisma.enrollment.findMany({
-      where: {
-        userId,
-        status: 'ACTIVE',
-      },
-      include: {
-        course: {
-          include: {
-            lessons: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-    });
+  async getProgressStats(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<ProgressStatsDto> {
+    const { enrollments } = await this.enrollmentService.getMyEnrollments(
+      userId,
+      page,
+      limit,
+    );
 
     if (enrollments.length === 0) {
       return {
@@ -355,7 +337,7 @@ export class ProgressService {
     });
 
     // Calculate stats
-    let totalLessonsCompleted = progressRecords.length;
+    const totalLessonsCompleted = progressRecords.length;
     let totalCourseCompletionPercentage = 0;
     let totalCoursesCompleted = 0;
 
@@ -363,7 +345,9 @@ export class ProgressService {
       enrollments.map(async (enrollment) => {
         const courseId = enrollment.courseId;
         const course = enrollment.course;
-        const totalLessons = course.lessons.length;
+        const totalLessons = Array.isArray((course as any)?.lessons)
+          ? (course as any).lessons.length
+          : 0;
 
         const completedLessons = progressRecords.filter(
           (progress) => progress.lesson.courseId === courseId,
@@ -395,7 +379,7 @@ export class ProgressService {
 
         return {
           courseId,
-          courseName: course.title,
+          courseName: course?.title ?? '',
           totalLessons,
           completedLessons,
           progressPercentage,
@@ -405,16 +389,19 @@ export class ProgressService {
       }),
     );
 
-    const averageCourseCompletion = enrollments.length > 0
-      ? Math.round(totalCourseCompletionPercentage / enrollments.length)
-      : 0;
+    const averageCourseCompletion =
+      enrollments.length > 0
+        ? Math.round(totalCourseCompletionPercentage / enrollments.length)
+        : 0;
 
     return {
       totalCoursesEnrolled: enrollments.length,
       totalCoursesCompleted,
       totalLessonsCompleted,
       averageCourseCompletion,
-      courseProgress: courseProgress.sort((a, b) => b.progressPercentage - a.progressPercentage),
+      courseProgress: courseProgress.sort(
+        (a, b) => b.progressPercentage - a.progressPercentage,
+      ),
     };
   }
 
@@ -426,7 +413,10 @@ export class ProgressService {
     courseId: string,
   ): Promise<void> {
     try {
-      const progressPercentage = await this.calculateCourseProgress(userId, courseId);
+      const progressPercentage = await this.calculateCourseProgress(
+        userId,
+        courseId,
+      );
 
       await this.prisma.enrollment.updateMany({
         where: {
@@ -434,71 +424,73 @@ export class ProgressService {
           courseId,
         },
         data: {
-          progressPercentage,
+          progressPercent: progressPercentage,
         },
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        this.logger.error(`Failed to update enrollment progress: ${error.message}`);
+        this.logger.error(
+          `Failed to update enrollment progress: ${error.message}`,
+        );
       } else {
-        this.logger.error('Failed to update enrollment progress: Unknown error');
+        this.logger.error(
+          'Failed to update enrollment progress: Unknown error',
+        );
       }
     }
   }
 
-  /**
-   * Send email notification for lesson completion
-   */
-  private async sendLessonCompletionEmail(
-    userId: string,
-    lessonId: string,
-  ): Promise<void> {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          email: true,
-          firstName: true,
-          lastName: true,
-        },
-      });
+  // /**
+  //  * Send email notification for lesson completion
+  //  */
+  // private async sendLessonCompletionEmail(
+  //   userId: string,
+  //   lessonId: string,
+  //   courseId: string,
+  //   userRole: Role,
+  // ): Promise<void> {
+  //   try {
+  //     const user = await this.prisma.user.findUnique({
+  //       where: { id: userId },
+  //       select: {
+  //         email: true,
+  //         firstName: true,
+  //         lastName: true,
+  //       },
+  //     });
 
-      const lesson = await this.prisma.lesson.findUnique({
-        where: { id: lessonId },
-        include: {
-          course: {
-            select: {
-              title: true,
-            },
-          },
-        },
-      });
+  //     const lesson = await this.lessonService.findOne(
+  //       courseId,
+  //       lessonId,
+  //       userRole,
+  //       userId,
+  //     );
 
-      if (!user || !lesson) {
-        return;
-      }
+  //     if (!user || !lesson) {
+  //       return;
+  //     }
 
-      const fullName = `${user.firstName} ${user.lastName}`;
+  //     const fullName = `${user.firstName} ${user.lastName}`;
 
-      // Get progress for the course
-      const courseProgress = await this.getUserProgress(
-        userId,
-        lesson.courseId,
-      );
+  //     // Get progress for the course
+  //     const courseProgress = await this.getUserProgress(
+  //       userId,
+  //       lesson.courseId,
+  //     );
 
-      await this.emailService.sendLessonCompletionEmail(
-        user.email,
-        fullName,
-        lesson.title,
-        lesson.course.title,
-        `${courseProgress.progressPercentage}%`,
-        `You have completed ${courseProgress.completedLessons} out of ${courseProgress.totalLessons} lessons.`,
-      );
-    } catch (error) {
-      // Log error but don't fail the progress update
-      console.error('Failed to send lesson completion email', error);
-    }
-  }
+  //     await this.emailService.sendLessonCompletionEmail(
+  //       user.email,
+  //       fullName,
+  //       lesson.title,
+  //       lesson.course.title,
+  //       `${courseProgress.progressPercentage}%`,
+  //       `You have completed ${courseProgress.completedLessons} out of ${courseProgress.totalLessons} lessons.`,
+  //     );
+  //   } catch (error) {
+  //     // Log error but don't fail the progress update
+  //     this.logger.error('Failed to send lesson completion email', error);
+  //   }
+  // }
 
   /**
    * Check if a course is completed and send notification
@@ -506,6 +498,7 @@ export class ProgressService {
   private async checkCourseCompletion(
     userId: string,
     courseId: string,
+    userRole: Role,
   ): Promise<void> {
     try {
       const progress = await this.getUserProgress(userId, courseId);
@@ -520,12 +513,11 @@ export class ProgressService {
           },
         });
 
-        const course = await this.prisma.course.findUnique({
-          where: { id: courseId },
-          select: {
-            title: true,
-          },
-        });
+        const course = await this.courseService.findOne(
+          courseId,
+          userRole,
+          userId,
+        );
 
         if (!user || !course) {
           return;
@@ -556,7 +548,9 @@ export class ProgressService {
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        this.logger.error(`Failed to process course completion: ${error.message}`);
+        this.logger.error(
+          `Failed to process course completion: ${error.message}`,
+        );
       } else {
         this.logger.error('Failed to process course completion: Unknown error');
       }
@@ -572,53 +566,55 @@ export class ProgressService {
     try {
       // Find enrollments that are:
       // 1. Active (not completed or canceled)
-      // 2. Created more than 7 days ago
-      // 3. Have progress less than 100%
-      // 4. Haven't had a reminder in the last 7 days
+      // 2. Enrolled more than 7 days ago
+      // 3. Have progressPercent less than 100%
       const dateThreshold = new Date();
       dateThreshold.setDate(dateThreshold.getDate() - 7);
 
+      // Only fetch enrollments with status ACTIVE, enrolledAt older than 7 days, and progressPercent < 100
       const incompleteEnrollments = await this.prisma.enrollment.findMany({
         where: {
           status: 'ACTIVE',
-          createdAt: {
+          enrolledAt: {
             lt: dateThreshold,
           },
-          progressPercentage: {
+          progressPercent: {
             lt: 100,
-          },
-          lastReminderSent: {
-            lt: dateThreshold,
-          },
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-          course: {
-            select: {
-              id: true,
-              title: true,
-              endDate: true,
-            },
           },
         },
       });
 
       for (const enrollment of incompleteEnrollments) {
-        const { user, course } = enrollment;
+        // Fetch user and course info for this enrollment
+        const user = await this.prisma.user.findUnique({
+          where: { id: enrollment.userId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        });
+
+        const course = await this.prisma.course.findUnique({
+          where: { id: enrollment.courseId },
+          select: {
+            id: true,
+            title: true,
+            // Remove endDate if not present in your schema
+          },
+        });
+
+        if (!user || !course) continue;
+
         const fullName = `${user.firstName} ${user.lastName}`;
 
-        // Calculate days remaining if course has an end date
-        let courseEndDate = 'N/A';
-        if (course.endDate) {
-          courseEndDate = course.endDate.toISOString().split('T')[0];
-        }
+        // If you have an endDate field in your course model, fetch it above and use it here
+        const courseEndDate = 'N/A';
+        // Uncomment below if endDate exists in your schema
+        // if (course.endDate) {
+        //   courseEndDate = course.endDate.toISOString().split('T')[0];
+        // }
 
         // Send reminder email
         await this.emailService.sendCourseReminderEmail(
@@ -628,15 +624,15 @@ export class ProgressService {
           courseEndDate,
         );
 
-        // Update last reminder sent date
-        await this.prisma.enrollment.update({
-          where: {
-            id: enrollment.id,
-          },
-          data: {
-            lastReminderSent: new Date(),
-          },
-        });
+        // If you have a lastReminderSent field in your enrollment model, update it here
+        // await this.prisma.enrollment.update({
+        //   where: {
+        //     id: enrollment.id,
+        //   },
+        //   data: {
+        //     lastReminderSent: new Date(),
+        //   },
+        // });
       }
     } catch (error: unknown) {
       if (error instanceof Error) {

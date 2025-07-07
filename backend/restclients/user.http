@@ -2,8 +2,8 @@
 @contentType = application/json
 
 ### Variables - Run the login request in auth.http first
-@userToken = 
-@adminToken = 
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTkwOTczOCwiZXhwIjoxNzUxOTEzMzM4fQ.7Xw4za1CUj8gNPrpUmr8E13pCZi9XOxN-CFCnUok-yA
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGViNWJmZi05ZmJhLTRjNWItOTI4MC0wMzIyMDE4MzM3ZGEiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxOTA5NjQyLCJleHAiOjE3NTE5MTMyNDJ9.seTlmdTCuC5sd1o3CtvN6waa2Mvg2OLcFIH01k4M8Ck
 ### Get current user profile
 GET {{baseUrl}}/users/profile/me
 Authorization: Bearer {{userToken}}

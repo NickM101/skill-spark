@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -15,6 +17,7 @@ import { AssignInstructorDto } from './dto/assign-instructor.dto';
 import { CourseQueryDto } from './dto/course-query.dto';
 import { CourseResponseDto } from './dto/course-response.dto';
 import { Role } from '../../generated/prisma';
+import { CourseWithRelations } from './interfaces/course.interface';
 
 @Injectable()
 export class CourseService {
@@ -26,9 +29,12 @@ export class CourseService {
     private emailService: EmailService,
   ) {}
 
-  private transformCourseToResponse(course: any): CourseResponseDto {
+  private transformCourseToResponse(
+    course: CourseWithRelations,
+  ): CourseResponseDto {
     return {
       ...course,
+      instructorId: course.instructorId ?? undefined,
       description: course.description || undefined,
       price: course.price ? Number(course.price) : undefined,
       thumbnail: course.thumbnail || undefined,
@@ -36,6 +42,14 @@ export class CourseService {
         ? {
             ...course.category,
             description: course.category.description || undefined,
+          }
+        : undefined,
+      instructor: course.instructor
+        ? {
+            id: course.instructor.id,
+            firstName: course.instructor.firstName,
+            lastName: course.instructor.lastName,
+            email: course.instructor.email,
           }
         : undefined,
     };
@@ -95,6 +109,7 @@ export class CourseService {
             orderBy: { orderIndex: 'asc' },
           },
           quizzes: true,
+          enrollments: true,
           _count: {
             select: {
               lessons: true,
@@ -117,7 +132,6 @@ export class CourseService {
   async findAll(
     query: CourseQueryDto,
     userRole: Role,
-    userId?: string,
   ): Promise<{
     courses: CourseResponseDto[];
     total: number;
@@ -180,6 +194,11 @@ export class CourseService {
               email: true,
             },
           },
+          lessons: {
+            orderBy: { orderIndex: 'asc' },
+          },
+          quizzes: true,
+          enrollments: true,
           _count: {
             select: {
               lessons: true,
@@ -232,6 +251,7 @@ export class CourseService {
         quizzes: {
           where: userRole === Role.STUDENT ? { isPublished: true } : {},
         },
+        enrollments: true,
         _count: {
           select: {
             lessons: true,
@@ -299,6 +319,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
+        enrollments: true, // <-- Add this line
         _count: {
           select: {
             lessons: true,
@@ -360,6 +381,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
+        enrollments: true, // <-- Add this line
         _count: {
           select: {
             lessons: true,
@@ -432,6 +454,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
+        enrollments: true, // <-- Add this line
         _count: {
           select: {
             lessons: true,
@@ -487,6 +510,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
+        enrollments: true, // <-- Add this line
         _count: {
           select: {
             lessons: true,
@@ -565,6 +589,7 @@ export class CourseService {
             orderBy: { orderIndex: 'asc' },
           },
           quizzes: true,
+          enrollments: true, // <-- Add this line
           _count: {
             select: {
               lessons: true,
@@ -652,6 +677,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
+        enrollments: true, // <-- Add this line
         _count: {
           select: {
             lessons: true,

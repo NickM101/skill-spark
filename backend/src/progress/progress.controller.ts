@@ -30,9 +30,16 @@ export class ProgressController {
   async markLessonComplete(
     @CurrentUser() user: { id: string },
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    userRole: Role,
+    courseId: string,
   ) {
     try {
-      await this.progressService.markLessonComplete(user.id, lessonId);
+      await this.progressService.markLessonComplete(
+        user.id,
+        lessonId,
+        userRole,
+        courseId,
+      );
       return this.apiResponseService.success(
         null,
         'Lesson marked as complete successfully',
@@ -55,9 +62,16 @@ export class ProgressController {
   async markLessonIncomplete(
     @CurrentUser() user: { id: string },
     @Param('lessonId', ParseUUIDPipe) lessonId: string,
+    userRole: Role,
+    courseId: string,
   ) {
     try {
-      await this.progressService.markLessonIncomplete(user.id, lessonId);
+      await this.progressService.markLessonIncomplete(
+        user.id,
+        lessonId,
+        courseId,
+        userRole,
+      );
       return this.apiResponseService.success(
         null,
         'Lesson marked as incomplete successfully',
@@ -105,9 +119,21 @@ export class ProgressController {
    */
   @Get('courses/:courseId/students')
   @Roles(Role.ADMIN, Role.INSTRUCTOR)
-  async getCourseProgress(@Param('courseId', ParseUUIDPipe) courseId: string) {
+  async getCourseProgress(
+    @CurrentUser() user: { id: string; role: Role },
+    @Param('courseId', ParseUUIDPipe) courseId: string,
+  ) {
+    // For pagination, you can later add @Query('page') and @Query('limit'), here we use defaults
+    const page = 1;
+    const limit = 20;
     try {
-      const progress = await this.progressService.getCourseProgress(courseId);
+      const progress = await this.progressService.getCourseProgress(
+        courseId,
+        user.role,
+        user.id,
+        page,
+        limit,
+      );
       return this.apiResponseService.success(
         progress,
         'Students progress retrieved successfully',
@@ -129,7 +155,13 @@ export class ProgressController {
   @Roles(Role.STUDENT)
   async getProgressStats(@CurrentUser() user: { id: string }) {
     try {
-      const stats = await this.progressService.getProgressStats(user.id);
+      const page = 1;
+      const limit = 20;
+      const stats = await this.progressService.getProgressStats(
+        user.id,
+        page,
+        limit,
+      );
       return this.apiResponseService.success(
         stats,
         'Progress statistics retrieved successfully',

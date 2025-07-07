@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
   NotFoundException,
@@ -8,6 +11,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { UpdateQuizDto } from './dto/update-quiz.dto';
+import { AddQuestionDto } from './dto/add-question.dto';
 import { QuizStatsDto } from './dto/question-stats.dto';
 
 @Injectable()
@@ -31,7 +35,9 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can create quizzes');
+      throw new ForbiddenException(
+        'Only the course instructor can create quizzes',
+      );
     }
 
     // Create the quiz
@@ -42,6 +48,145 @@ export class QuizService {
         isPublished: false,
       },
     });
+  }
+
+  /**
+   * Add a question to a quiz
+   */
+  async addQuestion(
+    quizId: string,
+    userId: string,
+    addQuestionDto: AddQuestionDto,
+  ) {
+    // Verify quiz exists and user is authorized
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        course: {
+          select: {
+            instructorId: true,
+          },
+        },
+        questions: {
+          select: {
+            orderIndex: true,
+          },
+          orderBy: {
+            orderIndex: 'desc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new NotFoundException(`Quiz with ID ${quizId} not found`);
+    }
+
+    // Check if user is the course instructor
+    if (quiz.course.instructorId !== userId) {
+      throw new ForbiddenException(
+        'Only the course instructor can add questions to quizzes',
+      );
+    }
+
+    // Prevent adding questions to published quizzes
+    if (quiz.isPublished) {
+      throw new BadRequestException(
+        'Cannot add questions to a published quiz. Unpublish it first.',
+      );
+    }
+
+    // Validate question type and options
+    this.validateQuestionData(addQuestionDto);
+
+    // Determine the order index
+    const orderIndex =
+      addQuestionDto.orderIndex !== undefined
+        ? addQuestionDto.orderIndex
+        : (quiz.questions[0]?.orderIndex || 0) + 1;
+
+    // Create the question
+    const question = await this.prisma.question.create({
+      data: {
+        quizId,
+        question: addQuestionDto.question,
+        type: addQuestionDto.type as import('../../generated/prisma').$Enums.QuestionType,
+        options: addQuestionDto.options ?? [],
+        correctAnswers: Array.isArray(addQuestionDto.correctAnswers)
+          ? addQuestionDto.correctAnswers
+          : [],
+        points: addQuestionDto.points,
+        orderIndex,
+      },
+    });
+
+    this.logger.log(`Question added to quiz ${quizId} by user ${userId}`);
+
+    return question;
+  }
+
+  /**
+   * Validate question data based on type
+   */
+  private validateQuestionData(addQuestionDto: AddQuestionDto) {
+    const { type, options, correctAnswers } = addQuestionDto;
+    // Use the Prisma enum for type comparison
+    const QuestionType = require('../../generated/prisma').$Enums.QuestionType;
+
+    switch (type) {
+      case QuestionType.MULTIPLE_CHOICE:
+        if (!options || options.length < 2) {
+          throw new BadRequestException(
+            'Multiple choice questions must have at least 2 options',
+          );
+        }
+        if (!correctAnswers || correctAnswers.length === 0) {
+          throw new BadRequestException(
+            'Multiple choice questions must have at least one correct answer',
+          );
+        }
+        // Validate that correct answers are valid indices
+        correctAnswers.forEach((answer) => {
+          if (
+            typeof answer === 'number' &&
+            (answer < 0 || (options && answer >= options.length))
+          ) {
+            throw new BadRequestException(
+              'Correct answer indices must be valid option indices',
+            );
+          }
+        });
+        break;
+
+      case QuestionType.TRUE_FALSE:
+        if (!options || options.length !== 2) {
+          throw new BadRequestException(
+            'True/False questions must have exactly 2 options',
+          );
+        }
+        if (!correctAnswers || correctAnswers.length !== 1) {
+          throw new BadRequestException(
+            'True/False questions must have exactly one correct answer',
+          );
+        }
+        break;
+
+      case QuestionType.SHORT_ANSWER:
+        if (!correctAnswers || correctAnswers.length === 0) {
+          throw new BadRequestException(
+            'Short answer questions must have at least one correct answer',
+          );
+        }
+        break;
+
+      case QuestionType.ESSAY:
+        // Essay questions don't need validation of correct answers
+        break;
+
+      default:
+        throw new BadRequestException('Invalid question type');
+    }
   }
 
   /**
@@ -59,7 +204,7 @@ export class QuizService {
 
     // Check if user is authorized (instructor or enrolled student)
     const isInstructor = course.instructorId === userId;
-    
+
     if (!isInstructor) {
       const enrollment = await this.prisma.enrollment.findFirst({
         where: {
@@ -70,7 +215,9 @@ export class QuizService {
       });
 
       if (!enrollment) {
-        throw new ForbiddenException('You must be enrolled in this course to view quizzes');
+        throw new ForbiddenException(
+          'You must be enrolled in this course to view quizzes',
+        );
       }
     }
 
@@ -122,7 +269,7 @@ export class QuizService {
 
     // Check if user is authorized (instructor or enrolled student)
     const isInstructor = quiz.course.instructorId === userId;
-    
+
     if (!isInstructor) {
       // Check if quiz is published
       if (!quiz.isPublished) {
@@ -139,13 +286,15 @@ export class QuizService {
       });
 
       if (!enrollment) {
-        throw new ForbiddenException('You must be enrolled in this course to view quizzes');
+        throw new ForbiddenException(
+          'You must be enrolled in this course to view quizzes',
+        );
       }
 
       // For students, don't return correct answers
-      quiz.questions = quiz.questions.map(question => ({
+      quiz.questions = quiz.questions.map((question) => ({
         ...question,
-        correctAnswers: undefined,
+        correctAnswers: null,
       }));
     }
 
@@ -174,12 +323,16 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can update quizzes');
+      throw new ForbiddenException(
+        'Only the course instructor can update quizzes',
+      );
     }
 
     // Prevent updating published quizzes
     if (quiz.isPublished) {
-      throw new BadRequestException('Cannot update a published quiz. Unpublish it first.');
+      throw new BadRequestException(
+        'Cannot update a published quiz. Unpublish it first.',
+      );
     }
 
     // Update the quiz
@@ -211,7 +364,9 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can delete quizzes');
+      throw new ForbiddenException(
+        'Only the course instructor can delete quizzes',
+      );
     }
 
     // Check if there are any quiz attempts
@@ -221,7 +376,7 @@ export class QuizService {
 
     if (attemptCount > 0) {
       throw new BadRequestException(
-        `Cannot delete quiz with ${attemptCount} attempts. Consider unpublishing instead.`
+        `Cannot delete quiz with ${attemptCount} attempts. Consider unpublishing instead.`,
       );
     }
 
@@ -260,7 +415,9 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can publish quizzes');
+      throw new ForbiddenException(
+        'Only the course instructor can publish quizzes',
+      );
     }
 
     // Check if quiz has questions
@@ -299,7 +456,9 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can unpublish quizzes');
+      throw new ForbiddenException(
+        'Only the course instructor can unpublish quizzes',
+      );
     }
 
     // Unpublish the quiz
@@ -334,7 +493,9 @@ export class QuizService {
 
     // Check if user is the course instructor
     if (quiz.course.instructorId !== userId) {
-      throw new ForbiddenException('Only the course instructor can view quiz statistics');
+      throw new ForbiddenException(
+        'Only the course instructor can view quiz statistics',
+      );
     }
 
     // Get all quiz attempts
@@ -382,9 +543,17 @@ export class QuizService {
     let passCount = 0;
     let totalCompletionTime = 0;
 
+    // Define a type for question statistics
+    type QuestionStat = {
+      questionId: string;
+      questionText: string;
+      correctAnswerCount: number;
+      totalAnswerCount: number;
+    };
+
     // Process question statistics
-    const questionMap = new Map();
-    quiz.questions.forEach(question => {
+    const questionMap = new Map<string, QuestionStat>();
+    quiz.questions.forEach((question) => {
       questionMap.set(question.id, {
         questionId: question.id,
         questionText: question.question,
@@ -394,9 +563,9 @@ export class QuizService {
     });
 
     // Process student performances and update statistics
-    const recentAttempts = attempts.slice(0, 10).map(attempt => {
+    const recentAttempts = attempts.slice(0, 10).map((attempt) => {
       const score = attempt.score || 0;
-      
+
       // Update aggregate stats
       totalScore += score;
       highestScore = Math.max(highestScore, score);
@@ -404,17 +573,18 @@ export class QuizService {
       if (score >= quiz.passingScore) {
         passCount++;
       }
-      
+
       // Calculate completion time in minutes
-      const completionTime = 
+      const completionTime =
         attempt.submittedAt && attempt.startedAt
-          ? (attempt.submittedAt.getTime() - attempt.startedAt.getTime()) / 60000
+          ? (attempt.submittedAt.getTime() - attempt.startedAt.getTime()) /
+            60000
           : quiz.timeLimit || 0;
-          
+
       totalCompletionTime += completionTime;
 
       // Process question statistics
-      attempt.answers.forEach(answer => {
+      attempt.answers.forEach((answer) => {
         const questionStat = questionMap.get(answer.questionId);
         if (questionStat) {
           questionStat.totalAnswerCount++;
@@ -442,14 +612,17 @@ export class QuizService {
     const averageCompletionTime = totalCompletionTime / totalAttempts;
 
     // Format question stats
-    const questionStats = Array.from(questionMap.values()).map(stat => ({
-      questionId: stat.questionId,
-      questionText: stat.questionText,
-      correctAnswerRate: stat.totalAnswerCount > 0 
-        ? (stat.correctAnswerCount / stat.totalAnswerCount) * 100 
-        : 0,
-      timesAnswered: stat.totalAnswerCount,
-    }));
+    const questionStats = Array.from(questionMap.values()).map(
+      (stat: QuestionStat) => ({
+        questionId: stat.questionId,
+        questionText: stat.questionText,
+        correctAnswerRate:
+          stat.totalAnswerCount > 0
+            ? (stat.correctAnswerCount / stat.totalAnswerCount) * 100
+            : 0,
+        timesAnswered: stat.totalAnswerCount,
+      }),
+    );
 
     return {
       quizId: id,

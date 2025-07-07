@@ -128,10 +128,11 @@ export class EnrollmentController {
     try {
       const result = await this.enrollmentService.getCourseEnrollments(
         courseId,
+        user.id,
+        '', // lessonId is not used here, so pass an empty string or the appropriate value
         page,
         limit,
         user.role,
-        user.id,
       );
       return this.apiResponseService.paginated(
         result.enrollments,

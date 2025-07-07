@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Variables
+@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTkxNjExNywiZXhwIjoxNzUxOTE5NzE3fQ.T2Ch4-EsvXpQg99hLVfeZReq6uDRRvtQU6xO8nr73Ms
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOGNhMDEzMC02ODUyLTQ3NTktOTZlNi03MWFiNWFhMGYyZTMiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dUBzdHJhdGhtb3JlLmVkdSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUxOTE2MjUyLCJleHAiOjE3NTE5MTk4NTJ9.KVnrprCvP_ZR6j7fd87u29DVzSAg7ZKc7Y10b3k82cg
+@attemptId = 93caf3a3-9e9c-40b7-992e-9e569337a938
+@quizId = 598b4878-d418-4075-8225-7b21a1cf8fed
+@questionId = a667ba23-7e59-47d2-90ec-af251716fa51
+
+### Start a new quiz attempt
+POST {{baseUrl}}/quiz-attempts/quizzes/{{quizId}}/attempts
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+###
+
+### Submit an answer for a question (Student)
+POST {{baseUrl}}/quiz-attempts/attempts/{{attemptId}}/answers
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+{
+  "questionId": "{{questionId}}",
+  "answer": "Paris"
+}
+
+###
+
+### Submit the quiz
+POST {{baseUrl}}/quiz-attempts/attempts/{{attemptId}}/submit
+Authorization: Bearer {{studentToken}}
+Content-Type: {{contentType}}
+
+###
+
+### Get user's attempts for a quiz
+GET {{baseUrl}}/quiz-attempts/quizzes/{{quizId}}/attempts
+Authorization: Bearer {{studentToken}}
+
+###
+
+### Get quiz attempt statistics (Instructor/Admin)
+GET {{baseUrl}}/quiz-attempts/quizzes/{{quizId}}/attempts/stats
+Authorization: Bearer {{instructorToken}}
+
+###
+
+### Grade an attempt (Instructor/Admin)
+POST {{baseUrl}}/quiz-attempts/attempts/{{attemptId}}/grade
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}

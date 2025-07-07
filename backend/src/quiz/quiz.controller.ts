@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Controller,
   Get,
@@ -20,6 +19,8 @@ import { Roles } from '../auth/decorators/roles.decorators';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ApiResponseService } from '../shared/api-rensponse.service';
 import { Role } from '../../generated/prisma';
+import { AddQuestionDto } from './dto/add-question.dto';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 @Controller('quizzes')
 @UseGuards(JwtAuthGuard)
@@ -55,6 +56,49 @@ export class QuizController {
     }
   }
 
+  @Post(':id/questions')
+  @Roles(Role.INSTRUCTOR, Role.ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Add a question to a quiz' })
+  @ApiParam({ name: 'id', description: 'Quiz ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Question added successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid question data or quiz is published',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Only course instructors can add questions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Quiz not found',
+  })
+  async addQuestion(
+    @Param('id', ParseUUIDPipe) quizId: string,
+    @CurrentUser() user: { id: string },
+    @Body() addQuestionDto: AddQuestionDto,
+  ) {
+    try {
+      const question = await this.quizService.addQuestion(
+        quizId,
+        user.id,
+        addQuestionDto,
+      );
+      return this.apiResponseService.success(
+        question,
+        'Question added successfully',
+      );
+    } catch (error) {
+      return this.apiResponseService.error(
+        error instanceof Error ? error.message : 'Failed to add question',
+        'QUESTION_ADD_ERROR',
+      );
+    }
+  }
   /**
    * Get all quizzes for a course (enrolled students/instructor)
    */

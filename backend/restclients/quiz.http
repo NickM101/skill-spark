@@ -2,10 +2,10 @@
 @contentType = application/json
 
 ### Variables
-@instructorToken = 
-@studentToken = 
-@courseId = 
-@quizId = 
+@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTkxMzU2OCwiZXhwIjoxNzUxOTE3MTY4fQ.nFa6Ygohan0MLQVvg6p5ZKR18L-h6MeVLgwpCYOAujw
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOGNhMDEzMC02ODUyLTQ3NTktOTZlNi03MWFiNWFhMGYyZTMiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dUBzdHJhdGhtb3JlLmVkdSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUxOTA5NDE3LCJleHAiOjE3NTE5MTMwMTd9.4BGvdqEQxGs0d6SG1tmY80Uf5ZAfzGWzWqwt3bZNTrE
+@courseId =  2adcf161-67f3-474b-91a9-119088abd05d
+@quizId = 598b4878-d418-4075-8225-7b21a1cf8fed
 
 ### Create a new quiz
 POST {{baseUrl}}/courses/{{courseId}}/quizzes
@@ -19,12 +19,27 @@ Authorization: Bearer {{instructorToken}}
   "passingScore": 70
 }
 
+
+###Add a question to a quiz (Instructor)
+POST {{baseUrl}}/quizzes/{{quizId}}/questions
+Authorization: Bearer {{instructorToken}}
+Content-Type: application/json
+
+{
+   "question": "What is the capital of France?",
+  "type": "MULTIPLE_CHOICE",
+  "options": ["Paris", "London", "Berlin", "Madrid"],
+  "correctAnswers": ["Paris"],
+  "points": 5,
+  "orderIndex": 1
+}
+
 ### Get all quizzes for a course
-GET {{baseUrl}}/courses/{{courseId}}/quizzes
+GET {{baseUrl}}/quizzes/courses/{{courseId}}/quizzes
 Authorization: Bearer {{instructorToken}}
 
 ### Get all quizzes for a course (as student)
-GET {{baseUrl}}/courses/{{courseId}}/quizzes
+GET {{baseUrl}}/quizzes/courses/{{courseId}}/quizzes
 Authorization: Bearer {{studentToken}}
 
 ### Get a quiz by ID

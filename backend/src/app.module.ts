@@ -12,6 +12,7 @@ import { CourseModule } from './course/course.module';
 import { LessonModule } from './lesson/lesson.module';
 import { CategoryModule } from './category/category.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
+import { QuizAttemptModule } from './quiz-attempt/quiz-attempt.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
     EnrollmentModule,
     ProgressModule,
     QuizModule,
+    QuizAttemptModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService, CloudinaryService],

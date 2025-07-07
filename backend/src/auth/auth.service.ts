@@ -55,7 +55,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       isVerified: user.isEmailVerified || false,
-      createdAt: user.createdAt,
+      createdAt: user.createdAt ?? new Date(0),
     };
   }
 

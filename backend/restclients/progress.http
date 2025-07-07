@@ -2,10 +2,10 @@
 @contentType = application/json
 
 ### Variables
-@studentToken = 
-@instructorToken =
-@courseId = 
-@lessonId = 
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOGNhMDEzMC02ODUyLTQ3NTktOTZlNi03MWFiNWFhMGYyZTMiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dUBzdHJhdGhtb3JlLmVkdSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUxOTA5NDE3LCJleHAiOjE3NTE5MTMwMTd9.4BGvdqEQxGs0d6SG1tmY80Uf5ZAfzGWzWqwt3bZNTrE
+@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTkwOTczOCwiZXhwIjoxNzUxOTEzMzM4fQ.7Xw4za1CUj8gNPrpUmr8E13pCZi9XOxN-CFCnUok-yA
+@courseId = 2adcf161-67f3-474b-91a9-119088abd05d
+@lessonId = cdee90cf-7984-4d30-bf9c-8ab4bd1fa1cc
 
 ### Mark lesson as complete
 POST {{baseUrl}}/progress/lessons/{{lessonId}}/complete

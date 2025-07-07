@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -234,10 +232,11 @@ export class EnrollmentService {
 
   async getCourseEnrollments(
     courseId: string,
+    userId: string,
+    lessonId: string,
     page: number,
     limit: number,
     userRole: Role,
-    userId: string,
   ): Promise<{
     enrollments: EnrollmentResponseDto[];
     total: number;
@@ -497,7 +496,6 @@ export class EnrollmentService {
       create: {
         userId,
         lessonId,
-        enrollment: { connect: { id: enrollment.id } },
         completed: true,
         completedAt: new Date(),
       },
@@ -511,8 +509,10 @@ export class EnrollmentService {
     const completedLessons = await this.prisma.progress.count({
       where: {
         userId,
-        courseId: lesson.courseId,
-        isCompleted: true,
+        lesson: {
+          courseId: lesson.courseId,
+        },
+        completed: true,
       },
     });
 
@@ -533,5 +533,34 @@ export class EnrollmentService {
 
     this.logger.log(`Lesson ${lessonId} marked complete for user ${userId}`);
     return progress;
+  }
+
+  async findEnrollmentByUserAndCourse(userId: string, courseId: string) {
+    return this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            thumbnail: true,
+          },
+        },
+      },
+    });
   }
 }
