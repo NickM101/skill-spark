@@ -2,9 +2,10 @@
 @contentType = application/json
 
 ### Variables
-@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTk2NDk3MCwiZXhwIjoxNzUxOTY4NTcwfQ.dbyoFa61iY5RnUqLkHjeMrxLTPQLW56mOPai_aB_gcM
-@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOGNhMDEzMC02ODUyLTQ3NTktOTZlNi03MWFiNWFhMGYyZTMiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dUBzdHJhdGhtb3JlLmVkdSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUxOTA5NDE3LCJleHAiOjE3NTE5MTMwMTd9.4BGvdqEQxGs0d6SG1tmY80Uf5ZAfzGWzWqwt3bZNTrE
-@courseId =  2adcf161-67f3-474b-91a9-119088abd05d
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMTNkMjU4Ni1kZDhhLTRmM2YtOTU0OC1kNTUwZTQwMDgyZDYiLCJlbWFpbCI6ImFkbWluQGRlbW8uY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxOTY2NjcxLCJleHAiOjE3NTIwNTMwNzF9.-jW6RQ12hR9wMuD7VIi6WNLPSvjVCougrHEoWjD8cjk
+@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZjZkMjliMy0yNTUwLTQ5MTctOThkZS0zN2Y4N2UwMzM3NWIiLCJlbWFpbCI6Imluc3RydWN0b3JAZGVtby5jb20iLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTk2NjY0MCwiZXhwIjoxNzUyMDUzMDQwfQ.W6ggMxh2_ynHRXJ5RsuEOxWkWa7wu3fM6RWEasnCf_M
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYTRhODM0ZC0yNWY2LTQ4ZGYtOTNiNy05MzI5MmQ2MjVjMDMiLCJlbWFpbCI6InN0dWRlbnRAZGVtby5jb20iLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc1MTk2NjUxMiwiZXhwIjoxNzUyMDUyOTEyfQ.4OvuxSKagLh7t2IMq9ywXvmFbhWRTydyTAyKn5HVOR4
+@courseId =  f599e94c-19e1-481e-9b59-1754629f50a9
 @quizId = 598b4878-d418-4075-8225-7b21a1cf8fed
 
 ### Create a new quiz
@@ -36,7 +37,7 @@ Content-Type: application/json
 
 ### Get all quizzes for a course
 GET {{baseUrl}}/quizzes/courses/{{courseId}}/quizzes
-Authorization: Bearer {{instructorToken}}
+Authorization: Bearer {{adminToken}}
 
 ### Get all quizzes for a course (as student)
 GET {{baseUrl}}/quizzes/courses/{{courseId}}/quizzes

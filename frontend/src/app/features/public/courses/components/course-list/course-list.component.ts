@@ -23,6 +23,8 @@ import { SharedModule } from '@shared/shared.module';
 import { Category } from '@core/models/category.model';
 import { Course, CourseLevel, CourseResponse, CourseFilters, CourseListResponse } from '@core/models/course.model';
 import { CourseCardComponent } from "../course-card/course-card.component";
+import { EnrollmentService } from '../../services/enrollment.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-course-list',
@@ -97,7 +99,9 @@ export class CourseListComponent implements OnInit, OnDestroy {
     private courseService: CourseService,
     private formBuilder: FormBuilder,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private enrollmentService: EnrollmentService,
+    private snackBar: MatSnackBar
   ) {
     this.filterForm = this.createFilterForm();
   }
@@ -210,7 +214,19 @@ export class CourseListComponent implements OnInit, OnDestroy {
   onEnrollClick(course: Course): void {
     // Handle enrollment logic
     console.log('Enroll in course:', course.title);
-    // This would typically navigate to enrollment page or open a modal
+    this.enrollmentService.create({courseId: course.id}).subscribe({
+      next: (response) => {
+        this.snackBar.open('Enrolled successfully!', 'Close', {
+          duration: 3000,
+        });
+        // Optionally, update the course list or navigate to a different page
+      },
+      error: (error) => {
+        this.snackBar.open('Failed to enroll: ' + error.message, 'Close', {
+          duration: 3000,
+        });
+      },
+    });    // This would typically navigate to enrollment page or open a modal
   }
 
   onContinueClick(course: Course): void {
@@ -238,10 +254,14 @@ export class CourseListComponent implements OnInit, OnDestroy {
 
   getLevelDisplayName(level: CourseLevel): string {
     switch (level) {
-      case CourseLevel.BEGINNER: return 'Beginner';
-      case CourseLevel.INTERMEDIATE: return 'Intermediate';
-      case CourseLevel.ADVANCED: return 'Advanced';
-      default: return 'Unknown';
+      case CourseLevel.BEGINNER:
+        return 'Beginner';
+      case CourseLevel.INTERMEDIATE:
+        return 'Intermediate';
+      case CourseLevel.ADVANCED:
+        return 'Advanced';
+      default:
+        return 'Unknown';
     }
   }
 

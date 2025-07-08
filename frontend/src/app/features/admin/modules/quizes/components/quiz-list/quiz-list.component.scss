@@ -207,6 +207,44 @@
       }
     }
   
+    .course-table {
+      width: 100%;
+    
+      .course-title-cell {
+        h4 {
+          margin: 0 0 0.25rem 0;
+          font-weight: 500;
+          color: var(--text-primary);
+        }
+    
+        .course-description {
+          margin: 0;
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+          line-height: 1.4;
+          max-width: 300px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+    
+      .actions-cell {
+        display: flex;
+        gap: 0.25rem;
+        justify-content: center;
+    
+        .mat-mdc-icon-button {
+          width: 36px;
+          height: 36px;
+    
+          .mat-icon {
+            font-size: 1.125rem;
+          }
+        }
+      }
+    }
+    
     // Hide some columns on mobile
     .table-container {
       .quiz-table {

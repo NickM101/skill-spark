@@ -36,7 +36,6 @@ import { finalize } from 'rxjs';
   styleUrl: 'login.scss',
 })
 export class LoginComponent {
-  
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -61,7 +60,7 @@ export class LoginComponent {
       this.isLoading.set(true);
       this.errorMessage.set('');
 
-       const credentials = {
+      const credentials = {
         email: this.loginForm.value.email,
         password: this.loginForm.value.password,
       };
@@ -75,11 +74,11 @@ export class LoginComponent {
         )
         .subscribe({
           next: (response) => {
-            console.log("RESPONSE", response)
+            console.log('RESPONSE', response);
             this.redirectAfterLogin();
           },
           error: (error) => {
-            console.log("ERROR LOGIN", typeof error)
+            console.log('ERROR LOGIN', typeof error);
             this.errorMessage.set(error || 'Login failed.');
           },
         });
@@ -105,9 +104,9 @@ export class LoginComponent {
 
   fillDemoCredentials(role: 'student' | 'instructor' | 'admin') {
     const credentials = {
-      student: { email: 'student@demo.com', password: 'demo123' },
-      instructor: { email: 'instructor@demo.com', password: 'demo123' },
-      admin: { email: 'admin@demo.com', password: 'demo123' },
+      student: { email: 'student@demo.com', password: 'StrongPass123!' },
+      instructor: { email: 'instructor@demo.com', password: 'StrongPass123!' },
+      admin: { email: 'admin@demo.com', password: 'StrongPass123!' },
     };
 
     this.loginForm.patchValue(credentials[role]);

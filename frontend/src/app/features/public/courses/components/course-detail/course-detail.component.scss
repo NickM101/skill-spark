@@ -2,7 +2,7 @@
 
 .course-detail-container {
     min-height: 100vh;
-    background: var(--background-color);
+    background: white;
   }
   
   .course-hero {
@@ -959,93 +959,4 @@
     }
   }
   
-  // Dark mode support (if implemented)
-  @media (prefers-color-scheme: dark) {
-    .course-hero {
-      .hero-background {
-        .hero-image {
-          filter: brightness(0.3);
-        }
-      }
-    }
-  
-    .course-content {
-      background: #1a1a1a;
-    }
-  
-    .curriculum-tab {
-      .lessons-list {
-        .lesson-item {
-          &.locked {
-            background: #2a2a2a;
-          }
-        }
-      }
-    }
-  
-    .overview-tab {
-      .overview-section {
-        .prerequisites,
-        .course-details .detail-item {
-          background: #2a2a2a;
-        }
-      }
-    }
-  
-    .instructor-tab {
-      .instructor-stats {
-        .stat-item {
-          background: #2a2a2a;
-        }
-      }
-    }
-  
-    .reviews-tab {
-      .add-review {
-        background: #2a2a2a;
-      }
-    }
-
-    .lesson-item.completed {
-      background-color: rgba(76, 175, 80, 0.05);
-      border-left: 4px solid #4caf50;
-    }
-    
-    .completion-icon {
-      color: #4caf50;
-    }
-    
-    .completion-status {
-      color: #4caf50;
-      font-weight: 500;
-      font-size: 0.75rem;
-    }
-    
-    .completed-button {
-      background-color: #4caf50 !important;
-    }
-    
-    .progress-section {
-      margin: 1rem 0;
-      padding: 1rem;
-      background-color: rgba(var(--primary-color-rgb), 0.05);
-      border-radius: 8px;
-    }
-    
-    .progress-info {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-    
-    .progress-label {
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-    
-    .progress-percentage {
-      font-weight: 600;
-      color: var(--primary-color);
-    }
-  }
         

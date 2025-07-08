@@ -1,8 +1,7 @@
 // src/app/features/admin/modules/quizzes/components/quiz-list/quiz-list.component.ts
-
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject, BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { Subject, BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
 import {
   takeUntil,
   debounceTime,
@@ -15,13 +14,15 @@ import { MatDialog } from '@angular/material/dialog';
 import { QuizService } from '../../services/quiz.service';
 import { ConfirmDialogComponent } from '@features/admin/modules/user-management/components/confirm-dialog/confirm-dialog';
 import { QuizFilters, Quiz } from '@core/models/quiz.model';
+import { Course } from '@core/models/course.model';
 import { SharedModule } from '@shared/shared.module';
+import { CourseService } from '@features/admin/modules/course-management/services/admin-course.service';
 
 @Component({
   selector: 'app-quiz-list',
   templateUrl: './quiz-list.component.html',
   styleUrls: ['./quiz-list.component.scss'],
-  imports: [SharedModule]
+  imports: [SharedModule],
 })
 export class QuizListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -29,16 +30,12 @@ export class QuizListComponent implements OnInit, OnDestroy {
     page: 1,
     limit: 10,
   });
-
   quizzes$: Observable<Quiz[]> = new Observable<Quiz[]>();
+  courses$: Observable<Course[]> = new Observable<Course[]>();
   loading$ = new BehaviorSubject<boolean>(false);
   pagination: any = {};
-
-  // Filter controls
   searchControl = '';
   publishedFilter: boolean | undefined = undefined;
-
-  // Table columns
   displayedColumns: string[] = [
     'title',
     'course',
@@ -49,17 +46,25 @@ export class QuizListComponent implements OnInit, OnDestroy {
     'actions',
   ];
 
+  @Input() courseId: string | null = null;
+  @Input() readonly: boolean = false;
+
   constructor(
     private quizService: QuizService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
-  ) {
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.initializeQuizStream();
   }
 
-  ngOnInit(): void {
-    this.setupSearchDebounce();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['courseId']) {
+      console.log('courseId changed:', this.courseId);
+    }
   }
 
   ngOnDestroy(): void {
@@ -67,108 +72,72 @@ export class QuizListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Initialize the quiz data stream
-   */
   private initializeQuizStream(): void {
-    this.quizzes$ = this.filtersSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((filters) => {
-        this.loading$.next(true);
-        return this.quizService.getAllQuizzes(filters);
-      }),
-      map((response) => {
-        this.loading$.next(false);
-        this.pagination = response.pagination;
-        return response.quizzes;
-      }),
-      takeUntil(this.destroy$)
-    );
+    if (this.courseId) {
+      console.log('Fetching quizzes for course ID:', this.courseId); // Log before fetching
+      this.loading$.next(true);
+      this.quizService.getQuizzesByCourse(this.courseId).subscribe({
+        next: (quizzes) => {
+          console.log('Fetched Quizzes:', quizzes); // Log the fetched quizzes
+          this.quizzes$ = of(quizzes);
+          this.loading$.next(false);
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error fetching quizzes:', error);
+          this.loading$.next(false);
+        },
+      });
+    } else {
+      console.log('No courseId provided');
+      this.quizzes$ = of([]);
+      this.loading$.next(false);
+    }
   }
 
-  /**
-   * Setup search input debouncing
-   */
-  private setupSearchDebounce(): void {
-    // In a real app, you'd use reactive forms for better debouncing
-    // For MVP, we'll handle it in the search method
-  }
-
-  /**
-   * Handle search input
-   */
   onSearch(): void {
-    this.updateFilters({
-      search: this.searchControl || undefined,
-      page: 1,
-    });
+    this.updateFilters({ search: this.searchControl || undefined, page: 1 });
   }
 
-  /**
-   * Handle published filter change
-   */
   onPublishedFilterChange(): void {
-    this.updateFilters({
-      isPublished: this.publishedFilter,
-      page: 1,
-    });
+    this.updateFilters({ isPublished: this.publishedFilter, page: 1 });
   }
 
-  /**
-   * Handle page change
-   */
   onPageChange(event: any): void {
-    this.updateFilters({
-      page: event.pageIndex + 1,
-      limit: event.pageSize,
-    });
+    this.updateFilters({ page: event.pageIndex + 1, limit: event.pageSize });
   }
 
-  /**
-   * Update filters and trigger new data fetch
-   */
   private updateFilters(newFilters: Partial<QuizFilters>): void {
     const currentFilters = this.filtersSubject.value;
     this.filtersSubject.next({ ...currentFilters, ...newFilters });
   }
 
-  /**
-   * Navigate to create quiz page
-   */
   createQuiz(): void {
     this.router.navigate(['/admin/quizzes/create']);
   }
 
-  /**
-   * Navigate to edit quiz page
-   */
   editQuiz(quiz: Quiz): void {
     this.router.navigate(['/admin/quizzes', quiz.id, 'edit']);
   }
 
-  /**
-   * View quiz details
-   */
   viewQuiz(quiz: Quiz): void {
     this.router.navigate(['/admin/quizzes', quiz.id]);
   }
 
-  /**
-   * Toggle quiz published status
-   */
+  viewQuizzesForCourse(courseId: string): void {
+    this.router.navigate(['/admin/courses', courseId, 'quizzes']);
+  }
+
   togglePublished(quiz: Quiz): void {
     const action = quiz.isPublished ? 'unpublish' : 'publish';
     const serviceCall = quiz.isPublished
       ? this.quizService.unpublishQuiz(quiz.id)
       : this.quizService.publishQuiz(quiz.id);
-
     serviceCall.pipe(takeUntil(this.destroy$)).subscribe({
       next: (updatedQuiz) => {
         this.snackBar.open(`Quiz ${action}ed successfully`, 'Close', {
           duration: 3000,
         });
-        // Refresh the list
         this.refreshList();
       },
       error: (error) => {
@@ -181,9 +150,6 @@ export class QuizListComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Delete quiz with confirmation
-   */
   deleteQuiz(quiz: Quiz): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
@@ -194,7 +160,6 @@ export class QuizListComponent implements OnInit, OnDestroy {
         cancelText: 'Cancel',
       },
     });
-
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
         this.quizService
@@ -219,31 +184,19 @@ export class QuizListComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Refresh the quiz list
-   */
   refreshList(): void {
     const currentFilters = this.filtersSubject.value;
     this.filtersSubject.next({ ...currentFilters });
   }
 
-  /**
-   * Get status badge class
-   */
   getStatusClass(quiz: Quiz): string {
     return quiz.isPublished ? 'badge-success' : 'badge-secondary';
   }
 
-  /**
-   * Get status text
-   */
   getStatusText(quiz: Quiz): string {
     return quiz.isPublished ? 'Published' : 'Draft';
   }
 
-  /**
-   * Format date for display
-   */
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString();
   }

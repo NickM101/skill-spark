@@ -10,12 +10,14 @@ import { QuizService } from '../../services/quiz.service';
 import { QuestionType, AddQuestionDto } from '@core/models/question.model';
 import { Quiz, CreateQuizDto, UpdateQuizDto } from '@core/models/quiz.model';
 import { SharedModule } from '@shared/shared.module';
+import { Course } from '@core/models/course.model';
+import { CourseService } from '@features/admin/modules/course-management/services/admin-course.service';
 
 @Component({
   selector: 'app-quiz-form',
   templateUrl: './quiz-form.component.html',
   styleUrls: ['./quiz-form.component.scss'],
-  imports: [SharedModule]
+  imports: [SharedModule],
 })
 export class QuizFormComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -26,6 +28,10 @@ export class QuizFormComponent implements OnInit, OnDestroy {
   quizId: string | null = null;
   courseId: string | null = null;
   currentQuiz: Quiz | null = null;
+
+  courses$ = new BehaviorSubject<Course[]>([]);
+  selectedCourse: Course | null = null;
+  coursesLoading$ = new BehaviorSubject<boolean>(false);
 
   // Question Types
   questionTypes = [
@@ -38,16 +44,23 @@ export class QuizFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private quizService: QuizService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private courseService: CourseService
   ) {
     this.initializeForm();
   }
 
   ngOnInit(): void {
+    this.loadCourses();
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.quizId = params['id'] || null;
       this.courseId = params['courseId'] || null;
       this.isEditMode = !!this.quizId;
+
+      if (this.courseId) {
+        this.quizForm.patchValue({ courseId: this.courseId });
+        this.onCourseChange(this.courseId);
+      }
 
       if (this.isEditMode) {
         this.loadQuiz();
@@ -74,6 +87,7 @@ export class QuizFormComponent implements OnInit, OnDestroy {
         ],
       ],
       description: ['', [Validators.maxLength(500)]],
+      courseId: ['', Validators.required],
       timeLimit: [null, [Validators.min(1), Validators.max(300)]],
       passingScore: [
         70,
@@ -88,6 +102,41 @@ export class QuizFormComponent implements OnInit, OnDestroy {
    */
   get questions(): FormArray {
     return this.quizForm.get('questions') as FormArray;
+  }
+
+  private loadCourses(): void {
+    this.coursesLoading$.next(true);
+
+    this.courseService
+      .getPublishedCourses({ limit: 100 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.courses$.next(response.courses);
+          this.coursesLoading$.next(false);
+        },
+        error: (error) => {
+          this.snackBar.open('Failed to load courses', 'Close', {
+            duration: 3000,
+          });
+          this.coursesLoading$.next(false);
+        },
+      });
+  }
+
+  /**
+   * Handle course selection change
+   */
+  onCourseChange(courseId: string): void {
+    const course = this.courses$.value.find((c) => c.id === courseId);
+    if (course) {
+      this.selectedCourse = course;
+      this.courseId = courseId;
+    }
+  }
+
+  getCourseDisplayName(course: Course): string {
+    return `${course.title} - ${course.category?.name || 'Uncategorized'}`;
   }
 
   /**
@@ -123,9 +172,14 @@ export class QuizFormComponent implements OnInit, OnDestroy {
     this.quizForm.patchValue({
       title: quiz.title,
       description: quiz.description,
+      courseId: quiz.courseId,
       timeLimit: quiz.timeLimit,
       passingScore: quiz.passingScore,
     });
+
+    if (quiz.courseId) {
+      this.onCourseChange(quiz.courseId);
+    }
 
     // Add existing questions
     if (quiz.questions) {
@@ -287,10 +341,10 @@ export class QuizFormComponent implements OnInit, OnDestroy {
    * Create new quiz
    */
   private createQuiz(formValue: any): void {
-    if (!this.courseId) {
-      this.snackBar.open('Course ID is required to create a quiz', 'Close', {
-        duration: 5000,
-      });
+    const courseId = formValue.courseId;
+
+    if (!courseId) {
+      this.snackBar.open('Please select a course', 'Close', { duration: 5000 });
       this.loading$.next(false);
       return;
     }
@@ -303,7 +357,7 @@ export class QuizFormComponent implements OnInit, OnDestroy {
     };
 
     this.quizService
-      .createQuiz(this.courseId, createDto)
+      .createQuiz(courseId, createDto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (quiz) => {
@@ -404,6 +458,8 @@ export class QuizFormComponent implements OnInit, OnDestroy {
   onCancel(): void {
     if (this.isEditMode && this.quizId) {
       this.router.navigate(['/admin/quizzes', this.quizId]);
+    } else if (this.courseId) {
+      this.router.navigate(['/admin/courses', this.courseId]);
     } else {
       this.router.navigate(['/admin/quizzes']);
     }
@@ -435,6 +491,9 @@ export class QuizFormComponent implements OnInit, OnDestroy {
     }
 
     if (control?.hasError('required')) {
+      if (controlName === 'courseId') {
+        return 'Please select a course';
+      }
       return `${controlName} is required`;
     }
     if (control?.hasError('minlength')) {

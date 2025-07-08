@@ -6,6 +6,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Input,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -29,12 +30,15 @@ import { User } from '@core/models/user.model';
 import { CourseService } from '../../services/admin-course.service';
 import { SharedModule } from '@shared/shared.module';
 import { LessonListComponent } from "../../../lessons/components/lesson-list/lesson-list.component";
+import { QuizListComponent } from "../../../quizes/components/quiz-list/quiz-list.component";
+import { Quiz } from '@core/models/quiz.model';
+import { QuizService } from '@features/admin/modules/quizes/services/quiz.service';
 
 @Component({
   selector: 'app-course-form',
   templateUrl: './course-form.component.html',
   styleUrls: ['./course-form.component.scss'],
-  imports: [SharedModule, LessonListComponent],
+  imports: [SharedModule, LessonListComponent, QuizListComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CourseFormComponent implements OnInit, OnDestroy {
@@ -44,6 +48,8 @@ export class CourseFormComponent implements OnInit, OnDestroy {
   courseForm: FormGroup;
   categories: Category[] = [];
   instructors: User[] = [];
+  quizzes: Quiz[] = [];
+
   loading$ = this.courseService.loading$;
 
   lessonsCount = 0;
@@ -64,7 +70,8 @@ export class CourseFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private quizService: QuizService
   ) {
     this.courseForm = this.createForm();
   }
@@ -73,11 +80,22 @@ export class CourseFormComponent implements OnInit, OnDestroy {
     this.initializeData();
     this.checkEditMode();
     this.setupFormValidation();
+    if (this.courseId) {
+      this.loadQuizzes();
+    }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  loadQuizzes(): void {
+    this.quizService
+      .getQuizzesByCourse(this.courseId!)
+      .subscribe((quizzes) => {
+        this.quizzes = quizzes;
+      });
   }
 
   private createForm(): FormGroup {
@@ -404,7 +422,6 @@ export class CourseFormComponent implements OnInit, OnDestroy {
     }
     return this.courseForm.valid;
   }
-
 
   formatDate(date: Date | string): string {
     return new Date(date).toLocaleDateString();

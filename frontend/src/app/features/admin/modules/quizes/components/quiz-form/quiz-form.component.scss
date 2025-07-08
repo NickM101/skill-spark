@@ -250,6 +250,22 @@
       }
     }
   }
+
+  .course-selection {
+  .mat-mdc-form-field {
+    .mat-mdc-select {
+      .mat-mdc-select-value {
+        font-weight: 500;
+      }
+    }
+  }
+
+  .course-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+  }
+}
   
   // Material Design Overrides
   .mat-mdc-form-field {

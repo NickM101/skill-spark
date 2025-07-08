@@ -48,8 +48,29 @@
                         <mat-label>Description</mat-label>
                         <textarea matInput formControlName="description" rows="3"
                             placeholder="Enter quiz description"></textarea>
-                        <mat-error *ngIf="quizForm.get('description')?.invalid && quizForm.get('description')?.touched">
+                        <mat-error *ngIf="quizForm.get('description')?.invalid && (quizForm.get('description')?.touched || quizForm.get('description')?.dirty)">
                             {{ getErrorMessage('description') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                    <!-- Course Selection -->
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Select Course *</mat-label>
+                        <mat-select formControlName="courseId" (selectionChange)="onCourseChange($event.value)"
+                        [disabled]="!!(coursesLoading$ | async)">
+                            <mat-option *ngFor="let course of courses$ | async" [value]="course.id">
+                                {{ getCourseDisplayName(course) }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-hint *ngIf="selectedCourse">
+                            Level: {{ selectedCourse.level }} |
+                            Instructor: {{ selectedCourse.instructor?.firstName }} {{
+                            selectedCourse.instructor?.lastName }}
+                        </mat-hint>
+                        <mat-error *ngIf="quizForm.get('courseId')?.invalid && quizForm.get('courseId')?.touched">
+                            {{ getErrorMessage('courseId') }}
                         </mat-error>
                     </mat-form-field>
                 </div>
@@ -199,4 +220,4 @@
             </button>
         </div>
     </form>
-    </div>
+</div>

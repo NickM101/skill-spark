@@ -22,8 +22,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "yeloh19487@fuasha.com",
-  "password": "Passw123"
+  "email": "admin@demo.com",
+  "password": "StrongPass123!"
 }
 
 

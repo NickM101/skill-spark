@@ -205,6 +205,48 @@
                         </div>
                         </mat-tab>
 
+                        <mat-tab label="Quizzes">
+                            <div class="tab-content">
+                                <div class="form-section">
+                                    <h3 class="section-title">
+                                        <mat-icon>quiz</mat-icon>
+                                        Course Quizzes
+                                    </h3>
+                        
+                                    <!-- Quizzes Management for Edit Mode -->
+                                    <div *ngIf="isEditMode && courseId" class="quizzes-section">
+                                        <app-quiz-list [courseId]="courseId" ></app-quiz-list>
+                                    </div>
+                        
+                                    <!-- Create Mode Instructions -->
+                                    <div *ngIf="!isEditMode" class="quizzes-placeholder">
+                                        <div class="placeholder-content">
+                                            <mat-icon class="placeholder-icon">quiz</mat-icon>
+                                            <h4>Quizzes will be available after creating the course</h4>
+                                            <p class="placeholder-description">
+                                                You can add and manage quizzes once the course is created. Save the course first,
+                                                then return to edit mode to add your course quizzes.
+                                            </p>
+                                            <div class="placeholder-steps">
+                                                <div class="step-item">
+                                                    <mat-icon class="step-icon">looks_one</mat-icon>
+                                                    <span>Create the course with basic information</span>
+                                                </div>
+                                                <div class="step-item">
+                                                    <mat-icon class="step-icon">looks_two</mat-icon>
+                                                    <span>Add quizzes and course assessments</span>
+                                                </div>
+                                                <div class="step-item">
+                                                    <mat-icon class="step-icon">looks_3</mat-icon>
+                                                    <span>Publish when ready for students</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </mat-tab>
+                        
                     <!-- Settings Tab -->
                     <mat-tab label="Settings">
                         <div class="tab-content">
