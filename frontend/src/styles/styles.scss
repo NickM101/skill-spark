@@ -173,6 +173,16 @@ body {
   grid-template-columns: repeat(4, 1fr);
 }
 
+.success-snackbar {
+  background-color: var(--success-color) !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: var(--warn-color) !important;
+  color: white !important;
+}
+
 // Custom button styles
 .btn {
   display: inline-flex;

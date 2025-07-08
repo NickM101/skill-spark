@@ -27,7 +27,9 @@
                 <mat-icon>check_circle</mat-icon>
                 <div>
                     <div class="detail-title">Account Activated</div>
-                    <div class="detail-desc">You can now access all features of LearnHub</div>
+                    <div class="detail-desc">
+                        You can now access all features of LearnHub
+                    </div>
                 </div>
             </div>
 
@@ -35,7 +37,9 @@
                 <mat-icon>school</mat-icon>
                 <div>
                     <div class="detail-title">Ready to Learn</div>
-                    <div class="detail-desc">Start exploring our courses and begin your learning journey</div>
+                    <div class="detail-desc">
+                        Start exploring our courses and begin your learning journey
+                    </div>
                 </div>
             </div>
 
@@ -43,13 +47,15 @@
                 <mat-icon>notifications</mat-icon>
                 <div>
                     <div class="detail-title">Stay Updated</div>
-                    <div class="detail-desc">You'll receive important updates and course notifications</div>
+                    <div class="detail-desc">
+                        You'll receive important updates and course notifications
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="success-actions">
-            <button mat-raised-button color="primary" routerLink="../login" class="action-btn primary">
+            <button mat-raised-button color="primary" (click)="navigateToLogin()" class="action-btn primary">
                 <mat-icon>login</mat-icon>
                 Sign In to Your Account
             </button>
@@ -61,61 +67,70 @@
         </div>
     </div>
     } @else {
-    <!-- Error State -->
-    <div class="error-content">
-        <div class="icon-container error">
-            <mat-icon class="header-icon">error</mat-icon>
+    <!-- OTP Input State -->
+    <div class="otp-content">
+        <div class="icon-container otp">
+            <mat-icon class="header-icon">mail</mat-icon>
         </div>
-        <h1 class="form-title">Verification Failed</h1>
+        <h1 class="form-title">Check Your Email</h1>
         <p class="form-subtitle">
-            {{ errorMessage() || 'We couldn\'t verify your email address. The verification link may be invalid or expired.' }}
+            We've sent a 6-digit verification code to<br />
+            <strong>{{ email }}</strong>
         </p>
 
+        <!-- OTP Input Form -->
+        <div class="otp-form">
+            <mat-form-field appearance="outline" class="otp-input">
+                <mat-label>Enter 6-digit code</mat-label>
+                <input matInput [(ngModel)]="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}"
+                    (input)="onCodeInput($event)" (keydown.enter)="verifyCode()" class="otp-field" />
+                <mat-icon matSuffix>pin</mat-icon>
+                @if (errorMessage()) {
+                <mat-error>{{ errorMessage() }}</mat-error>
+                }
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" (click)="verifyCode()" class="verify-btn"
+                [disabled]="!isCodeValid()">
+                <mat-icon>verified_user</mat-icon>
+                Verify Code
+            </button>
+        </div>
+
+        @if (errorMessage()) {
         <div class="error-details">
-            <div class="detail-item">
-                <mat-icon>info</mat-icon>
+            <div class="detail-item error">
+                <mat-icon>error</mat-icon>
                 <div>
-                    <div class="detail-title">Common Issues</div>
-                    <div class="detail-desc">
-                        <ul>
-                            <li>Verification link has expired (valid for 24 hours)</li>
-                            <li>Email address has already been verified</li>
-                            <li>Invalid or corrupted verification token</li>
-                        </ul>
-                    </div>
+                    <div class="detail-title">Verification Failed</div>
+                    <div class="detail-desc">{{ errorMessage() }}</div>
                 </div>
             </div>
         </div>
+        }
 
-        <div class="error-actions">
-            <button mat-raised-button color="primary" (click)="resendVerification()" class="action-btn primary"
+        <div class="resend-section">
+            <p class="resend-text">Didn't receive the code?</p>
+            <button mat-stroked-button (click)="resendVerification()" class="resend-btn"
                 [disabled]="resendCooldown() > 0">
                 <mat-icon>refresh</mat-icon>
-                @if (resendCooldown() > 0) {
-                Resend in {{ resendCooldown() }}s
-                } @else {
-                Resend Verification Email
-                }
-            </button>
-
-            <button mat-stroked-button routerLink="../login" class="action-btn">
-                <mat-icon>arrow_back</mat-icon>
-                Back to Login
+                @if (resendCooldown() > 0) { Resend in {{ resendCooldown() }}s }
+                @else { Resend Code }
             </button>
         </div>
     </div>
     }
 
     <!-- Help Section -->
-    @if (!isVerifying()) {
+    @if (!isVerifying() && !verificationSuccess()) {
     <div class="help-section">
         <h4>Need Help?</h4>
         <div class="help-options">
             <a href="mailto:support@learnhub.com" class="help-link">
                 <mat-icon>email</mat-icon>
                 <div>
-                    <div class="help-title">Help Center</div>
-                    <div class="help-desc">Email verification guide</div>
+                    <div class="help-title">Contact Support</div>
+                    <div class="help-desc">Get help with email verification</div>
                 </div>
             </a>
         </div>

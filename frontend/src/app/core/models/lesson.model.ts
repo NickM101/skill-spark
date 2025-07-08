@@ -1,3 +1,4 @@
+import { Course } from './course.model';
 import { Progress } from './progress.model';
 import { QuizAttempt } from './quiz-attempt.model';
 
@@ -20,6 +21,8 @@ export interface Lesson {
   isPublished: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // Relations
+  course?: Course;
   progress?: Progress[];
 
   // Progress tracking (populated at runtime)
@@ -73,4 +76,61 @@ export interface LessonPlayerState {
   totalLessons: number;
   hasQuiz: boolean; // NEW: Current lesson has quiz
   nextQuizLesson: Lesson | null;
+}
+
+
+
+export interface CreateLessonRequest {
+  title: string;
+  content?: string;
+  type: LessonType;
+  videoUrl?: string;
+  fileUrl?: string;
+  orderIndex?: number;
+  isPublished?: boolean;
+}
+
+export interface UpdateLessonRequest {
+  title?: string;
+  content?: string;
+  type?: LessonType;
+  videoUrl?: string;
+  fileUrl?: string;
+  orderIndex?: number;
+  isPublished?: boolean;
+}
+
+export interface LessonListResponse {
+  lessons: Lesson[];
+  total: number;
+}
+
+export interface LessonQueryParams {
+  isPublished?: boolean;
+}
+
+export interface ReorderLessonsRequest {
+  lessonIds: string[];
+}
+
+// Helper interfaces for forms
+export interface LessonFormData {
+  title: string;
+  content: string;
+  type: LessonType;
+  videoUrl: string;
+  fileUrl: string;
+  isPublished: boolean;
+}
+
+// Lesson progress interface
+export interface LessonProgress {
+  id: string;
+  lessonId: string;
+  userId: string;
+  courseId: string;
+  isCompleted: boolean;
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }

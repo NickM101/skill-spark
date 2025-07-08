@@ -5,22 +5,13 @@ import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 export interface ApiResponse<T = any> {
-  success: boolean;
-  statusCode: number;
   data: T;
   message?: string;
   meta: {
-    timestamp: string;
-    path: string;
-    method: string;
-    pagination?: {
       page: number;
       limit: number;
       total: number;
       totalPages: number;
-      hasNext: boolean;
-      hasPrev: boolean;
-    };
   };
 }
 
@@ -102,7 +93,7 @@ export class ApiService {
   } {
     return {
       items: response.data || [],
-      pagination: response.meta.pagination,
+      pagination: response.meta,
     };
   }
 

@@ -189,7 +189,7 @@ export class CourseService {
           },
         },
         skip,
-        take: limit,
+        take: Number(limit),
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.course.count({ where }),

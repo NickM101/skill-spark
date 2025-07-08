@@ -1,0 +1,277 @@
+<!-- src/app/features/lessons/components/lesson-list/lesson-list.component.html -->
+
+<div class="lesson-list-container">
+    <!-- Header Section -->
+    <div class="lesson-header">
+        <div class="header-content">
+            <h2 class="section-title">
+                <mat-icon>play_lesson</mat-icon>
+                Course Lessons
+            </h2>
+            <div class="header-actions" *ngIf="!readonly">
+                <button mat-icon-button (click)="refreshLessons()" matTooltip="Refresh" [disabled]="loading$ | async">
+                    <mat-icon>refresh</mat-icon>
+                </button>
+                <button mat-icon-button (click)="toggleViewMode()"
+                    [matTooltip]="viewMode === 'list' ? 'Grid View' : 'List View'">
+                    <mat-icon>{{ viewMode === 'list' ? 'grid_view' : 'view_list' }}</mat-icon>
+                </button>
+                <button mat-stroked-button (click)="toggleReorderMode()" [disabled]="!canReorder()"
+                    [color]="showReorderMode ? 'accent' : 'primary'">
+                    <mat-icon>{{ showReorderMode ? 'check' : 'reorder' }}</mat-icon>
+                    {{ showReorderMode ? 'Done' : 'Reorder' }}
+                </button>
+                <button mat-raised-button color="primary" [disabled]="loading$ | async">
+                    <mat-icon>add</mat-icon>
+                    Add Lesson
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <mat-card class="filters-card" *ngIf="!showReorderMode">
+        <mat-card-content>
+            <div class="filters-grid">
+                <!-- Search -->
+                <mat-form-field appearance="outline" class="search-field">
+                    <mat-label>Search lessons</mat-label>
+                    <input matInput [formControl]="searchControl" placeholder="Search by title or content"
+                        maxlength="100">
+                    <mat-icon matPrefix>search</mat-icon>
+                    <button matSuffix mat-icon-button *ngIf="searchControl.value" (click)="searchControl.setValue('')">
+                        <mat-icon>clear</mat-icon>
+                    </button>
+                </mat-form-field>
+
+                <!-- Status Filter -->
+                <mat-form-field appearance="outline">
+                    <mat-label>Status</mat-label>
+                    <mat-select [formControl]="statusFilter">
+                        <mat-option value="all">All Statuses</mat-option>
+                        <mat-option value="published">Published</mat-option>
+                        <mat-option value="draft">Draft</mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>visibility</mat-icon>
+                </mat-form-field>
+
+                <!-- Type Filter -->
+                <mat-form-field appearance="outline">
+                    <mat-label>Lesson Type</mat-label>
+                    <mat-select [formControl]="typeFilter">
+                        <mat-option value="all">All Types</mat-option>
+                        <mat-option value="VIDEO">Video</mat-option>
+                        <mat-option value="TEXT">Text Content</mat-option>
+                        <mat-option value="PDF">PDF Document</mat-option>
+                    </mat-select>
+                    <mat-icon matPrefix>category</mat-icon>
+                </mat-form-field>
+
+                <!-- Clear Filters -->
+                <button mat-stroked-button (click)="clearFilters()" *ngIf="hasFiltersApplied()">
+                    <mat-icon>clear_all</mat-icon>
+                    Clear Filters
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Results Summary -->
+    <div class="results-summary" *ngIf="!(loading$ | async)">
+        <span *ngIf="getFilteredCount() > 0">
+            Showing {{ getFilteredCount() }} of {{ getTotalCount() }} lessons
+            <span *ngIf="hasFiltersApplied()"> (filtered)</span>
+        </span>
+        <span *ngIf="getFilteredCount() === 0 && hasFiltersApplied()">
+            No lessons found matching current filters
+        </span>
+        <span *ngIf="getFilteredCount() === 0 && !hasFiltersApplied()">
+            No lessons created yet
+        </span>
+    </div>
+
+    <!-- Reorder Instructions -->
+    <div class="reorder-instructions" *ngIf="showReorderMode">
+        <mat-icon class="info-icon">info</mat-icon>
+        <span>Drag and drop lessons to reorder them. The new order will be saved automatically.</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-text">Loading lessons...</p>
+    </div>
+
+    <!-- Lessons Content -->
+    <div *ngIf="!(loading$ | async)" class="lessons-content">
+        <!-- List View -->
+        <div *ngIf="viewMode === 'list'" class="lessons-list">
+            <!-- Reorderable List -->
+            <div *ngIf="showReorderMode" cdkDropList (cdkDropListDropped)="onDrop($event)" class="reorder-list">
+                <div *ngFor="let lesson of lessons; trackBy: trackByLesson" cdkDrag class="lesson-item reorderable">
+                    <div class="drag-handle" cdkDragHandle>
+                        <mat-icon>drag_indicator</mat-icon>
+                    </div>
+                    <div class="lesson-content">
+                        <div class="lesson-info">
+                            <mat-icon class="lesson-type-icon">{{ getLessonIcon(lesson.type) }}</mat-icon>
+                            <div class="lesson-details">
+                                <h4 class="lesson-title">{{ lesson.title }}</h4>
+                                <p class="lesson-meta">{{ getLessonTypeLabel(lesson.type) }} • Order: {{
+                                    lesson.orderIndex }}</p>
+                            </div>
+                        </div>
+                        <mat-chip [color]="getStatusChipColor(lesson.isPublished)" selected>
+                            {{ getStatusText(lesson.isPublished) }}
+                        </mat-chip>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regular List -->
+            <div *ngIf="!showReorderMode" class="regular-list">
+                <mat-card *ngFor="let lesson of lessons; trackBy: trackByLesson" class="lesson-card">
+                    <mat-card-header>
+                        <div class="lesson-header-content">
+                            <div class="lesson-icon-wrapper">
+                                <mat-icon class="lesson-type-icon" [color]="lesson.isPublished ? 'primary' : 'warn'">
+                                    {{ getLessonIcon(lesson.type) }}
+                                </mat-icon>
+                            </div>
+                            <div class="lesson-info">
+                                <mat-card-title class="lesson-title">{{ lesson.title }}</mat-card-title>
+                                <mat-card-subtitle class="lesson-subtitle">
+                                    {{ getLessonTypeLabel(lesson.type) }} • Lesson {{ lesson.orderIndex }}
+                                </mat-card-subtitle>
+                            </div>
+                            <div class="lesson-status">
+                                <mat-chip [color]="getStatusChipColor(lesson.isPublished)" selected>
+                                    {{ getStatusText(lesson.isPublished) }}
+                                </mat-chip>
+                            </div>
+                            <div class="lesson-actions" *ngIf="!readonly">
+                                <button mat-icon-button [matMenuTriggerFor]="lessonMenu">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+                                <mat-menu #lessonMenu="matMenu">
+                                    <button mat-menu-item (click)="onEditLesson(lesson)">
+                                        <mat-icon>edit</mat-icon>
+                                        <span>Edit</span>
+                                    </button>
+                                    <button mat-menu-item (click)="onTogglePublish(lesson)">
+                                        <mat-icon>{{ lesson.isPublished ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                        <span>{{ lesson.isPublished ? 'Unpublish' : 'Publish' }}</span>
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item (click)="onDeleteLesson(lesson)" class="delete-action">
+                                        <mat-icon>delete</mat-icon>
+                                        <span>Delete</span>
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </div>
+                    </mat-card-header>
+
+                    <mat-card-content>
+                        <div class="lesson-content-preview" *ngIf="lesson.content">
+                            <p>{{ lesson.content | slice:0:150 }}{{ lesson.content.length > 150 ? '...' : '' }}</p>
+                        </div>
+                        <div class="lesson-urls" *ngIf="lesson.videoUrl || lesson.fileUrl">
+                            <div class="url-item" *ngIf="lesson.videoUrl">
+                                <mat-icon class="url-icon">play_circle</mat-icon>
+                                <a [href]="lesson.videoUrl" target="_blank" class="url-link">Video Content</a>
+                            </div>
+                            <div class="url-item" *ngIf="lesson.fileUrl">
+                                <mat-icon class="url-icon">attach_file</mat-icon>
+                                <a [href]="lesson.fileUrl" target="_blank" class="url-link">Download File</a>
+                            </div>
+                        </div>
+                        <div class="lesson-metadata">
+                            <span class="metadata-item">
+                                <mat-icon>event</mat-icon>
+                                Created: {{ formatDate(lesson.createdAt) }}
+                            </span>
+                            <span class="metadata-item" *ngIf="lesson.updatedAt !== lesson.createdAt">
+                                <mat-icon>update</mat-icon>
+                                Updated: {{ formatDate(lesson.updatedAt) }}
+                            </span>
+                        </div>
+                    </mat-card-content>
+
+                    <mat-card-actions align="end" *ngIf="!readonly">
+                        <button mat-button color="primary" (click)="onEditLesson(lesson)">
+                            <mat-icon>edit</mat-icon>
+                            Edit
+                        </button>
+                        <button mat-button [color]="lesson.isPublished ? 'warn' : 'accent'"
+                            (click)="onTogglePublish(lesson)">
+                            <mat-icon>{{ lesson.isPublished ? 'visibility_off' : 'visibility' }}</mat-icon>
+                            {{ lesson.isPublished ? 'Unpublish' : 'Publish' }}
+                        </button>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </div>
+
+        <!-- Grid View -->
+        <div *ngIf="viewMode === 'grid'" class="lessons-grid">
+            <mat-card *ngFor="let lesson of lessons; trackBy: trackByLesson" class="lesson-grid-card">
+                <div class="lesson-grid-header">
+                    <mat-icon class="lesson-type-icon" [color]="lesson.isPublished ? 'primary' : 'warn'">
+                        {{ getLessonIcon(lesson.type) }}
+                    </mat-icon>
+                    <mat-chip [color]="getStatusChipColor(lesson.isPublished)" selected class="status-chip">
+                        {{ getStatusText(lesson.isPublished) }}
+                    </mat-chip>
+                </div>
+
+                <mat-card-content>
+                    <h4 class="grid-lesson-title">{{ lesson.title }}</h4>
+                    <p class="grid-lesson-type">{{ getLessonTypeLabel(lesson.type) }}</p>
+                    <p class="grid-lesson-order">Lesson {{ lesson.orderIndex }}</p>
+
+                    <div class="grid-content-preview" *ngIf="lesson.content">
+                        <p>{{ lesson.content | slice:0:80 }}{{ lesson.content.length > 80 ? '...' : '' }}</p>
+                    </div>
+
+                    <div class="grid-lesson-links" *ngIf="lesson.videoUrl || lesson.fileUrl">
+                        <mat-icon *ngIf="lesson.videoUrl" class="link-icon"
+                            matTooltip="Has video content">play_circle</mat-icon>
+                        <mat-icon *ngIf="lesson.fileUrl" class="link-icon"
+                            matTooltip="Has file attachment">attach_file</mat-icon>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions *ngIf="!readonly">
+                    <button mat-icon-button (click)="onEditLesson(lesson)" matTooltip="Edit lesson">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="onTogglePublish(lesson)"
+                        [matTooltip]="lesson.isPublished ? 'Unpublish lesson' : 'Publish lesson'">
+                        <mat-icon>{{ lesson.isPublished ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="onDeleteLesson(lesson)" matTooltip="Delete lesson"
+                        class="delete-button">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </mat-card-actions>
+            </mat-card>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="lessons.length === 0" class="empty-state">
+            <mat-icon class="empty-icon">{{ hasFiltersApplied() ? 'search_off' : 'play_lesson' }}</mat-icon>
+            <h3>{{ hasFiltersApplied() ? 'No lessons found' : 'No lessons yet' }}</h3>
+            <p *ngIf="hasFiltersApplied()">
+                Try adjusting your search criteria or
+                <button mat-button color="primary" (click)="clearFilters()">clear the filters</button>
+            </p>
+            <p *ngIf="!hasFiltersApplied() && !readonly">Start by creating your first lesson for this course.</p>
+            <button *ngIf="!hasFiltersApplied() && !readonly" mat-raised-button color="primary"
+                (click)="onCreateLesson()">
+                <mat-icon>add</mat-icon>
+                Create First Lesson
+            </button>
+        </div>
+    </div>
+    </div>

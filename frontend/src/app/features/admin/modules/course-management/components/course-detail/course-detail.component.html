@@ -1,40 +1,27 @@
-<!-- src/app/features/admin/modules/course-management/components/course-detail/course-detail.component.html -->
+<!-- course-detail.component.html -->
 
-<div class="course-detail-container" *ngIf="course">
+<div class="course-detail-container" *ngIf="!loading$ && course; else loadingOrError">
     <!-- Header Section -->
     <div class="page-header">
         <div class="header-content">
-            <button mat-icon-button (click)="onBackToCourses()" class="back-button">
-                <mat-icon>arrow_back</mat-icon>
-            </button>
-            <h1 class="page-title">{{ course.title }}</h1>
-            <div class="header-actions">
-                <button mat-button [matMenuTriggerFor]="actionsMenu" class="actions-trigger">
-                    <mat-icon>more_vert</mat-icon>
-                    Actions
+            <div class="header-info">
+                <button mat-icon-button (click)="onBackToCourses()" class="back-button">
+                    <mat-icon>arrow_back</mat-icon>
                 </button>
-                <mat-menu #actionsMenu="matMenu">
-                    <button mat-menu-item (click)="onEditCourse()">
-                        <mat-icon>edit</mat-icon>
-                        <span>Edit Course</span>
-                    </button>
-                    <button mat-menu-item (click)="onDuplicateCourse()">
-                        <mat-icon>content_copy</mat-icon>
-                        <span>Duplicate Course</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="onPublishCourse()">
-                        <mat-icon>{{ getPublishButtonIcon() }}</mat-icon>
-                        <span>{{ getPublishButtonText() }}</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button mat-menu-item (click)="onDeleteCourse()" class="delete-action">
-                        <mat-icon>delete</mat-icon>
-                        <span>Delete Course</span>
-                    </button>
-                </mat-menu>
-
-                <button mat-raised-button color="primary" (click)="onEditCourse()">
+                <div class="course-info">
+                    <h1 class="course-title">{{ course.title }}</h1>
+                    <div class="course-meta">
+                        <mat-chip [color]="course.isPublished ? 'primary' : 'warn'" selected>
+                            {{ course.isPublished ? 'Published' : 'Draft' }}
+                        </mat-chip>
+                        <span class="meta-item">{{ course.category?.name }}</span>
+                        <span class="meta-item">{{ course.level | titlecase }}</span>
+                        <span class="meta-item">{{ formatPrice(course.price) }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions" *ngIf="canEditCourse()">
+                <button mat-stroked-button (click)="onEditCourse()">
                     <mat-icon>edit</mat-icon>
                     Edit Course
                 </button>
@@ -42,257 +29,142 @@
         </div>
     </div>
 
-    <!-- Course Overview Section -->
-    <div class="overview-section">
-        <div class="overview-grid">
-            <!-- Course Details Card -->
-            <mat-card class="details-card">
-                <mat-card-header>
-                    <mat-card-title>Course Details</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="course-thumbnail">
-                        <img *ngIf="course.thumbnail" [src]="course.thumbnail" [alt]="course.title">
-                        <div *ngIf="!course.thumbnail" class="thumbnail-placeholder">
-                            <mat-icon>image</mat-icon>
-                            <span>No thumbnail</span>
-                        </div>
-                    </div>
+    <!-- Course Tabs -->
+    <mat-card class="content-card">
+        <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event.index)">
 
-                    <div class="course-info">
-                        <h2 class="course-title">{{ course.title }}</h2>
-                        <p class="course-description" *ngIf="course.description">
-                            {{ course.description }}
-                        </p>
-                        <p class="no-description" *ngIf="!course.description">
-                            No description provided
-                        </p>
+            <!-- Overview Tab -->
+            <mat-tab label="Overview">
+                <div class="tab-content">
+                    <div class="course-overview">
 
-                        <div class="course-meta">
-                            <div class="meta-row">
-                                <span class="meta-label">Price:</span>
-                                <span class="meta-value price">{{ formatPrice(course.price) }}</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Level:</span>
-                                <mat-chip [color]="getLevelColor(course.level)" selected>
-                                    {{ course.level | titlecase }}
-                                </mat-chip>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Category:</span>
-                                <mat-chip *ngIf="course.category" color="primary" selected>
-                                    {{ course.category.name }}
-                                </mat-chip>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Status:</span>
-                                <mat-chip [color]="getStatusChipColor(course.isPublished)" selected>
-                                    {{ getStatusText(course.isPublished) }}
-                                </mat-chip>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Instructor:</span>
-                                <span class="meta-value" *ngIf="course.instructor">
-                                    {{ course.instructor.firstName }} {{ course.instructor.lastName }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </mat-card-content>
-            </mat-card>
+                        <!-- Course Description -->
+                        <mat-card class="overview-section">
+                            <mat-card-header>
+                                <mat-card-title>Course Description</mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <p *ngIf="course.description">{{ course.description }}</p>
+                                <p *ngIf="!course.description" class="no-content">No description provided.</p>
+                            </mat-card-content>
+                        </mat-card>
 
-            <!-- Statistics Card -->
-            <mat-card class="stats-card">
-                <mat-card-header>
-                    <mat-card-title>Course Statistics</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="primary">people</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ course._count?.enrollments || 0 }}</div>
-                                <div class="stat-label">Enrollments</div>
-                            </div>
-                        </div>
+                        <!-- Course Details -->
+                        <mat-card class="overview-section">
+                            <mat-card-header>
+                                <mat-card-title>Course Details</mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <strong>Instructor:</strong>
+                                        <span *ngIf="course.instructor">
+                                            {{ course.instructor.firstName }} {{ course.instructor.lastName }}
+                                        </span>
+                                        <span *ngIf="!course.instructor" class="no-content">Not assigned</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Category:</strong>
+                                        <span>{{ course.category?.name || 'Uncategorized' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Level:</strong>
+                                        <span>{{ course.level | titlecase }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Price:</strong>
+                                        <span>{{ formatPrice(course.price) }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Created:</strong>
+                                        <span>{{ formatDate(course.createdAt) }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Last Updated:</strong>
+                                        <span>{{ formatDate(course.updatedAt) }}</span>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
 
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="accent">play_lesson</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ course._count?.lessons || 0 }}</div>
-                                <div class="stat-label">Lessons</div>
-                            </div>
-                        </div>
+                        <!-- Statistics -->
+                        <mat-card class="overview-section">
+                            <mat-card-header>
+                                <mat-card-title>Statistics</mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <mat-icon>people</mat-icon>
+                                        <div class="stat-details">
+                                            <span class="stat-value">{{ course._count?.enrollments || 0 }}</span>
+                                            <span class="stat-label">Enrollments</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <mat-icon>play_lesson</mat-icon>
+                                        <div class="stat-details">
+                                            <span class="stat-value">{{ course._count?.lessons || 0 }}</span>
+                                            <span class="stat-label">Lessons</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <mat-icon>quiz</mat-icon>
+                                        <div class="stat-details">
+                                            <span class="stat-value">{{ course._count?.quizzes || 0 }}</span>
+                                            <span class="stat-label">Quizzes</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
 
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="primary">quiz</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ course._count?.quizzes || 0 }}</div>
-                                <div class="stat-label">Quizzes</div>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="primary">attach_money</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">${{ getRevenue().toFixed(2) }}</div>
-                                <div class="stat-label">Revenue</div>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="accent">trending_up</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ getEnrollmentRate() }}%</div>
-                                <div class="stat-label">Conversion Rate</div>
-                            </div>
-                        </div>
-
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <mat-icon color="primary">check_circle</mat-icon>
-                            </div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ getCompletionRate() }}%</div>
-                                <div class="stat-label">Completion Rate</div>
-                            </div>
-                        </div>
-                    </div>
-                </mat-card-content>
-            </mat-card>
-        </div>
-    </div>
-
-    <!-- Content Management Section -->
-    <div class="content-section">
-        <mat-card class="content-card">
-            <mat-card-header>
-                <mat-card-title>Course Content</mat-card-title>
-                <mat-card-subtitle>Manage lessons and quizzes</mat-card-subtitle>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="content-summary">
-                    <div class="summary-item">
-                        <mat-icon>play_lesson</mat-icon>
-                        <span>{{ course._count?.lessons || 0 }} Lessons</span>
-                    </div>
-                    <div class="summary-item">
-                        <mat-icon>quiz</mat-icon>
-                        <span>{{ course._count?.quizzes || 0 }} Quizzes</span>
                     </div>
                 </div>
+            </mat-tab>
 
-                <div class="content-actions">
-                    <button mat-stroked-button disabled>
-                        <mat-icon>add</mat-icon>
-                        Add Lesson
-                    </button>
-                    <button mat-stroked-button disabled>
-                        <mat-icon>quiz</mat-icon>
-                        Add Quiz
-                    </button>
-                    <span class="coming-soon">Content management coming soon</span>
+            <!-- Lessons Tab -->
+            <mat-tab label="Lessons">
+                <div class="tab-content">
+                    <app-lesson-list [courseId]="courseId!" [readonly]="false">
+                    </app-lesson-list>
                 </div>
-            </mat-card-content>
-        </mat-card>
-    </div>
+            </mat-tab>
 
-    <!-- Course Metadata Section -->
-    <div class="metadata-section">
-        <mat-card class="metadata-card">
-            <mat-card-header>
-                <mat-card-title>Course Metadata</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="metadata-grid">
-                    <div class="metadata-item">
-                        <span class="metadata-label">Course ID:</span>
-                        <span class="metadata-value code">{{ course.id }}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Created:</span>
-                        <span class="metadata-value">{{ formatDate(course.createdAt) }}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Last Updated:</span>
-                        <span class="metadata-value">{{ formatDate(course.updatedAt) }}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Category ID:</span>
-                        <span class="metadata-value code">{{ course.categoryId }}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Instructor ID:</span>
-                        <span class="metadata-value code">{{ course.instructorId }}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Instructor Email:</span>
-                        <span class="metadata-value" *ngIf="course.instructor">
-                            {{ course.instructor.email }}
-                        </span>
-                    </div>
+            <!-- Students Tab (Coming Soon) -->
+            <mat-tab label="Students">
+                <div class="tab-content coming-soon">
+                    <mat-icon>people</mat-icon>
+                    <h3>Student Management</h3>
+                    <p>View and manage enrolled students (Coming Soon)</p>
                 </div>
-            </mat-card-content>
-        </mat-card>
-    </div>
+            </mat-tab>
 
-    <!-- Quick Actions Section -->
-    <div class="quick-actions-section">
-        <mat-card class="actions-card">
-            <mat-card-header>
-                <mat-card-title>Quick Actions</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="actions-grid">
-                    <button mat-raised-button color="primary" (click)="onEditCourse()">
-                        <mat-icon>edit</mat-icon>
-                        Edit Course
-                    </button>
-
-                    <button mat-raised-button [color]="course.isPublished ? 'warn' : 'accent'"
-                        (click)="onPublishCourse()">
-                        <mat-icon>{{ getPublishButtonIcon() }}</mat-icon>
-                        {{ getPublishButtonText() }}
-                    </button>
-
-                    <button mat-stroked-button (click)="onDuplicateCourse()">
-                        <mat-icon>content_copy</mat-icon>
-                        Duplicate Course
-                    </button>
-
-                    <button mat-stroked-button color="warn" (click)="onDeleteCourse()">
-                        <mat-icon>delete</mat-icon>
-                        Delete Course
-                    </button>
+            <!-- Analytics Tab (Coming Soon) -->
+            <mat-tab label="Analytics">
+                <div class="tab-content coming-soon">
+                    <mat-icon>analytics</mat-icon>
+                    <h3>Course Analytics</h3>
+                    <p>Detailed course performance metrics (Coming Soon)</p>
                 </div>
-            </mat-card-content>
-        </mat-card>
-    </div>
+            </mat-tab>
+
+        </mat-tab-group>
+    </mat-card>
 </div>
 
-<!-- Loading State -->
-<div *ngIf="loading$ | async" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p class="loading-text">Loading course details...</p>
-</div>
-
-<!-- Error State -->
-<div *ngIf="!course && !(loading$ | async)" class="error-state">
-    <mat-icon class="error-icon">error</mat-icon>
-    <h3>Course not found</h3>
-    <p>The course you're looking for doesn't exist or has been deleted.</p>
-    <button mat-raised-button color="primary" (click)="onBackToCourses()">
-        Back to Courses
-    </button>
+<!-- Loading or Error Template -->
+<ng-template #loadingOrError>
+    <div *ngIf="loading$" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading course details...</p>
     </div>
+
+    <div *ngIf="!loading$ && !course" class="error-state">
+        <mat-icon class="error-icon">error</mat-icon>
+        <h3>Course not found</h3>
+        <p>The course you're looking for doesn't exist or has been deleted.</p>
+        <button mat-raised-button color="primary" (click)="onBackToCourses()">Back to Courses</button>
+    </div>
+</ng-template>
+  

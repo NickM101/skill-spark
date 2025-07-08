@@ -26,6 +26,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSelectModule, MatSelectTrigger } from '@angular/material/select';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
   declarations: [],
@@ -58,6 +62,11 @@ import { MatSelectModule, MatSelectTrigger } from '@angular/material/select';
     MatSliderModule,
     MatSelectModule,
     MatSelectTrigger,
+    MatToolbarModule,
+    MatBadgeModule,
+    MatChipsModule,
+    MatExpansionModule,
+    
   ],
 })
 export class SharedModule {}

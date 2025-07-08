@@ -98,7 +98,7 @@ POST {{baseUrl}}/auth/reset-password
 Content-Type: {{contentType}}
 
 {
-  "token": "332675",
+  "token": "988274",
   "password": "Toxi356",
   "confirmPassword": "Toxi356"
 }

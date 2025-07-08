@@ -14,25 +14,32 @@
 
     <!-- Form Content -->
     <div mat-dialog-content class="dialog-content">
+        <!-- Server Error Message -->
+        <div *ngIf="hasFormError()" class="server-error-banner">
+            <mat-icon>error</mat-icon>
+            <span>{{ getFormErrorMessage() }}</span>
+        </div>
+
         <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="category-form">
 
-            <!-- Category Name Field -->
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Category Name</mat-label>
-                <input matInput formControlName="name" placeholder="Enter category name" maxlength="50" required>
-                <mat-icon matSuffix>label</mat-icon>
-                <mat-hint align="end">{{ categoryForm.get('name')?.value?.length || 0 }}/50</mat-hint>
-                <mat-error *ngIf="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched">
-                    {{ getNameErrorMessage() }}
-                </mat-error>
-            </mat-form-field>
+        <!-- Category Name Field -->
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Category Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter category name" maxlength="50" required>
+            <mat-icon matSuffix>label</mat-icon>
+            <mat-hint align="end">{{ categoryForm.get('name')?.value?.length || 0 }}/50</mat-hint>
+            <mat-error *ngIf="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched">
+                {{ getNameErrorMessage() }}
+            </mat-error>
+        </mat-form-field>
+
 
             <!-- Category Description Field -->
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Description</mat-label>
                 <textarea matInput formControlName="description" placeholder="Enter category description (optional)"
                     rows="4" maxlength="500">
-          </textarea>
+                </textarea>
                 <mat-icon matSuffix>description</mat-icon>
                 <mat-hint align="end">{{ categoryForm.get('description')?.value?.length || 0 }}/500</mat-hint>
                 <mat-error *ngIf="categoryForm.get('description')?.invalid && categoryForm.get('description')?.touched">
@@ -55,6 +62,7 @@
             </div>
         </form>
     </div>
+  
 
     <!-- Dialog Actions -->
     <div mat-dialog-actions class="dialog-actions">
@@ -63,15 +71,14 @@
         </button>
 
         <button mat-raised-button color="primary" type="submit" (click)="onSubmit()"
-            [disabled]="categoryForm.invalid || loading" class="submit-button">
+            [disabled]="categoryForm.invalid || loading || categoryForm.pending" class="submit-button">
 
             <!-- Loading State -->
-            <mat-spinner *ngIf="loading" diameter="20" class="button-spinner">
-            </mat-spinner>
+            <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
 
             <!-- Button Icon and Text -->
             <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
             <span>{{ getSubmitButtonText() }}</span>
         </button>
     </div>
-    </div>
+</div>

@@ -2,6 +2,7 @@
 // src/app/app.routes.ts
 
 import { Routes } from '@angular/router';
+import { GuestGuard } from '@core/guards';
 
 export const routes: Routes = [
   {
@@ -13,6 +14,7 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () =>
       import('./features/auth/auth.module').then((m) => m.AuthModule),
+    canActivate: [GuestGuard]
   },
   {
     path: 'admin',

@@ -4,6 +4,7 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -14,7 +15,7 @@ import {
   Category,
   CreateCategoryRequest,
   UpdateCategoryRequest,
-} from '../../../../../../core/models/category.model';
+} from '@core/models/category.model';
 import { SharedModule } from '@shared/shared.module';
 
 export interface CategoryFormData {
@@ -33,14 +34,14 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
   categoryForm: FormGroup;
   isEditMode: boolean;
   loading = false;
-
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private categoryService: CategoryService,
     public dialogRef: MatDialogRef<CategoryFormComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: CategoryFormData
+    @Inject(MAT_DIALOG_DATA) public data: CategoryFormData,
+    private cdr: ChangeDetectorRef
   ) {
     this.isEditMode = data.mode === 'edit';
     this.categoryForm = this.createForm();
@@ -67,6 +68,7 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
           Validators.maxLength(50),
           Validators.pattern(/^[a-zA-Z0-9\s\-_]+$/),
         ],
+        // Removed the async validator
       ],
       description: ['', [Validators.maxLength(500)]],
     });
@@ -94,8 +96,9 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    const formValue = this.categoryForm.value;
+    this.cdr.markForCheck();
 
+    const formValue = this.categoryForm.value;
     if (this.isEditMode) {
       this.updateCategory(formValue);
     } else {
@@ -113,20 +116,17 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
       .createCategory(request)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.loading = false))
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
       )
       .subscribe({
         next: (category: Category) => {
           this.dialogRef.close(category);
         },
         error: (error) => {
-          // Handle error - could show specific validation errors
-          if (error.message.includes('already exists')) {
-            this.categoryForm.get('name')?.setErrors({ duplicate: true });
-          } else {
-            // Generic error handling
-            console.error('Error updating category:', error);
-          }
+          this.handleFormError(error);
         },
       });
   }
@@ -135,6 +135,7 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     if (!this.data.category) {
       return;
     }
+
     const request: UpdateCategoryRequest = {
       id: this.data.category.id,
       name: formValue.name.trim(),
@@ -145,20 +146,36 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
       .updateCategory(request)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.loading = false))
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
       )
       .subscribe({
         next: (category: Category) => {
           this.dialogRef.close(category);
         },
         error: (error) => {
-          if (error.message.includes('already exists')) {
-            this.categoryForm.get('name')?.setErrors({ duplicate: true });
-          } else {
-            console.error('Error updating category:', error);
-          }
+          this.handleFormError(error);
         },
       });
+  }
+
+  private handleFormError(error: any): void {
+    console.error('Form submission error:', error);
+    if (
+      error.message?.includes('already exists') ||
+      error.message?.includes('duplicate')
+    ) {
+      this.categoryForm.get('name')?.setErrors({ nameExists: true });
+    } else if (error.message?.includes('validation')) {
+      this.categoryForm.setErrors({ serverError: error.message });
+    } else {
+      this.categoryForm.setErrors({
+        serverError: 'An unexpected error occurred. Please try again.',
+      });
+    }
+    this.cdr.markForCheck();
   }
 
   onCancel(): void {
@@ -172,7 +189,6 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Error message getters
   getNameErrorMessage(): string {
     const nameControl = this.categoryForm.get('name');
     if (nameControl?.hasError('required')) {
@@ -187,9 +203,6 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     if (nameControl?.hasError('pattern')) {
       return 'Category name can only contain letters, numbers, spaces, hyphens, and underscores';
     }
-    if (nameControl?.hasError('duplicate')) {
-      return 'A category with this name already exists';
-    }
     return '';
   }
 
@@ -199,5 +212,16 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
       return 'Description cannot exceed 500 characters';
     }
     return '';
+  }
+
+  getFormErrorMessage(): string {
+    if (this.categoryForm.hasError('serverError')) {
+      return this.categoryForm.getError('serverError');
+    }
+    return '';
+  }
+
+  hasFormError(): boolean {
+    return this.categoryForm.hasError('serverError');
   }
 }

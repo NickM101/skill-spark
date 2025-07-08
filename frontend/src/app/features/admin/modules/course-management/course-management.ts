@@ -28,7 +28,8 @@ import { CourseManagementRoutingModule } from './course-management-routing.modul
 
 
 // Services
-import { AdminCourseService } from './services/admin-course.service';
+import { CourseService } from './services/admin-course.service';
+import { LessonsModule } from '../lessons/lessons.module';
 
 @NgModule({
   declarations: [],
@@ -37,6 +38,7 @@ import { AdminCourseService } from './services/admin-course.service';
     ReactiveFormsModule,
     FormsModule,
     CourseManagementRoutingModule,
+    LessonsModule,
 
     // Angular Material Modules
     MatCardModule,
@@ -58,6 +60,6 @@ import { AdminCourseService } from './services/admin-course.service';
     MatDividerModule,
   ],
   exports: [CourseManagementRoutingModule,],
-  providers: [AdminCourseService],
+  providers: [CourseService],
 })
 export class CourseManagementModule {}

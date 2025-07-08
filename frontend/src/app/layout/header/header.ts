@@ -1,4 +1,6 @@
-import { Component, signal, inject } from '@angular/core';
+// header.component.ts
+import { Component, signal, inject, computed } from '@angular/core';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -6,8 +8,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
+import { DatePipe } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -20,18 +23,20 @@ import { MatDivider } from '@angular/material/divider';
     MatIconModule,
     MatMenuModule,
     MatBadgeModule,
-    MatDivider
+    MatDividerModule,
+    DatePipe,
   ],
-  templateUrl: 'header.html',
-  styleUrl: 'header.scss',
+  templateUrl: './header.html',
+  styleUrls: ['./header.scss'],
 })
 export class HeaderComponent {
+  private authService = inject(AuthService);
   private breakpointObserver = inject(BreakpointObserver);
 
   // Signals for reactive state management
   isMobile = signal(false);
-  isLoggedIn = signal(false); // This will be connected to auth service later
-  currentUser = signal<any>(null); // This will be connected to auth service later
+  isLoggedIn = computed(() => this.authService.isAuthenticated());
+  currentUser = computed(() => this.authService.getCurrentUser());
   notificationCount = signal(3);
   notifications = signal([
     {
@@ -64,8 +69,7 @@ export class HeaderComponent {
   }
 
   logout() {
-    // This will be implemented when auth service is ready
-    console.log('Logout functionality will be implemented');
+    this.authService.logout();
   }
 
   markAllAsRead() {

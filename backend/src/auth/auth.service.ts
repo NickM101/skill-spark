@@ -222,7 +222,7 @@ export class AuthService {
     const accessSecret =
       this.configService.get<string>('JWT_ACCESS_SECRET') ?? 'jwt_secret';
     const accessExpiration =
-      this.configService.get<string>('JWT_ACCESS_EXPIRATION') ?? '1h';
+      this.configService.get<string>('JWT_ACCESS_EXPIRATION') ?? '24h';
     const refreshSecret =
       this.configService.get<string>('JWT_REFRESH_SECRET') ?? 'refresh_secret';
     const refreshExpiration =

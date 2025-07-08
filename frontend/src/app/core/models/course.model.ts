@@ -66,3 +66,31 @@ export interface CourseResponse {
   currentPage: number;
   totalPages: number;
 }
+
+export interface CourseListResponse {
+  courses: Course[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CreateCourseRequest {
+  title: string;
+  description: string;
+  categoryId: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'; // adjust enum as needed
+  price: number;
+  instructorId?: string; // optional
+  isPublished?: boolean;
+}
+
+export interface UpdateCourseRequest {
+  title?: string;
+  description?: string;
+  categoryId?: string;
+  level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  price?: number;
+  instructorId?: string;
+  isPublished?: boolean;
+}

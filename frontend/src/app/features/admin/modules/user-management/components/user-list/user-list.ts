@@ -1,5 +1,3 @@
-// src/app/features/admin/modules/user-management/components/user-list/user-list.component.ts
-
 import {
   Component,
   OnInit,
@@ -7,76 +5,49 @@ import {
   ChangeDetectionStrategy,
   ViewChild,
   AfterViewInit,
+  ChangeDetectorRef,
 } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import {
+  MatPaginator,
+  PageEvent,
+} from '@angular/material/paginator';
+import { MatSort, Sort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-
 import { UserManagementService } from '../../services/user-management.service';
-
-import { UserFormComponent } from '../user-form/user-form';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog';
-import { BulkActionRequest, Role, User, UserFilters, UserTableColumn } from '@core/models/user.model';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { CommonModule } from '@angular/common';
-import { MatChipsModule } from '@angular/material/chips';
+import {
+  Role,
+  User,
+  UserFilters,
+  UserTableColumn,
+} from '@core/models/user.model';
+import { SharedModule } from '@shared/shared.module';
 
 @Component({
   selector: 'app-user-list',
   templateUrl: './user-list.html',
   styleUrls: ['./user-list.scss'],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatTooltipModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
-  ],
+  imports: [SharedModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-
   private destroy$ = new Subject<void>();
-
   dataSource = new MatTableDataSource<User>([]);
   selection = new SelectionModel<User>(true, []);
-
   filterForm: FormGroup;
   isLoading = false;
   totalCount = 0;
   pageSize = 10;
   currentPage = 1;
+  allUsers: User[] = []; // Store all users for local filtering
 
-  // Table configuration
   displayedColumns: string[] = [
     'select',
     'fullName',
@@ -84,7 +55,6 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
     'role',
     'isActive',
     'isEmailVerified',
-    'enrollmentCount',
     'createdAt',
     'actions',
   ];
@@ -95,7 +65,6 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
     { key: 'role', label: 'Role', sortable: true },
     { key: 'isActive', label: 'Status', sortable: true },
     { key: 'isEmailVerified', label: 'Verified', sortable: true },
-    { key: 'enrollmentCount', label: 'Enrollments', sortable: false },
     { key: 'createdAt', label: 'Created', sortable: true },
     { key: 'actions', label: 'Actions', sortable: false, width: '120px' },
   ];
@@ -123,7 +92,9 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
     private userService: UserManagementService,
     private fb: FormBuilder,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
+
   ) {
     this.filterForm = this.createFilterForm();
   }
@@ -157,23 +128,23 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
         this.currentPage = 1;
-        this.loadUsers();
+        this.applyFilters();
       });
   }
 
   loadUsers(): void {
     this.isLoading = true;
-    const filters: UserFilters = this.filterForm.value;
-
     this.userService
-      .getUsers(this.currentPage, this.pageSize, filters)
+      .getUsers(this.currentPage, this.pageSize)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.dataSource.data = response.users;
+          this.allUsers = response.users; // Store all users
           this.totalCount = response.total;
+          this.applyFilters();
           this.isLoading = false;
           this.selection.clear();
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error loading users:', error);
@@ -185,6 +156,51 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
+  applyFilters(): void {
+    const filters: UserFilters = this.filterForm.value;
+    let filteredUsers = [...this.allUsers];
+
+    // Apply client-side filters
+    if (filters.search) {
+      const search = filters.search.toLowerCase();
+      filteredUsers = filteredUsers.filter(
+        (user) =>
+          user.firstName.toLowerCase().includes(search) ||
+          user.lastName.toLowerCase().includes(search) ||
+          user.email.toLowerCase().includes(search)
+      );
+    }
+
+    if (filters.role) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.role === filters.role
+      );
+    }
+
+    if (
+      filters.isActive !== null &&
+      filters.isActive !== undefined &&
+      filters.isActive !== ''
+    ) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.isActive === filters.isActive
+      );
+    }
+
+    if (
+      filters.isEmailVerified !== null &&
+      filters.isEmailVerified !== undefined &&
+      filters.isEmailVerified !== ''
+    ) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user.isEmailVerified === filters.isEmailVerified
+      );
+    }
+
+    this.dataSource.data = filteredUsers;
+    this.cdr.detectChanges(); // Manually trigger change detection
+  }
+
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
@@ -192,8 +208,8 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onSortChange(sort: Sort): void {
-    // In a real app, you would send sort parameters to the API
     console.log('Sort changed:', sort);
+    this.loadUsers();
   }
 
   clearFilters(): void {
@@ -202,7 +218,6 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadUsers();
   }
 
-  // Selection methods
   isAllSelected(): boolean {
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSource.data.length;
@@ -215,37 +230,27 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
       : this.dataSource.data.forEach((row) => this.selection.select(row));
   }
 
-  // User actions
-  openCreateDialog(): void {
-    const dialogRef = this.dialog.open(UserFormComponent, {
-      width: '600px',
-      data: { isEdit: false },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadUsers();
-        this.snackBar.open('User created successfully', 'Close', {
-          duration: 3000,
-        });
-      }
-    });
-  }
-
-  editUser(user: User): void {
-    const dialogRef = this.dialog.open(UserFormComponent, {
-      width: '600px',
-      data: { isEdit: true, user },
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.loadUsers();
-        this.snackBar.open('User updated successfully', 'Close', {
-          duration: 3000,
-        });
-      }
-    });
+  toggleUserStatus(user: User): void {
+    this.userService
+      .toggleUserStatus(user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updatedUser) => {
+          if (updatedUser) {
+            const status = updatedUser.isActive ? 'activated' : 'deactivated';
+            this.snackBar.open(`User ${status} successfully`, 'Close', {
+              duration: 3000,
+            });
+            this.loadUsers();
+          }
+        },
+        error: (error) => {
+          console.error('Error updating user status:', error);
+          this.snackBar.open('Error updating user status', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
   }
 
   deleteUser(user: User): void {
@@ -265,11 +270,13 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
           .deleteUser(user.id)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
-            next: () => {
-              this.loadUsers();
-              this.snackBar.open('User deleted successfully', 'Close', {
-                duration: 3000,
-              });
+            next: (success) => {
+              if (success) {
+                this.snackBar.open('User deleted successfully', 'Close', {
+                  duration: 3000,
+                });
+                this.loadUsers();
+              }
             },
             error: (error) => {
               console.error('Error deleting user:', error);
@@ -282,76 +289,62 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  toggleUserStatus(user: User): void {
-    const updateData = {
-      id: user.id,
-      isActive: !user.isActive,
-    };
+  bulkToggleStatus(activate: boolean): void {
+    const selectedUsers = this.selection.selected;
+    if (selectedUsers.length === 0) {
+      this.snackBar.open('No users selected', 'Close', { duration: 3000 });
+      return;
+    }
 
-    this.userService
-      .updateUser(updateData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadUsers();
-          const status = updateData.isActive ? 'activated' : 'deactivated';
-          this.snackBar.open(`User ${status} successfully`, 'Close', {
-            duration: 3000,
-          });
-        },
-        error: (error) => {
-          console.error('Error updating user status:', error);
-          this.snackBar.open('Error updating user status', 'Close', {
-            duration: 3000,
-          });
-        },
-      });
-  }
+    const action = activate ? 'activate' : 'deactivate';
+    const message = `Are you sure you want to ${action} ${selectedUsers.length} selected users?`;
 
-  verifyUser(user: User): void {
-    const updateData = {
-      id: user.id,
-      isEmailVerified: true,
-    };
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `${activate ? 'Activate' : 'Deactivate'} Users`,
+        message,
+        confirmText: activate ? 'Activate' : 'Deactivate',
+        cancelText: 'Cancel',
+      },
+    });
 
-    this.userService
-      .updateUser(updateData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadUsers();
-          this.snackBar.open('User verified successfully', 'Close', {
-            duration: 3000,
-          });
-        },
-        error: (error) => {
-          console.error('Error verifying user:', error);
-          this.snackBar.open('Error verifying user', 'Close', {
-            duration: 3000,
-          });
-        },
-      });
-  }
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const usersToToggle = selectedUsers.filter(
+          (user) => user.isActive !== activate
+        );
 
-  // Bulk actions
-  bulkActivate(): void {
-    this.performBulkAction('activate', 'Users activated successfully');
-  }
+        if (usersToToggle.length === 0) {
+          this.snackBar.open(
+            `All selected users are already ${
+              activate ? 'active' : 'inactive'
+            }`,
+            'Close',
+            {
+              duration: 3000,
+            }
+          );
+          return;
+        }
 
-  bulkDeactivate(): void {
-    this.performBulkAction('deactivate', 'Users deactivated successfully');
-  }
-
-  bulkVerify(): void {
-    this.performBulkAction('verify', 'Users verified successfully');
+        this.performBulkStatusToggle(usersToToggle);
+      }
+    });
   }
 
   bulkDelete(): void {
+    const selectedUsers = this.selection.selected;
+    if (selectedUsers.length === 0) {
+      this.snackBar.open('No users selected', 'Close', { duration: 3000 });
+      return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Delete Users',
-        message: `Are you sure you want to delete ${this.selection.selected.length} selected users?`,
+        message: `Are you sure you want to delete ${selectedUsers.length} selected users?`,
         confirmText: 'Delete',
         cancelText: 'Cancel',
       },
@@ -359,37 +352,99 @@ export class UserListComponent implements OnInit, OnDestroy, AfterViewInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.performBulkAction('delete', 'Users deleted successfully');
+        this.performBulkDelete(selectedUsers);
       }
     });
   }
 
-  private performBulkAction(
-    action: BulkActionRequest['action'],
-    successMessage: string
+  private performBulkStatusToggle(users: User[]): void {
+    let completed = 0;
+    let errors = 0;
+
+    users.forEach((user) => {
+      this.userService
+        .toggleUserStatus(user.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            completed++;
+            this.checkBulkOperationComplete(
+              completed,
+              errors,
+              users.length,
+              'status updated'
+            );
+          },
+          error: () => {
+            errors++;
+            this.checkBulkOperationComplete(
+              completed,
+              errors,
+              users.length,
+              'status updated'
+            );
+          },
+        });
+    });
+  }
+
+  private performBulkDelete(users: User[]): void {
+    let completed = 0;
+    let errors = 0;
+
+    users.forEach((user) => {
+      this.userService
+        .deleteUser(user.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            completed++;
+            this.checkBulkOperationComplete(
+              completed,
+              errors,
+              users.length,
+              'deleted'
+            );
+          },
+          error: () => {
+            errors++;
+            this.checkBulkOperationComplete(
+              completed,
+              errors,
+              users.length,
+              'deleted'
+            );
+          },
+        });
+    });
+  }
+
+  private checkBulkOperationComplete(
+    completed: number,
+    errors: number,
+    total: number,
+    operation: string
   ): void {
-    const userIds = this.selection.selected.map((user) => user.id);
+    if (completed + errors === total) {
+      if (errors === 0) {
+        this.snackBar.open(`All users ${operation} successfully`, 'Close', {
+          duration: 3000,
+        });
+      } else if (completed === 0) {
+        this.snackBar.open(`Error: No users could be ${operation}`, 'Close', {
+          duration: 3000,
+        });
+      } else {
+        this.snackBar.open(
+          `${completed} users ${operation}, ${errors} failed`,
+          'Close',
+          { duration: 5000 }
+        );
+      }
 
-    if (userIds.length === 0) {
-      this.snackBar.open('No users selected', 'Close', { duration: 3000 });
-      return;
+      this.loadUsers();
+      this.selection.clear();
     }
-
-    this.userService
-      .bulkAction({ userIds, action })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loadUsers();
-          this.snackBar.open(successMessage, 'Close', { duration: 3000 });
-        },
-        error: (error) => {
-          console.error('Bulk action error:', error);
-          this.snackBar.open('Error performing bulk action', 'Close', {
-            duration: 3000,
-          });
-        },
-      });
   }
 
   getRoleColor(role: Role): string {

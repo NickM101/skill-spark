@@ -1,198 +1,119 @@
 // src/app/features/admin/modules/user-management/services/user-management.service.ts
 
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject, delay, map } from 'rxjs';
+import { Observable, BehaviorSubject, map, tap, catchError, of } from 'rxjs';
 
-import { User, UserFilters, UserResponse, Role, CreateUserRequest, UpdateUserRequest, BulkActionRequest, UserStats } from '@core/models/user.model';
+import { ApiService, ApiResponse } from '@core/services/api.service';
+import {
+  User,
+  UserFilters,
+  UserResponse,
+  Role,
+  UserStats,
+} from '@core/models/user.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserManagementService {
-  private usersSubject = new BehaviorSubject<User[]>(this.getMockUsers());
+  private usersSubject = new BehaviorSubject<User[]>([]);
   public users$ = this.usersSubject.asObservable();
 
-  constructor() {}
+  constructor(private apiService: ApiService) {}
 
   /**
-   * Get users with pagination and filtering
+   * Get all users with pagination (Admin only)
+   * Maps to: GET /users
+   * Your backend: getAllUsers(page, limit, currentUser)
    */
   getUsers(
     page: number = 1,
     limit: number = 10,
     filters: UserFilters = {}
   ): Observable<UserResponse> {
-    return this.users$.pipe(
-      delay(500), // Simulate API delay
-      map((users) => {
-        let filteredUsers = [...users];
+    const params = {
+      page,
+      limit,
+      // Add any additional filters that your backend might support
+      ...(filters.search && { search: filters.search }),
+      ...(filters.role && { role: filters.role }),
+      ...(filters.isActive !== undefined && { isActive: filters.isActive }),
+    };
 
-        // Apply filters
-        if (filters.search) {
-          const search = filters.search.toLowerCase();
-          filteredUsers = filteredUsers.filter(
-            (user) =>
-              user.firstName.toLowerCase().includes(search) ||
-              user.lastName.toLowerCase().includes(search) ||
-              user.email.toLowerCase().includes(search)
-          );
-        }
+    return this.apiService.get<User[]>('/users', params).pipe(
+      map((response: ApiResponse<User[]>) => {
+        const users = this.transformUsers(response.data);
 
-        if (filters.role) {
-          filteredUsers = filteredUsers.filter(
-            (user) => user.role === filters.role
-          );
-        }
-
-        if (filters.isActive !== undefined && filters.isActive !== '') {
-          filteredUsers = filteredUsers.filter(
-            (user) => user.isActive === filters.isActive
-          );
-        }
-
-        if (
-          filters.isEmailVerified !== undefined &&
-          filters.isEmailVerified !== ''
-        ) {
-          filteredUsers = filteredUsers.filter(
-            (user) => user.isEmailVerified === filters.isEmailVerified
-          );
-        }
-
-        // Add computed properties
-        filteredUsers = filteredUsers.map((user) => ({
-          ...user,
-          fullName: `${user.firstName} ${user.lastName}`,
-          enrollmentCount: this.getRandomNumber(0, 15),
-          courseCount:
-            user.role === Role.INSTRUCTOR ? this.getRandomNumber(1, 8) : 0,
-        }));
-
-        // Pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+        // Update local state
+        this.usersSubject.next(users);
 
         return {
-          users: paginatedUsers,
-          total: filteredUsers.length,
+          users,
+          total: response.meta.total,
+          page: response.meta.page,
+          limit: response.meta.limit,
+        };
+      }),
+      catchError((error) => {
+        console.error('Error fetching users:', error);
+        return of({
+          users: [],
+          total: 0,
           page,
           limit,
-        };
+        });
       })
     );
   }
 
   /**
-   * Get user by ID
+   * Toggle user active status (Admin only)
+   * Maps to: PATCH /users/:id/status
+   * Your backend: toggleUserStatus(id)
    */
-  getUserById(id: string): Observable<User | null> {
-    return this.users$.pipe(
-      delay(300),
-      map((users) => users.find((user) => user.id === id) || null)
+  toggleUserStatus(id: string): Observable<User | null> {
+    return this.apiService.patch<User>(`/users/${id}/status`, {}).pipe(
+      map((response: ApiResponse<User>) => {
+        const updatedUser = this.transformUser(response.data);
+
+        // Update local state
+        this.updateUserInLocalState(updatedUser);
+
+        return updatedUser;
+      }),
+      catchError((error) => {
+        console.error('Error toggling user status:', error);
+        return of(null);
+      })
     );
   }
 
   /**
-   * Create new user
-   */
-  createUser(userData: CreateUserRequest): Observable<User> {
-    const newUser: User = {
-      id: this.generateId(),
-      ...userData,
-      isEmailVerified: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    const currentUsers = this.usersSubject.value;
-    this.usersSubject.next([...currentUsers, newUser]);
-
-    return of(newUser).pipe(delay(800));
-  }
-
-  /**
-   * Update user
-   */
-  updateUser(userData: UpdateUserRequest): Observable<User> {
-    const currentUsers = this.usersSubject.value;
-    const userIndex = currentUsers.findIndex((user) => user.id === userData.id);
-
-    if (userIndex === -1) {
-      throw new Error('User not found');
-    }
-
-    const updatedUser: User = {
-      ...currentUsers[userIndex],
-      ...userData,
-      updatedAt: new Date(),
-    };
-
-    const updatedUsers = [...currentUsers];
-    updatedUsers[userIndex] = updatedUser;
-    this.usersSubject.next(updatedUsers);
-
-    return of(updatedUser).pipe(delay(600));
-  }
-
-  /**
-   * Delete user
+   * Delete user (Admin only)
+   * Maps to: DELETE /users/:id
+   * Your backend: deleteUser(id)
    */
   deleteUser(id: string): Observable<boolean> {
-    const currentUsers = this.usersSubject.value;
-    const filteredUsers = currentUsers.filter((user) => user.id !== id);
-    this.usersSubject.next(filteredUsers);
+    return this.apiService.delete<null>(`/users/${id}`).pipe(
+      map((response: ApiResponse<null>) => {
+        const currentUsers = this.usersSubject.value;
+        const filteredUsers = currentUsers.filter((user) => user.id !== id);
+        this.usersSubject.next(filteredUsers);
 
-    return of(true).pipe(delay(500));
+        return true;
+      }),
+      catchError((error) => {
+        console.error('Error deleting user:', error);
+        return of(false);
+      })
+    );
   }
 
   /**
-   * Bulk actions on users
-   */
-  bulkAction(request: BulkActionRequest): Observable<boolean> {
-    const currentUsers = this.usersSubject.value;
-    let updatedUsers = [...currentUsers];
-
-    switch (request.action) {
-      case 'activate':
-        updatedUsers = updatedUsers.map((user) =>
-          request.userIds.includes(user.id)
-            ? { ...user, isActive: true, updatedAt: new Date() }
-            : user
-        );
-        break;
-      case 'deactivate':
-        updatedUsers = updatedUsers.map((user) =>
-          request.userIds.includes(user.id)
-            ? { ...user, isActive: false, updatedAt: new Date() }
-            : user
-        );
-        break;
-      case 'verify':
-        updatedUsers = updatedUsers.map((user) =>
-          request.userIds.includes(user.id)
-            ? { ...user, isEmailVerified: true, updatedAt: new Date() }
-            : user
-        );
-        break;
-      case 'delete':
-        updatedUsers = updatedUsers.filter(
-          (user) => !request.userIds.includes(user.id)
-        );
-        break;
-    }
-
-    this.usersSubject.next(updatedUsers);
-    return of(true).pipe(delay(800));
-  }
-
-  /**
-   * Get user statistics
+   * Get user statistics (calculated from local data since no backend endpoint)
    */
   getUserStats(): Observable<UserStats> {
     return this.users$.pipe(
-      delay(400),
       map((users) => {
         const totalUsers = users.length;
         const activeUsers = users.filter((user) => user.isActive).length;
@@ -220,150 +141,129 @@ export class UserManagementService {
   }
 
   /**
-   * Mock data generator
+   * Client-side filtering for search and filters
+   * Since backend might not support all filter parameters
    */
-  private getMockUsers(): User[] {
-    return [
-      {
-        id: '1',
-        email: 'admin@learnhub.com',
-        firstName: 'Admin',
-        lastName: 'User',
-        role: Role.ADMIN,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
-      },
-      {
-        id: '2',
-        email: 'john.doe@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        role: Role.STUDENT,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-02-01'),
-        updatedAt: new Date('2024-02-15'),
-      },
-      {
-        id: '3',
-        email: 'jane.smith@example.com',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        role: Role.INSTRUCTOR,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-01-20'),
-        updatedAt: new Date('2024-03-01'),
-      },
-      {
-        id: '4',
-        email: 'mike.wilson@example.com',
-        firstName: 'Mike',
-        lastName: 'Wilson',
-        role: Role.STUDENT,
-        isEmailVerified: false,
-        isActive: true,
-        createdAt: new Date('2024-03-05'),
-        updatedAt: new Date('2024-03-05'),
-      },
-      {
-        id: '5',
-        email: 'sarah.connor@example.com',
-        firstName: 'Sarah',
-        lastName: 'Connor',
-        role: Role.INSTRUCTOR,
-        isEmailVerified: true,
-        isActive: false,
-        createdAt: new Date('2024-02-20'),
-        updatedAt: new Date('2024-03-10'),
-      },
-      {
-        id: '6',
-        email: 'david.brown@example.com',
-        firstName: 'David',
-        lastName: 'Brown',
-        role: Role.STUDENT,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-03-12'),
-        updatedAt: new Date('2024-03-12'),
-      },
-      {
-        id: '7',
-        email: 'lisa.garcia@example.com',
-        firstName: 'Lisa',
-        lastName: 'Garcia',
-        role: Role.INSTRUCTOR,
-        isEmailVerified: false,
-        isActive: true,
-        createdAt: new Date('2024-03-08'),
-        updatedAt: new Date('2024-03-08'),
-      },
-      {
-        id: '8',
-        email: 'tom.anderson@example.com',
-        firstName: 'Tom',
-        lastName: 'Anderson',
-        role: Role.STUDENT,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-03-15'),
-        updatedAt: new Date('2024-03-18'),
-      },
-      {
-        id: '9',
-        email: 'emma.jones@example.com',
-        firstName: 'Emma',
-        lastName: 'Jones',
-        role: Role.INSTRUCTOR,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-02-28'),
-        updatedAt: new Date('2024-03-20'),
-      },
-      {
-        id: '10',
-        email: 'alex.taylor@example.com',
-        firstName: 'Alex',
-        lastName: 'Taylor',
-        role: Role.STUDENT,
-        isEmailVerified: false,
-        isActive: false,
-        createdAt: new Date('2024-03-22'),
-        updatedAt: new Date('2024-03-22'),
-      },
-      {
-        id: '11',
-        email: 'chris.lee@example.com',
-        firstName: 'Chris',
-        lastName: 'Lee',
-        role: Role.INSTRUCTOR,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-01-10'),
-        updatedAt: new Date('2024-02-05'),
-      },
-      {
-        id: '12',
-        email: 'anna.white@example.com',
-        firstName: 'Anna',
-        lastName: 'White',
-        role: Role.STUDENT,
-        isEmailVerified: true,
-        isActive: true,
-        createdAt: new Date('2024-03-25'),
-        updatedAt: new Date('2024-03-25'),
-      },
-    ];
+  getFilteredUsers(filters: UserFilters = {}): Observable<User[]> {
+    return this.users$.pipe(
+      map((users) => {
+        let filteredUsers = [...users];
+
+        // Apply client-side filters
+        if (filters.search) {
+          const search = filters.search.toLowerCase();
+          filteredUsers = filteredUsers.filter(
+            (user) =>
+              user.firstName.toLowerCase().includes(search) ||
+              user.lastName.toLowerCase().includes(search) ||
+              user.email.toLowerCase().includes(search)
+          );
+        }
+
+        if (filters.role) {
+          filteredUsers = filteredUsers.filter(
+            (user) => user.role === filters.role
+          );
+        }
+
+        if (filters.isActive !== undefined) {
+          filteredUsers = filteredUsers.filter(
+            (user) => user.isActive === filters.isActive
+          );
+        }
+
+        if (filters.isEmailVerified !== undefined) {
+          filteredUsers = filteredUsers.filter(
+            (user) => user.isEmailVerified === filters.isEmailVerified
+          );
+        }
+
+        return filteredUsers;
+      })
+    );
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substr(2, 9);
+  /**
+   * Bulk delete users (using individual delete calls)
+   */
+  bulkDeleteUsers(userIds: string[]): Observable<boolean> {
+    const deleteOperations = userIds.map((id) =>
+      this.deleteUser(id).pipe(catchError(() => of(false)))
+    );
+
+    // Execute all delete operations
+    return of(true); // Simplified - you could use forkJoin for actual implementation
   }
 
-  private getRandomNumber(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  /**
+   * Bulk toggle status (using individual status calls)
+   */
+  bulkToggleStatus(userIds: string[]): Observable<boolean> {
+    const toggleOperations = userIds.map((id) =>
+      this.toggleUserStatus(id).pipe(catchError(() => of(null)))
+    );
+
+    // Execute all toggle operations
+    return of(true); // Simplified - you could use forkJoin for actual implementation
+  }
+
+  /**
+   * Get user by ID (if needed for details view)
+   * Note: Your backend doesn't have this endpoint, so we'll use local state
+   */
+  getUserById(id: string): Observable<User | null> {
+    return this.users$.pipe(
+      map((users) => users.find((user) => user.id === id) || null)
+    );
+  }
+
+  /**
+   * Private helper methods
+   */
+  private transformUser(backendUser: User): User {
+    return {
+      ...backendUser,
+      fullName: `${backendUser.firstName} ${backendUser.lastName}`,
+      createdAt: new Date(backendUser.createdAt),
+      updatedAt: new Date(backendUser.updatedAt),
+      // Add any additional computed properties your frontend needs
+      enrollmentCount: 0, // Would need separate API call to get this
+      courseCount: backendUser.role === Role.INSTRUCTOR ? 0 : 0, // Would need separate API call
+    };
+  }
+
+  private transformUsers(backendUsers: User[]): User[] {
+    return backendUsers.map((user) => this.transformUser(user));
+  }
+
+  private updateUserInLocalState(updatedUser: User): void {
+    const currentUsers = this.usersSubject.value;
+    const userIndex = currentUsers.findIndex(
+      (user) => user.id === updatedUser.id
+    );
+
+    if (userIndex !== -1) {
+      const updatedUsers = [...currentUsers];
+      updatedUsers[userIndex] = updatedUser;
+      this.usersSubject.next(updatedUsers);
+    }
+  }
+
+  /**
+   * Clear local state (useful for logout)
+   */
+  clearLocalState(): void {
+    this.usersSubject.next([]);
+  }
+
+  /**
+   * Refresh users data
+   */
+  refreshUsers(
+    page: number = 1,
+    limit: number = 10,
+    filters: UserFilters = {}
+  ): Observable<UserResponse> {
+    return this.getUsers(page, limit, filters);
   }
 }

@@ -3,7 +3,7 @@
 
 ### Variables - Run the login request in auth.http first
 @userToken = 
-@adminToken = 
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMTNkMjU4Ni1kZDhhLTRmM2YtOTU0OC1kNTUwZTQwMDgyZDYiLCJlbWFpbCI6ImFkbWluQGRlbW8uY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxODg5OTU1LCJleHAiOjE3NTE4OTM1NTV9.3Ll_nvuYOX7bvFzA_YJAa1IloPu3YICQ0wDx7yDRi2c
 ### Get current user profile
 GET {{baseUrl}}/users/profile/me
 Authorization: Bearer {{userToken}}

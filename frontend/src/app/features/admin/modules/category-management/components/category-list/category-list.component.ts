@@ -1,19 +1,28 @@
+// src/app/features/admin/modules/category-management/components/category-list/category-list.component.ts
+
 import {
   Component,
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import { Subject, combineLatest } from 'rxjs';
+import {
+  takeUntil,
+  startWith,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormControl } from '@angular/forms';
 
 import { CategoryService } from '../../services/category.service';
-import { Category } from '@core/models/category.model';
+import { Category, CategoryListResponse } from '@core/models/category.model';
 import { CategoryFormComponent } from '../category-form/category-form.component';
-import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { SharedModule } from '@shared/shared.module';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-category-list',
@@ -23,17 +32,29 @@ import { SharedModule } from '@shared/shared.module';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryListComponent implements OnInit, OnDestroy {
-  categories$ = this.categoryService.categories$;
-  loading$ = new BehaviorSubject<boolean>(false);
+  categories: Category[] = [];
+  loading$ = this.categoryService.loading$;
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalCategories = 0;
+  totalPages = 0;
+
+  // Search
+  searchControl = new FormControl('');
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private categoryService: CategoryService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.setupSearch();
     this.loadCategories();
   }
 
@@ -42,27 +63,48 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private setupSearch(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(''),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.currentPage = 1; // Reset to first page on search
+        this.loadCategories();
+      });
+  }
+
   loadCategories(): void {
-    this.loading$.next(true);
+    const searchTerm = this.searchControl.value || '';
 
     this.categoryService
-      .getCategories()
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.loading$.next(false))
-      )
+      .getCategories({
+        page: this.currentPage,
+        limit: this.pageSize,
+        search: searchTerm.trim() || undefined,
+      })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          // Data is already updated via BehaviorSubject
+        next: (response: CategoryListResponse) => {
+          this.categories = response.categories;
+          this.totalCategories = response.total;
+          this.totalPages =
+            response?.total || Math.ceil(response.total / this.pageSize);
+          this.cdr.markForCheck();
         },
-        error: () => {
-          this.snackBar.open('Failed to load categories', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-          });
+        error: (error) => {
+          this.showErrorMessage('Failed to load categories');
+          console.error('Error loading categories:', error);
         },
       });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadCategories();
   }
 
   openCreateDialog(): void {
@@ -76,13 +118,10 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     dialogRef
       .afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((created) => {
-        if (created) {
-          this.snackBar.open('Category created successfully', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-          });
+      .subscribe((result) => {
+        if (result) {
+          this.showSuccessMessage('Category created successfully');
+          this.loadCategories(); // Refresh the list
         }
       });
   }
@@ -98,23 +137,31 @@ export class CategoryListComponent implements OnInit, OnDestroy {
     dialogRef
       .afterClosed()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((updated) => {
-        if (updated) {
-          this.snackBar.open('Category updated successfully', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-          });
+      .subscribe((result) => {
+        if (result) {
+          this.showSuccessMessage('Category updated successfully');
+          this.loadCategories(); // Refresh the list
         }
       });
   }
 
   deleteCategory(category: Category): void {
+    // Check if category has courses
+    const courseCount = this.getCourseCount(category);
+    if (courseCount > 0) {
+      this.showErrorMessage(
+        `Cannot delete category with ${courseCount} associated course${
+          courseCount > 1 ? 's' : ''
+        }`
+      );
+      return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
         title: 'Delete Category',
-        message: `Are you sure you want to delete "${category.name}"? This cannot be undone.`,
+        message: `Are you sure you want to delete "${category.name}"? This action cannot be undone.`,
         confirmText: 'Delete',
         cancelText: 'Cancel',
         confirmColor: 'warn',
@@ -138,22 +185,13 @@ export class CategoryListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.snackBar.open('Category deleted successfully', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-          });
+          this.showSuccessMessage('Category deleted successfully');
+          this.loadCategories(); // Refresh the list
         },
         error: (error) => {
-          this.snackBar.open(
-            error.message || 'Failed to delete category',
-            'Close',
-            {
-              duration: 4000,
-              horizontalPosition: 'end',
-              verticalPosition: 'top',
-            }
-          );
+          const errorMessage = error.message || 'Failed to delete category';
+          this.showErrorMessage(errorMessage);
+          console.error('Error deleting category:', error);
         },
       });
   }
@@ -165,4 +203,42 @@ export class CategoryListComponent implements OnInit, OnDestroy {
   getCourseCount(category: Category): number {
     return category.courses?.length || 0;
   }
+
+  // Utility methods for user feedback
+  private showSuccessMessage(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar'],
+    });
+  }
+
+  private showErrorMessage(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 4000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar'],
+    });
+  }
+
+  // Helper methods for template
+  get hasCategories(): boolean {
+    return this.categories.length > 0;
+  }
+
+  get isSearching(): boolean {
+    return !!(this.searchControl.value && this.searchControl.value.trim());
+  }
+
+  clearSearch(): void {
+    this.searchControl.setValue('');
+  }
+
+  refreshCategories(): void {
+    this.loadCategories();
+  }
 }
+
+// ================================================================================================

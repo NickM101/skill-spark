@@ -5,6 +5,7 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,35 +13,17 @@ import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { AdminCourseService } from '../../services/admin-course.service';
+import { CourseService } from '../../services/admin-course.service';
 import { Course, CourseLevel } from '@core/models/course.model';
-import { CourseManagementModule } from '../../course-management';
-import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
+import { SharedModule } from '@shared/shared.module';
+import { LessonListComponent } from "../../../lessons/components/lesson-list/lesson-list.component";
 
 @Component({
   selector: 'app-course-detail',
   templateUrl: './course-detail.component.html',
   styleUrls: ['./course-detail.component.scss'],
-  imports: [
-    CommonModule,
-  
-    // Angular Material Modules
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
-  ],
-  
+  imports: [SharedModule, LessonListComponent],
+
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CourseDetailComponent implements OnInit, OnDestroy {
@@ -50,15 +33,18 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   courseId: string | null = null;
   loading$ = this.adminCourseService.loading$;
 
+  selectedTabIndex = 0;
+
   // Enums for template
   CourseLevel = CourseLevel;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private adminCourseService: AdminCourseService,
+    private adminCourseService: CourseService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -82,6 +68,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (course) => {
           this.course = course;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.snackBar.open('Failed to load course', 'Close', {
@@ -155,38 +142,47 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
   onDuplicateCourse(): void {
     if (!this.course) return;
 
-    const duplicateData = {
-      title: `${this.course.title} (Copy)`,
-      description: this.course.description,
-      thumbnail: this.course.thumbnail,
-      price: this.course.price,
-      level: this.course.level,
-      categoryId: this.course.categoryId,
-      instructorId: this.course.instructorId,
-      isPublished: false, // Always create duplicates as drafts
-    };
+    // const duplicateData = {
+    //   title: `${this.course.title} (Copy)`,
+    //   description: this.course.description,
+    //   thumbnail: this.course.thumbnail,
+    //   price: this.course.price,
+    //   level: this.course.level,
+    //   categoryId: this.course.categoryId,
+    //   instructorId: this.course.instructorId,
+    //   isPublished: false, // Always create duplicates as drafts
+    // };
 
-    this.adminCourseService
-      .createCourse(duplicateData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (newCourse) => {
-          this.snackBar.open('Course duplicated successfully', 'Close', {
-            duration: 3000,
-          });
-          this.router.navigate(['/admin/courses', newCourse.id]);
-        },
-        error: (error) => {
-          this.snackBar.open('Failed to duplicate course', 'Close', {
-            duration: 3000,
-          });
-        },
-      });
+    // this.adminCourseService
+    //   .createCourse()
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: (newCourse) => {
+    //       this.snackBar.open('Course duplicated successfully', 'Close', {
+    //         duration: 3000,
+    //       });
+    //       this.router.navigate(['/admin/courses', newCourse.id]);
+    //     },
+    //     error: (error) => {
+    //       this.snackBar.open('Failed to duplicate course', 'Close', {
+    //         duration: 3000,
+    //       });
+    //     },
+    //   });
+  }
+
+  // Handle tab changes
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
   }
 
   // Helper methods for template
   getStatusChipColor(isPublished: boolean): string {
     return isPublished ? 'primary' : 'warn';
+  }
+
+  canEditCourse(): boolean {
+    return true;
   }
 
   getStatusText(isPublished: boolean): string {

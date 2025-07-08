@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   FormBuilder,
   FormGroup,
@@ -14,6 +14,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AuthService } from '@core/services/auth.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -34,6 +36,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   styleUrl: 'login.scss',
 })
 export class LoginComponent {
+  
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private fb = new FormBuilder();
 
   hidePassword = signal(true);
@@ -55,49 +61,46 @@ export class LoginComponent {
       this.isLoading.set(true);
       this.errorMessage.set('');
 
-      // Simulate API call
-      setTimeout(() => {
-        // Mock authentication logic
-        const { email, password } = this.loginForm.value;
+       const credentials = {
+        email: this.loginForm.value.email,
+        password: this.loginForm.value.password,
+      };
 
-        // Demo credentials check
-        const demoCredentials = [
-          { email: 'student@demo.com', password: 'demo123', role: 'student' },
-          {
-            email: 'instructor@demo.com',
-            password: 'demo123',
-            role: 'instructor',
+      this.authService
+        .login(credentials)
+        .pipe(
+          finalize(() => {
+            this.isLoading.set(false);
+          })
+        )
+        .subscribe({
+          next: (response) => {
+            console.log("RESPONSE", response)
+            this.redirectAfterLogin();
           },
-          { email: 'admin@demo.com', password: 'demo123', role: 'admin' },
-        ];
-
-        const user = demoCredentials.find(
-          (cred) => cred.email === email && cred.password === password
-        );
-
-        if (user) {
-          console.log('Login successful:', user);
-          // Redirect to dashboard
-          // this.router.navigate(['/dashboard']);
-        } else {
-          this.errorMessage.set(
-            'Invalid email or password. Try demo credentials below.'
-          );
-        }
-
-        this.isLoading.set(false);
-      }, 2000);
+          error: (error) => {
+            console.log("ERROR LOGIN", typeof error)
+            this.errorMessage.set(error || 'Login failed.');
+          },
+        });
     }
   }
 
-  loginWithGoogle() {
-    console.log('Login with Google');
-    // Implement Google OAuth
-  }
+  private redirectAfterLogin(): void {
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
 
-  loginWithGithub() {
-    console.log('Login with GitHub');
-    // Implement GitHub OAuth
+    // Redirect based on user role
+    switch (user.role) {
+      case 'ADMIN':
+      case 'INSTRUCTOR':
+        this.router.navigate(['/admin/dashboard']);
+        break;
+      case 'STUDENT':
+      default:
+        this.router.navigate(['/home']);
+        break;
+    }
   }
 
   fillDemoCredentials(role: 'student' | 'instructor' | 'admin') {

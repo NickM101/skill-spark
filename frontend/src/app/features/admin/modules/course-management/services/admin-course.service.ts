@@ -1,454 +1,655 @@
-// src/app/features/admin/modules/course-management/services/admin-course.service.ts
-
 import { Injectable } from '@angular/core';
-import { Category } from '@core/models/category.model';
-import { Course, CourseLevel, CourseFilters, CourseStats } from '@core/models/course.model';
-import { User, Role } from '@core/models/user.model';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { delay, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, forkJoin } from 'rxjs';
+import { map, tap, catchError, switchMap } from 'rxjs/operators';
 
+import { ApiService } from '@core/services/api.service';
+import { Category } from '@core/models/category.model';
+import { User } from '@core/models/user.model';
+import {
+  CourseLevel,
+  Course,
+  CourseStats,
+  CourseListResponse,
+  CreateCourseRequest,
+  UpdateCourseRequest,
+} from '@core/models/course.model';
+import { CategoryService } from '../../category-management/services/category.service';
+
+export interface CourseQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+  level?: CourseLevel;
+  isPublished?: boolean;
+  instructorId?: string;
+  sortBy?: 'title' | 'createdAt' | 'updatedAt' | 'enrollments' | 'price';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AssignInstructorRequest {
+  instructorId: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
-export class AdminCourseService {
+export class CourseService {
   private coursesSubject = new BehaviorSubject<Course[]>([]);
-  private categoriesSubject = new BehaviorSubject<Category[]>([]);
   private instructorsSubject = new BehaviorSubject<User[]>([]);
   private loadingSubject = new BehaviorSubject<boolean>(false);
 
   public courses$ = this.coursesSubject.asObservable();
-  public categories$ = this.categoriesSubject.asObservable();
   public instructors$ = this.instructorsSubject.asObservable();
   public loading$ = this.loadingSubject.asObservable();
 
-  // Mock Data
+  constructor(
+    private apiService: ApiService,
+    private categoryService: CategoryService
+  ) {}
 
-  private mockCategories: Category[] = [
-    {
-      id: 'cat_1',
-      name: 'Programming',
-      description: 'Learn programming languages and frameworks',
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-05'),
-    },
-    {
-      id: 'cat_2',
-      name: 'Design',
-      description: 'Master design principles and tools',
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-06'),
-    },
-    {
-      id: 'cat_3',
-      name: 'Business',
-      description: 'Develop business and entrepreneurship skills',
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-07'),
-    },
-    {
-      id: 'cat_4',
-      name: 'Marketing',
-      description: 'Learn digital marketing strategies',
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-08'),
-    },
-  ];
+  // ----------------------
+  // Public CRUD Methods
+  // ----------------------
 
-  private mockInstructors: User[] = [
-    {
-      id: 'inst_1',
-      email: 'john.doe@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      fullName: 'John Doe',
-      role: Role.INSTRUCTOR,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-03'),
-      courseCount: 2,
-      enrollmentCount: 77,
-    },
-    {
-      id: 'inst_2',
-      email: 'jane.smith@example.com',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      fullName: 'Jane Smith',
-      role: Role.INSTRUCTOR,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-04'),
-      courseCount: 2,
-      enrollmentCount: 28,
-    },
-    {
-      id: 'inst_3',
-      email: 'mike.wilson@example.com',
-      firstName: 'Mike',
-      lastName: 'Wilson',
-      fullName: 'Mike Wilson',
-      role: Role.INSTRUCTOR,
-      isEmailVerified: true,
-      isActive: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-05'),
-      courseCount: 1,
-      enrollmentCount: 18,
-    },
-  ];
-
-  private mockCourses: Course[] = [
-    {
-      id: 'course_1',
-      title: 'JavaScript Fundamentals',
-      description: 'Learn the basics of JavaScript programming language',
-      thumbnail: 'https://example.com/js-thumb.jpg',
-      price: 49.99,
-      level: CourseLevel.BEGINNER,
-      categoryId: 'cat_1',
-      instructorId: 'inst_1',
-      isPublished: true,
-      createdAt: new Date('2024-01-15'),
-      updatedAt: new Date('2024-01-20'),
-      category: this.mockCategories[0],
-      instructor: this.mockInstructors[0],
-      _count: {
-        enrollments: 45,
-        lessons: 12,
-        quizzes: 3,
-      },
-    },
-    {
-      id: 'course_2',
-      title: 'React Development Mastery',
-      description: 'Build modern web applications with React',
-      thumbnail: 'https://example.com/react-thumb.jpg',
-      price: 79.99,
-      level: CourseLevel.INTERMEDIATE,
-      categoryId: 'cat_1',
-      instructorId: 'inst_1',
-      isPublished: true,
-      createdAt: new Date('2024-01-10'),
-      updatedAt: new Date('2024-01-25'),
-      category: this.mockCategories[0],
-      instructor: this.mockInstructors[0],
-      _count: {
-        enrollments: 32,
-        lessons: 18,
-        quizzes: 5,
-      },
-    },
-    {
-      id: 'course_3',
-      title: 'UI/UX Design Principles',
-      description:
-        'Master the fundamentals of user interface and experience design',
-      thumbnail: 'https://example.com/design-thumb.jpg',
-      price: 59.99,
-      level: CourseLevel.BEGINNER,
-      categoryId: 'cat_2',
-      instructorId: 'inst_2',
-      isPublished: false,
-      createdAt: new Date('2024-01-20'),
-      updatedAt: new Date('2024-01-22'),
-      category: this.mockCategories[1],
-      instructor: this.mockInstructors[1],
-      _count: {
-        enrollments: 0,
-        lessons: 8,
-        quizzes: 2,
-      },
-    },
-    {
-      id: 'course_4',
-      title: 'Advanced TypeScript',
-      description: 'Deep dive into TypeScript advanced features and patterns',
-      thumbnail: 'https://example.com/ts-thumb.jpg',
-      price: 89.99,
-      level: CourseLevel.ADVANCED,
-      categoryId: 'cat_1',
-      instructorId: 'inst_3',
-      isPublished: true,
-      createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-01-30'),
-      category: this.mockCategories[0],
-      instructor: this.mockInstructors[2],
-      _count: {
-        enrollments: 18,
-        lessons: 25,
-        quizzes: 8,
-      },
-    },
-    {
-      id: 'course_5',
-      title: 'Digital Marketing Strategy',
-      description:
-        'Learn effective digital marketing techniques and strategies',
-      thumbnail: 'https://example.com/marketing-thumb.jpg',
-      price: 69.99,
-      level: CourseLevel.INTERMEDIATE,
-      categoryId: 'cat_4',
-      instructorId: 'inst_2',
-      isPublished: true,
-      createdAt: new Date('2024-01-12'),
-      updatedAt: new Date('2024-01-28'),
-      category: this.mockCategories[3],
-      instructor: this.mockInstructors[1],
-      _count: {
-        enrollments: 28,
-        lessons: 15,
-        quizzes: 4,
-      },
-    },
-  ];
-
-  constructor() {
-    this.categoriesSubject.next(this.mockCategories);
-    this.instructorsSubject.next(this.mockInstructors);
-    this.coursesSubject.next(this.mockCourses);
-  }
-
-  getCourses(
-    filters?: CourseFilters
-  ): Observable<{ courses: Course[]; total: number }> {
+  /**
+   * Get all courses with optional filtering and pagination
+   */
+  getCourses(params: CourseQueryParams = {}): Observable<CourseListResponse> {
     this.loadingSubject.next(true);
 
-    return of(this.mockCourses).pipe(
-      delay(500),
-      map((courses) => {
-        let filteredCourses = [...courses];
+    const queryParams = {
+      page: params.page || 1,
+      limit: params.limit || 10,
+      ...(params.search && { search: params.search }),
+      ...(params.categoryId && { categoryId: params.categoryId }),
+      ...(params.level && { level: params.level }),
+      ...(params.isPublished !== undefined && {
+        isPublished: params.isPublished,
+      }),
+      ...(params.instructorId && { instructorId: params.instructorId }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+      ...(params.sortOrder && { sortOrder: params.sortOrder }),
+    };
 
-        // Apply filters
-        if (filters?.search) {
-          const search = filters.search.toLowerCase();
-          filteredCourses = filteredCourses.filter(
-            (course) =>
-              course.title.toLowerCase().includes(search) ||
-              course.description?.toLowerCase().includes(search) ||
-              course.instructor?.firstName.toLowerCase().includes(search) ||
-              course.instructor?.lastName.toLowerCase().includes(search)
-          );
-        }
+    return this.apiService.get<Course[]>('/courses', queryParams).pipe(
+      map((response) => {
+        const { items, pagination } =
+          this.apiService.extractPaginatedData(response);
 
-        if (filters?.categoryId) {
-          filteredCourses = filteredCourses.filter(
-            (course) => course.categoryId === filters.categoryId
-          );
-        }
-
-        if (filters?.level) {
-          filteredCourses = filteredCourses.filter(
-            (course) => course.level === filters.level
-          );
-        }
-
-        if (filters?.isPublished !== undefined) {
-          filteredCourses = filteredCourses.filter(
-            (course) => course.isPublished === filters.isPublished
-          );
-        }
-
-        if (filters?.instructorId) {
-          filteredCourses = filteredCourses.filter(
-            (course) => course.instructorId === filters.instructorId
-          );
-        }
-
-        // Apply sorting
-        if (filters?.sortBy) {
-          filteredCourses.sort((a, b) => {
-            let aValue: any;
-            let bValue: any;
-
-            switch (filters.sortBy) {
-              case 'title':
-                aValue = a.title;
-                bValue = b.title;
-                break;
-              case 'createdAt':
-                aValue = a.createdAt;
-                bValue = b.createdAt;
-                break;
-              case 'updatedAt':
-                aValue = a.updatedAt;
-                bValue = b.updatedAt;
-                break;
-              case 'enrollments':
-                aValue = a._count?.enrollments || 0;
-                bValue = b._count?.enrollments || 0;
-                break;
-              default:
-                return 0;
-            }
-
-            if (aValue < bValue) return filters.sortOrder === 'desc' ? 1 : -1;
-            if (aValue > bValue) return filters.sortOrder === 'desc' ? -1 : 1;
-            return 0;
-          });
-        }
-
-        // Apply pagination
-        const page = filters?.page || 1;
-        const limit = filters?.limit || 10;
-        const startIndex = (page - 1) * limit;
-        const paginatedCourses = filteredCourses.slice(
-          startIndex,
-          startIndex + limit
-        );
+        // Update local state
+        this.coursesSubject.next(items);
 
         return {
-          courses: paginatedCourses,
-          total: filteredCourses.length,
+          courses: items,
+          total: pagination.total,
+          page: pagination.page,
+          limit: pagination.limit,
+          totalPages: pagination.totalPages,
         };
       }),
-      tap(() => this.loadingSubject.next(false))
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        this.loadingSubject.next(false);
+        throw error;
+      })
     );
   }
 
+  /**
+   * Get instructor's courses
+   */
+  getMyCourses(params: CourseQueryParams = {}): Observable<CourseListResponse> {
+    this.loadingSubject.next(true);
+
+    const queryParams = {
+      page: params.page || 1,
+      limit: params.limit || 10,
+      ...(params.search && { search: params.search }),
+      ...(params.categoryId && { categoryId: params.categoryId }),
+      ...(params.level && { level: params.level }),
+      ...(params.isPublished !== undefined && {
+        isPublished: params.isPublished,
+      }),
+      ...(params.sortBy && { sortBy: params.sortBy }),
+      ...(params.sortOrder && { sortOrder: params.sortOrder }),
+    };
+
+    return this.apiService
+      .get<Course[]>('/courses/my-courses', queryParams)
+      .pipe(
+        map((response) => {
+          const { items, pagination } =
+            this.apiService.extractPaginatedData(response);
+
+          return {
+            courses: items,
+            total: pagination.total,
+            page: pagination.page,
+            limit: pagination.limit,
+            totalPages: pagination.totalPages,
+          };
+        }),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Get a single course by ID
+   */
   getCourse(id: string): Observable<Course> {
     this.loadingSubject.next(true);
 
-    const course = this.mockCourses.find((c) => c.id === id);
-
-    if (!course) {
-      this.loadingSubject.next(false);
-      return throwError(() => new Error('Course not found'));
-    }
-
-    return of(course).pipe(
-      delay(300),
-      tap(() => this.loadingSubject.next(false))
-    );
-  }
-
-  createCourse(courseData: Partial<Course>): Observable<Course> {
-    this.loadingSubject.next(true);
-
-    const newCourse: Course = {
-      id: `course_${Date.now()}`,
-      title: courseData.title || '',
-      description: courseData.description,
-      thumbnail: courseData.thumbnail,
-      price: courseData.price,
-      level: courseData.level || CourseLevel.BEGINNER,
-      categoryId: courseData.categoryId || '',
-      instructorId: courseData.instructorId || '',
-      isPublished: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      category: this.mockCategories.find((c) => c.id === courseData.categoryId),
-      instructor: this.mockInstructors.find(
-        (i) => i.id === courseData.instructorId
-      ),
-      _count: {
-        enrollments: 0,
-        lessons: 0,
-        quizzes: 0,
-      },
-    };
-
-    return of(newCourse).pipe(
-      delay(800),
-      tap((course) => {
-        this.mockCourses.push(course);
-        this.coursesSubject.next([...this.mockCourses]);
+    return this.apiService.get<Course>(`/courses/${id}`).pipe(
+      map((response) => this.apiService.extractData(response)!),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
         this.loadingSubject.next(false);
+        throw error;
       })
     );
   }
 
-  updateCourse(id: string, courseData: Partial<Course>): Observable<Course> {
+  /**
+   * Create a new course (Admin only)
+   */
+  createCourse(request: CreateCourseRequest): Observable<Course> {
     this.loadingSubject.next(true);
 
-    const courseIndex = this.mockCourses.findIndex((c) => c.id === id);
-
-    if (courseIndex === -1) {
-      this.loadingSubject.next(false);
-      return throwError(() => new Error('Course not found'));
-    }
-
-    const updatedCourse = {
-      ...this.mockCourses[courseIndex],
-      ...courseData,
-      updatedAt: new Date(),
-      category: courseData.categoryId
-        ? this.mockCategories.find((c) => c.id === courseData.categoryId)
-        : this.mockCourses[courseIndex].category,
-      instructor: courseData.instructorId
-        ? this.mockInstructors.find((i) => i.id === courseData.instructorId)
-        : this.mockCourses[courseIndex].instructor,
+    const createDto = {
+      title: request.title,
+      description: request.description,
+      categoryId: request.categoryId,
+      level: request.level,
+      price: request.price,
+      ...(request.instructorId && { instructorId: request.instructorId }),
     };
 
-    return of(updatedCourse).pipe(
-      delay(600),
-      tap((course) => {
-        this.mockCourses[courseIndex] = course;
-        this.coursesSubject.next([...this.mockCourses]);
+    return this.apiService.post<Course>('/courses', createDto).pipe(
+      map((response) => {
+        const newCourse = this.apiService.extractData(response)!;
+
+        // Update local state
+        const currentCourses = this.coursesSubject.value;
+        this.coursesSubject.next([newCourse, ...currentCourses]);
+
+        return newCourse;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
         this.loadingSubject.next(false);
+        throw error;
       })
     );
   }
 
+  /**
+   * Update an existing course
+   */
+  updateCourse(id: string, request: UpdateCourseRequest): Observable<Course> {
+    this.loadingSubject.next(true);
+
+    const updateDto = {
+      ...(request.title !== undefined && { title: request.title }),
+      ...(request.description !== undefined && {
+        description: request.description,
+      }),
+      ...(request.categoryId !== undefined && {
+        categoryId: request.categoryId,
+      }),
+      ...(request.level !== undefined && { level: request.level }),
+      ...(request.price !== undefined && { price: request.price }),
+      ...(request.instructorId !== undefined && {
+        instructorId: request.instructorId,
+      }),
+    };
+
+    return this.apiService.patch<Course>(`/courses/${id}`, updateDto).pipe(
+      map((response) => {
+        const updatedCourse = this.apiService.extractData(response)!;
+
+        // Update local state
+        this.updateCourseInState(updatedCourse);
+
+        return updatedCourse;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Assign instructor to course (Admin only)
+   */
+  assignInstructor(courseId: string, instructorId: string): Observable<Course> {
+    this.loadingSubject.next(true);
+
+    const assignDto: AssignInstructorRequest = { instructorId };
+
+    return this.apiService
+      .patch<Course>(`/courses/${courseId}/assign-instructor`, assignDto)
+      .pipe(
+        map((response) => {
+          const updatedCourse = this.apiService.extractData(response)!;
+
+          // Update local state
+          this.updateCourseInState(updatedCourse);
+
+          return updatedCourse;
+        }),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Publish a course
+   */
+  publishCourse(id: string): Observable<Course> {
+    this.loadingSubject.next(true);
+
+    return this.apiService.post<Course>(`/courses/${id}/publish`, {}).pipe(
+      map((response) => {
+        const publishedCourse = this.apiService.extractData(response)!;
+
+        // Update local state
+        this.updateCourseInState(publishedCourse);
+
+        return publishedCourse;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Unpublish a course
+   */
+  unpublishCourse(id: string): Observable<Course> {
+    this.loadingSubject.next(true);
+
+    return this.apiService.post<Course>(`/courses/${id}/unpublish`, {}).pipe(
+      map((response) => {
+        const unpublishedCourse = this.apiService.extractData(response)!;
+
+        // Update local state
+        this.updateCourseInState(unpublishedCourse);
+
+        return unpublishedCourse;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Upload course thumbnail
+   */
+  uploadCourseThumbnail(courseId: string, file: File): Observable<Course> {
+    this.loadingSubject.next(true);
+
+    const formData = new FormData();
+    formData.append('thumbnail', file);
+
+    return this.apiService
+      .upload<Course>(`/courses/${courseId}/thumbnail`, formData)
+      .pipe(
+        map((response) => {
+          const updatedCourse = this.apiService.extractData(response)!;
+
+          // Update local state
+          this.updateCourseInState(updatedCourse);
+
+          return updatedCourse;
+        }),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Delete a course (Admin only)
+   */
   deleteCourse(id: string): Observable<void> {
     this.loadingSubject.next(true);
 
-    const courseIndex = this.mockCourses.findIndex((c) => c.id === id);
+    return this.apiService.delete<null>(`/courses/${id}`).pipe(
+      map(() => {
+        // Update local state
+        this.removeCourseFromState(id);
 
-    if (courseIndex === -1) {
-      this.loadingSubject.next(false);
-      return throwError(() => new Error('Course not found'));
-    }
-
-    return of(undefined).pipe(
-      delay(400),
-      tap(() => {
-        this.mockCourses.splice(courseIndex, 1);
-        this.coursesSubject.next([...this.mockCourses]);
+        return void 0;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
         this.loadingSubject.next(false);
+        throw error;
       })
     );
   }
 
-  publishCourse(id: string): Observable<Course> {
-    return this.updateCourse(id, { isPublished: true });
+  // ----------------------
+  // Utility Methods
+  // ----------------------
+
+  /**
+   * Search courses
+   */
+  searchCourses(
+    searchTerm: string,
+    filters: Omit<CourseQueryParams, 'search'> = {}
+  ): Observable<CourseListResponse> {
+    return this.getCourses({ ...filters, search: searchTerm });
   }
 
-  unpublishCourse(id: string): Observable<Course> {
-    return this.updateCourse(id, { isPublished: false });
+  /**
+   * Get courses by category
+   */
+  getCoursesByCategory(
+    categoryId: string,
+    params: CourseQueryParams = {}
+  ): Observable<CourseListResponse> {
+    return this.getCourses({ ...params, categoryId });
   }
 
+  /**
+   * Get courses by instructor
+   */
+  getCoursesByInstructor(
+    instructorId: string,
+    params: CourseQueryParams = {}
+  ): Observable<CourseListResponse> {
+    return this.getCourses({ ...params, instructorId });
+  }
+
+  /**
+   * Get published courses only
+   */
+  getPublishedCourses(
+    params: CourseQueryParams = {}
+  ): Observable<CourseListResponse> {
+    return this.getCourses({ ...params, isPublished: true });
+  }
+
+  /**
+   * Get draft courses only
+   */
+  getDraftCourses(
+    params: CourseQueryParams = {}
+  ): Observable<CourseListResponse> {
+    return this.getCourses({ ...params, isPublished: false });
+  }
+
+  /**
+   * Get course statistics
+   */
+  getCourseStats(): Observable<CourseStats> {
+    return this.courses$.pipe(
+      map((courses) => {
+        const publishedCourses = courses.filter((c) => c.isPublished);
+        const totalEnrollments = courses.reduce(
+          (sum, c) => sum + (c._count?.enrollments || 0),
+          0
+        );
+        const totalRevenue = courses.reduce(
+          (sum, c) => sum + (c.price || 0) * (c._count?.enrollments || 0),
+          0
+        );
+
+        return {
+          totalCourses: courses.length,
+          publishedCourses: publishedCourses.length,
+          draftCourses: courses.length - publishedCourses.length,
+          totalEnrollments,
+          totalRevenue,
+          avgRating: 4.2, // This would come from reviews in a real implementation
+        };
+      })
+    );
+  }
+
+  /**
+   * Get categories for course creation/editing
+   */
   getCategories(): Observable<Category[]> {
-    return this.categories$;
+    return this.categoryService.getAllCategories();
   }
 
+  /**
+   * Get instructors for course assignment
+   */
   getInstructors(): Observable<User[]> {
+    // This would typically be a separate API call to get users with INSTRUCTOR role
+    // For now, we'll return the cached instructors
     return this.instructors$;
   }
 
-  getCourseStats(): Observable<CourseStats> {
-    const courses = this.mockCourses;
-    const publishedCourses = courses.filter((c) => c.isPublished);
-    const totalEnrollments = courses.reduce(
-      (sum, c) => sum + (c._count?.enrollments || 0),
-      0
-    );
-    const totalRevenue = courses.reduce(
-      (sum, c) => sum + (c.price || 0) * (c._count?.enrollments || 0),
-      0
-    );
+  /**
+   * Load instructors from API (if you have a users endpoint)
+   */
+  loadInstructors(): Observable<User[]> {
+    this.loadingSubject.next(true);
 
-    const stats: CourseStats = {
-      totalCourses: courses.length,
-      publishedCourses: publishedCourses.length,
-      draftCourses: courses.length - publishedCourses.length,
-      totalEnrollments,
-      totalRevenue,
-      avgRating: 4.2,
-    };
+    // Assuming you have a users endpoint that can filter by role
+    return this.apiService.get<User[]>('/users', { role: 'INSTRUCTOR' }).pipe(
+      map((response) => {
+        const instructors = this.apiService.extractData(response) || [];
+        this.instructorsSubject.next(instructors);
+        return instructors;
+      }),
+      tap(() => this.loadingSubject.next(false)),
+      catchError((error) => {
+        this.loadingSubject.next(false);
+        throw error;
+      })
+    );
+  }
 
-    return of(stats).pipe(delay(200));
+  /**
+   * Refresh courses from server
+   */
+  refreshCourses(): Observable<CourseListResponse> {
+    return this.getCourses();
+  }
+
+  /**
+   * Check if course title exists
+   */
+  courseTitleExists(title: string, excludeId?: string): Observable<boolean> {
+    return this.courses$.pipe(
+      map((courses) => {
+        return courses.some(
+          (course) =>
+            course.title.toLowerCase() === title.toLowerCase() &&
+            course.id !== excludeId
+        );
+      })
+    );
+  }
+
+  /**
+   * Get courses with full data (categories and instructors loaded)
+   */
+  getCoursesWithFullData(
+    params: CourseQueryParams = {}
+  ): Observable<CourseListResponse> {
+    return forkJoin({
+      courses: this.getCourses(params),
+      categories: this.getCategories(),
+      instructors: this.getInstructors(),
+    }).pipe(map(({ courses }) => courses));
+  }
+
+  // ----------------------
+  // State Management
+  // ----------------------
+
+  /**
+   * Clear local state
+   */
+  clearCourses(): void {
+    this.coursesSubject.next([]);
+  }
+
+  /**
+   * Get current courses from local state
+   */
+  getCurrentCourses(): Course[] {
+    return this.coursesSubject.value;
+  }
+
+  /**
+   * Update a single course in local state
+   */
+  updateCourseInState(course: Course): void {
+    const currentCourses = this.coursesSubject.value;
+    const index = currentCourses.findIndex((c) => c.id === course.id);
+
+    if (index !== -1) {
+      const updatedCourses = [...currentCourses];
+      updatedCourses[index] = course;
+      this.coursesSubject.next(updatedCourses);
+    }
+  }
+
+  /**
+   * Add a course to local state
+   */
+  addCourseToState(course: Course): void {
+    const currentCourses = this.coursesSubject.value;
+    this.coursesSubject.next([course, ...currentCourses]);
+  }
+
+  /**
+   * Remove a course from local state
+   */
+  removeCourseFromState(id: string): void {
+    const currentCourses = this.coursesSubject.value;
+    const updatedCourses = currentCourses.filter((c) => c.id !== id);
+    this.coursesSubject.next(updatedCourses);
+  }
+
+  /**
+   * Update course publication status in state
+   */
+  updateCoursePublicationStatus(id: string, isPublished: boolean): void {
+    const currentCourses = this.coursesSubject.value;
+    const index = currentCourses.findIndex((c) => c.id === id);
+
+    if (index !== -1) {
+      const updatedCourses = [...currentCourses];
+      updatedCourses[index] = {
+        ...updatedCourses[index],
+        isPublished,
+        updatedAt: new Date(),
+      };
+      this.coursesSubject.next(updatedCourses);
+    }
+  }
+
+  /**
+   * Get course by ID from local state
+   */
+  getCourseFromState(id: string): Course | undefined {
+    return this.coursesSubject.value.find((c) => c.id === id);
+  }
+
+  // ----------------------
+  // Validation Helpers
+  // ----------------------
+
+  /**
+   * Validate course data before submission
+   */
+  validateCourseData(
+    courseData: CreateCourseRequest | UpdateCourseRequest
+  ): string[] {
+    const errors: string[] = [];
+
+    if (
+      'title' in courseData &&
+      (!courseData.title || courseData.title.trim().length < 3)
+    ) {
+      errors.push('Course title must be at least 3 characters long');
+    }
+
+    if (
+      'title' in courseData &&
+      courseData.title &&
+      courseData.title.length > 100
+    ) {
+      errors.push('Course title cannot exceed 100 characters');
+    }
+
+    if (
+      'description' in courseData &&
+      courseData.description &&
+      courseData.description.length > 1000
+    ) {
+      errors.push('Course description cannot exceed 1000 characters');
+    }
+
+    if (
+      'price' in courseData &&
+      courseData.price !== undefined &&
+      courseData.price < 0
+    ) {
+      errors.push('Course price cannot be negative');
+    }
+
+    if ('categoryId' in courseData && !courseData.categoryId) {
+      errors.push('Category is required');
+    }
+
+    return errors;
+  }
+
+  /**
+   * Check if user can edit course
+   */
+  canEditCourse(course: Course, userRole: string, userId: string): boolean {
+    return (
+      userRole === 'ADMIN' ||
+      (userRole === 'INSTRUCTOR' && course.instructorId === userId)
+    );
+  }
+
+  /**
+   * Check if user can delete course
+   */
+  canDeleteCourse(userRole: string): boolean {
+    return userRole === 'ADMIN';
+  }
+
+  /**
+   * Check if course can be published
+   */
+  canPublishCourse(course: Course): boolean {
+    // Add your business logic here
+    return !!(
+      course.title &&
+      course.description &&
+      course.categoryId &&
+      course.instructorId
+    );
   }
 }

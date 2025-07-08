@@ -91,12 +91,12 @@ export class AuthService {
   }
 
   logout(): void {
+    console.log("LOGGED OUT")
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
     this.tokenSubject.next(null);
-    this.router.navigate(['/home']);
   }
 
   changePassword(
@@ -117,15 +117,15 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
-  resetPassword(token: string, newPassword: string): Observable<any> {
+  resetPassword(params: {token: string, password: string, confirmPassword: string}): Observable<any> {
     return this.http
-      .post<any>(`${this.API_URL}/reset-password`, { token, newPassword })
+      .post<any>(`${this.API_URL}/reset-password`, { token: params.token, password: params.password, confirmPassword: params.confirmPassword })
       .pipe(catchError(this.handleError));
   }
 
   verifyEmail(token: string): Observable<any> {
     return this.http
-      .get<any>(`${this.API_URL}/verify-email/${token}`)
+      .post<any>(`${this.API_URL}/verify-email`, {token})
       .pipe(catchError(this.handleError));
   }
 

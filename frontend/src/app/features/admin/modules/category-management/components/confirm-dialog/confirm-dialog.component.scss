@@ -1,13 +1,9 @@
 // src/app/shared/components/confirm-dialog/confirm-dialog.component.scss
 
 .confirm-dialog-container {
-    width: 100%;
-    max-width: 400px;
-  }
-  
   .dialog-header {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
-  
+    padding: 1.5rem 1.5rem 1rem;
+
     .dialog-title {
       display: flex;
       align-items: center;
@@ -15,55 +11,53 @@
       margin: 0;
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--text-primary);
-  
+
       .title-icon {
-        color: var(--primary-color);
         font-size: 1.5rem;
-        width: 1.5rem;
-        height: 1.5rem;
+
+        &.warn {
+          color: var(--warn-color);
+        }
       }
     }
   }
-  
+
   .dialog-content {
-    padding: 0 1.5rem 1rem 1.5rem;
-  
+    padding: 0 1.5rem 1rem;
+
     .dialog-message {
-      margin: 0;
-      color: var(--text-primary);
-      line-height: 1.5;
       font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+      margin: 0;
     }
   }
-  
+
   .dialog-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
-  
-    .cancel-button,
+    padding: 1rem 1.5rem 1.5rem;
+
+    .cancel-button {
+      color: var(--text-secondary);
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+
     .confirm-button {
-      min-width: 80px;
-      height: 40px;
-      border-radius: var(--border-radius);
-    }
-  }
-  
-  // Responsive Design
-  @media (max-width: 480px) {
-    .dialog-actions {
-      flex-direction: column-reverse;
-      
-      .cancel-button,
-      .confirm-button {
-        width: 100%;
-        margin: 0;
-      }
-  
-      .confirm-button {
-        margin-bottom: 0.5rem;
+      min-width: 100px;
+
+      &[color="warn"] {
+        background-color: var(--warn-color);
+        color: white;
+
+        &:hover {
+          background-color: #d32f2f;
+        }
       }
     }
   }
+}

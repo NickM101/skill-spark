@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://a6bb-197-136-183-18.ngrok-free.app/',
+  apiUrl: 'http://localhost:3000',
   frontendUrl: 'http://localhost:4200',
   appName: 'SkillSpark',
   version: '1.0.0',

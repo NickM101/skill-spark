@@ -54,10 +54,7 @@ export class CourseController {
   }
 
   @Get()
-  async findAll(
-    @Query() query: CourseQueryDto,
-    @CurrentUser() user: any,
-  ) {
+  async findAll(@Query() query: CourseQueryDto, @CurrentUser() user: any) {
     try {
       const result = await this.courseService.findAll(
         query,
@@ -82,10 +79,7 @@ export class CourseController {
   @Get('my-courses')
   @Roles(Role.INSTRUCTOR)
   @UseGuards(RolesGuard)
-  async getMyCourses(
-    @Query() query: CourseQueryDto,
-    @CurrentUser() user: any,
-  ) {
+  async getMyCourses(@Query() query: CourseQueryDto, @CurrentUser() user: any) {
     try {
       const result = await this.courseService.getMyCourses(user.id, query);
       return this.apiResponseService.paginated(
@@ -104,10 +98,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
+  async findOne(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       const course = await this.courseService.findOne(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -176,10 +167,7 @@ export class CourseController {
 
   @Post(':id/publish')
   @UseGuards(RolesGuard)
-  async publish(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
+  async publish(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       const course = await this.courseService.publish(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -196,10 +184,7 @@ export class CourseController {
 
   @Post(':id/unpublish')
   @UseGuards(RolesGuard)
-  async unpublish(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
+  async unpublish(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       const course = await this.courseService.unpublish(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -244,10 +229,7 @@ export class CourseController {
   @Delete(':id')
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
-  async remove(
-    @Param('id') id: string,
-    @CurrentUser() user: any,
-  ) {
+  async remove(@Param('id') id: string, @CurrentUser() user: any) {
     try {
       await this.courseService.remove(id, user.id);
       return this.apiResponseService.success(

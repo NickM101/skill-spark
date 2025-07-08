@@ -15,6 +15,7 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  profilePhotoUrl?: string | null;
 
   // Computed properties for display
   fullName?: string;
