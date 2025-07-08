@@ -319,7 +319,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
-        enrollments: true, // <-- Add this line
+        enrollments: true,
         _count: {
           select: {
             lessons: true,
@@ -381,7 +381,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
-        enrollments: true, // <-- Add this line
+        enrollments: true,
         _count: {
           select: {
             lessons: true,
@@ -394,14 +394,12 @@ export class CourseService {
 
     // Send notification email to instructor
     try {
-      await this.emailService.sendCourseEnrollmentEmail(
+      await this.emailService.sendCourseAssignmentEmail(
         instructor.email,
         `${instructor.firstName} ${instructor.lastName}`,
-        'Admin',
-        'admin@skillspark.com',
         course.title,
+        'Admin',
         new Date().toLocaleDateString(),
-        '8 weeks',
       );
     } catch (error: any) {
       this.logger.error(`Failed to send email notification: ${error.message}`);
@@ -454,7 +452,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
-        enrollments: true, // <-- Add this line
+        enrollments: true,
         _count: {
           select: {
             lessons: true,
@@ -510,7 +508,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
-        enrollments: true, // <-- Add this line
+        enrollments: true,
         _count: {
           select: {
             lessons: true,
@@ -589,7 +587,7 @@ export class CourseService {
             orderBy: { orderIndex: 'asc' },
           },
           quizzes: true,
-          enrollments: true, // <-- Add this line
+          enrollments: true,
           _count: {
             select: {
               lessons: true,
@@ -677,7 +675,7 @@ export class CourseService {
           orderBy: { orderIndex: 'asc' },
         },
         quizzes: true,
-        enrollments: true, // <-- Add this line
+        enrollments: true,
         _count: {
           select: {
             lessons: true,

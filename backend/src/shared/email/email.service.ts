@@ -196,6 +196,26 @@ export class EmailService {
     );
   }
 
+  async sendCourseAssignmentEmail(
+    instructorEmail: string,
+    instructorName: string,
+    courseName: string,
+    assignedBy: string,
+    assignmentDate: string,
+  ): Promise<void> {
+    await this.sendEmail(
+      'course-assignment.ejs',
+      instructorEmail,
+      'Course Assignment Email',
+      {
+        instructorName,
+        courseName,
+        assignedBy,
+        assignmentDate,
+      },
+    );
+  }
+
   private async sendEmail(
     templateName: string,
     recipientEmail: string,
@@ -274,6 +294,7 @@ export class EmailService {
         "Congratulations! You're Approved - SkillSpark",
       'instructor-rejection.ejs': 'Application Update - SkillSpark',
       'course-enrollment.ejs': 'New Course Enrollment - SkillSpark',
+      'course-assignment.ejs': 'New Course Assignment - SkillSpark',
       'course-completion.ejs': 'Course Completion - SkillSpark',
       'course-reminder.ejs':
         'Action Required: Complete Your Course Soon! - SkillSpark',
