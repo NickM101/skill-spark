@@ -1,12 +1,18 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterOutlet,
+  ],
+  templateUrl: 'app.html',
+  styleUrl: 'app.scss',
 })
-export class App {
-  protected title = 'frontend';
+export class AppComponent {
+  title = 'Skill-Spark - E-Learning Platform';
 }

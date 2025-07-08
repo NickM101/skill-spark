@@ -1,0 +1,202 @@
+<div class="register-form">
+    <!-- Header -->
+    <div class="form-header">
+        <h1 class="form-title">Join LearnHub</h1>
+        <p class="form-subtitle">
+            Create your account and start learning today
+        </p>
+    </div>
+
+    <!-- Registration Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Personal Information -->
+        <div class="form-section">
+            <h3 class="section-title">Personal Information</h3>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>First Name</mat-label>
+                    <input matInput formControlName="firstName" placeholder="Enter your first name"
+                        autocomplete="given-name" />
+                    <mat-icon matSuffix>person</mat-icon>
+                    @if (registerForm.get('firstName')?.invalid &&
+                    registerForm.get('firstName')?.touched) {
+                    <mat-error>First name is required</mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Last Name</mat-label>
+                    <input matInput formControlName="lastName" placeholder="Enter your last name"
+                        autocomplete="family-name" />
+                    <mat-icon matSuffix>person</mat-icon>
+                    @if (registerForm.get('lastName')?.invalid &&
+                    registerForm.get('lastName')?.touched) {
+                    <mat-error>Last name is required</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Email Address</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="Enter your email"
+                    autocomplete="email" />
+                <mat-icon matSuffix>email</mat-icon>
+                @if (registerForm.get('email')?.invalid &&
+                registerForm.get('email')?.touched) {
+                <mat-error>
+                    @if (registerForm.get('email')?.errors?.['required']) { Email is
+                    required } @if (registerForm.get('email')?.errors?.['email']) {
+                    Please enter a valid email address }
+                </mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Role</mat-label>
+                <mat-select formControlName="role">
+                    <mat-select-trigger>
+                        <mat-icon class="role-icon">
+                            {{
+                            registerForm.get('role')?.value === 'student' ? 'school' :
+                            registerForm.get('role')?.value === 'instructor' ? 'person' : ''
+                            }}
+                        </mat-icon>
+                        {{ registerForm.get('role')?.value === 'student' ? 'Student' :
+                        registerForm.get('role')?.value === 'instructor' ? 'Instructor' : '' }}
+                    </mat-select-trigger>
+            
+                    <mat-option [value]="'student'">
+                        <div class="role-option">
+                            <mat-icon>school</mat-icon>
+                            <div>
+                                <div class="role-name">Student</div>
+                                <div class="role-desc">I want to learn new skills</div>
+                            </div>
+                        </div>
+                    </mat-option>
+            
+                    <mat-option [value]="'instructor'">
+                        <div class="role-option">
+                            <mat-icon>person</mat-icon>
+                            <div>
+                                <div class="role-name">Instructor</div>
+                                <div class="role-desc">I want to teach and share knowledge</div>
+                            </div>
+                        </div>
+                    </mat-option>
+                </mat-select>
+            
+                <mat-error *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
+                    Please select your role
+                </mat-error>
+            </mat-form-field>
+              
+        </div>
+
+        <!-- Security -->
+        <div class="form-section">
+            <h3 class="section-title">Security</h3>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Password</mat-label>
+                <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
+                    placeholder="Create a strong password" autocomplete="new-password" />
+                <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
+                    <mat-icon>{{
+                        hidePassword() ? 'visibility_off' : 'visibility'
+                        }}</mat-icon>
+                </button>
+                @if (registerForm.get('password')?.invalid &&
+                registerForm.get('password')?.touched) {
+                <mat-error>
+                    @if (registerForm.get('password')?.errors?.['required']) {
+                    Password is required } @if
+                    (registerForm.get('password')?.errors?.['minlength']) { Password
+                    must be at least 8 characters } @if
+                    (registerForm.get('password')?.errors?.['pattern']) { Password
+                    must contain uppercase, lowercase, number and special character }
+                </mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Confirm Password</mat-label>
+                <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword"
+                    placeholder="Confirm your password" autocomplete="new-password" />
+                <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPasswordVisibility()">
+                    <mat-icon>{{
+                        hideConfirmPassword() ? 'visibility_off' : 'visibility'
+                        }}</mat-icon>
+                </button>
+                @if (registerForm.get('confirmPassword')?.invalid &&
+                registerForm.get('confirmPassword')?.touched) {
+                <mat-error>
+                    @if (registerForm.get('confirmPassword')?.errors?.['required']) {
+                    Please confirm your password }
+                </mat-error>
+                } @if (registerForm.errors?.['passwordMismatch'] &&
+                registerForm.get('confirmPassword')?.touched) {
+                <mat-error>Passwords do not match</mat-error>
+                }
+            </mat-form-field>
+
+            <!-- Password Strength Indicator -->
+            <div class="password-strength">
+                <div class="strength-bar">
+                    <div class="strength-fill" [style.width.%]="passwordStrength()" [class]="getStrengthClass()"></div>
+                </div>
+                <div class="strength-text">{{ getStrengthText() }}</div>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="terms-section">
+            <mat-checkbox formControlName="acceptTerms" color="primary" class="terms-checkbox">
+                I agree to the
+                <a routerLink="/terms" target="_blank">Terms of Service</a> and
+                <a routerLink="/privacy" target="_blank">Privacy Policy</a>
+            </mat-checkbox>
+            @if (registerForm.get('acceptTerms')?.invalid &&
+            registerForm.get('acceptTerms')?.touched) {
+            <div class="error-text">You must accept the terms and conditions</div>
+            }
+        </div>
+
+        <div class="marketing-section">
+            <mat-checkbox formControlName="acceptMarketing" color="primary">
+                Send me updates about new courses and features (optional)
+            </mat-checkbox>
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+        <div class="error-message">
+            <mat-icon>error</mat-icon>
+            <span>{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <!-- Submit Button -->
+        <button mat-raised-button color="primary" type="submit" class="submit-btn"
+            [disabled]="registerForm.invalid || isLoading()">
+            @if (isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Creating account...</span>
+            } @else {
+            <ng-container>
+                <mat-icon>person_add</mat-icon>
+                <span>Create Account</span>
+            </ng-container>
+            }
+        </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="form-footer">
+        <p>
+            Already have an account?
+            <a routerLink="../login" class="link">Sign in here</a>
+        </p>
+    </div>
+</div>

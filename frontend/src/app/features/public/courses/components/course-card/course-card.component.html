@@ -1,0 +1,91 @@
+<!-- src/app/features/public/courses/components/course-card/course-card.component.html -->
+
+<mat-card class="course-card" [class.compact]="compact" [class.enrolled]="isEnrolled" (click)="onCourseClick()">
+
+    <!-- Course Thumbnail -->
+    <div class="course-thumbnail">
+        <img [src]="course.thumbnail || 'https://via.placeholder.com/300x200/f55108/FFFFFF?text=Course'"
+            [alt]="course.title" class="thumbnail-image">
+
+        <!-- Level Badge -->
+        <div class="level-badge" [ngClass]="'level-' + course.level.toLowerCase()">
+            <mat-icon class="level-icon">{{ getLevelIcon(course.level) }}</mat-icon>
+            <span class="level-text">{{ course.level }}</span>
+        </div>
+
+        <!-- Price Badge -->
+        <div class="price-badge">
+            {{ formatPrice(course.price) }}
+        </div>
+    </div>
+
+    <!-- Course Content -->
+    <mat-card-content class="course-content">
+        <!-- Category -->
+        <div class="course-category">
+            <mat-icon class="category-icon">{{ course.category?.name === 'Programming' ? 'code' :
+                course.category?.name === 'Design' ? 'palette' :
+                course.category?.name === 'Business' ? 'business' :
+                course.category?.name === 'Marketing' ? 'trending_up' : 'book' }}</mat-icon>
+            <span>{{ course.category?.name || 'Uncategorized' }}</span>
+        </div>
+
+        <!-- Title -->
+        <h3 class="course-title" [title]="course.title">
+            {{ course.title }}
+        </h3>
+
+        <!-- Description -->
+        <p class="course-description" *ngIf="!compact">
+            {{ course.description }}
+        </p>
+
+        <!-- Course Meta -->
+        <div class="course-meta">
+            <div class="meta-item">
+                <mat-icon class="meta-icon">person</mat-icon>
+                <span class="meta-text">{{ getInstructorName() }}</span>
+            </div>
+
+            <div class="meta-item">
+                <mat-icon class="meta-icon">play_circle</mat-icon>
+                <span class="meta-text">{{ getLessonCount() }} lessons</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar (if enrolled) -->
+        <div class="progress-section" *ngIf="showProgress && isEnrolled">
+            <div class="progress-info">
+                <span class="progress-label">Progress</span>
+                <span class="progress-percentage">{{ progress }}%</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="progress" class="progress-bar">
+            </mat-progress-bar>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="course-actions">
+            <button mat-button color="primary" class="view-details-btn" (click)="onCourseClick()"
+                [attr.aria-label]="'View details for ' + course.title">
+                <mat-icon>visibility</mat-icon>
+                <span>View Details</span>
+            </button>
+
+            <ng-container *ngIf="!isEnrolled; else enrolledActions">
+                <button mat-raised-button color="primary" class="enroll-btn" (click)="onEnrollClick($event)"
+                    [attr.aria-label]="'Enroll in ' + course.title">
+                    <mat-icon>add_circle</mat-icon>
+                    <span>Enroll</span>
+                </button>
+            </ng-container>
+
+            <ng-template #enrolledActions>
+                <button mat-raised-button color="accent" class="continue-btn" (click)="onContinueClick($event)"
+                    [attr.aria-label]="'Continue learning ' + course.title">
+                    <mat-icon>play_arrow</mat-icon>
+                    <span>Continue</span>
+                </button>
+            </ng-template>
+        </div>
+    </mat-card-content>
+</mat-card>

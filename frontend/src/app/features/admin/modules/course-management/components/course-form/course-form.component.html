@@ -1,0 +1,382 @@
+<!-- src/app/features/admin/modules/course-management/components/course-form/course-form.component.html -->
+
+<div class="course-form-container">
+    <!-- Header -->
+    <div class="page-header">
+        <h1 class="page-title">{{ getPageTitle() }}</h1>
+        <button mat-icon-button (click)="onCancel()" [disabled]="isSubmitting" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="form-content">
+        <!-- Left Panel - Form -->
+        <mat-card class="form-card">
+            <form [formGroup]="courseForm" (ngSubmit)="onSubmit()" novalidate>
+
+                <!-- Tab Group -->
+                <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="200ms">
+
+                    <!-- Basic Information Tab -->
+                    <mat-tab label="Basic Information">
+                        <div class="tab-content">
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <mat-icon>info</mat-icon>
+                                    Course Details
+                                </h3>
+
+                                <div class="form-grid">
+                                    <!-- Title -->
+                                    <mat-form-field appearance="outline" class="full-width">
+                                        <mat-label>Course Title *</mat-label>
+                                        <input matInput formControlName="title" placeholder="Enter course title"
+                                            maxlength="100">
+                                        <mat-icon matSuffix>title</mat-icon>
+                                        <mat-hint align="end">{{ courseForm.get('title')?.value?.length || 0
+                                            }}/100</mat-hint>
+                                        <mat-error *ngIf="hasFieldError('title')">
+                                            {{ getFieldError('title') }}
+                                        </mat-error>
+                                    </mat-form-field>
+
+                                    <!-- Description -->
+                                    <mat-form-field appearance="outline" class="full-width">
+                                        <mat-label>Description</mat-label>
+                                        <textarea matInput formControlName="description" rows="4"
+                                            placeholder="Describe what students will learn" maxlength="1000"></textarea>
+                                        <mat-icon matSuffix>description</mat-icon>
+                                        <mat-hint align="end">{{ courseForm.get('description')?.value?.length || 0
+                                            }}/1000</mat-hint>
+                                        <mat-error *ngIf="hasFieldError('description')">
+                                            {{ getFieldError('description') }}
+                                        </mat-error>
+                                    </mat-form-field>
+
+                                    <!-- Thumbnail -->
+                                    <mat-form-field appearance="outline" class="full-width">
+                                        <mat-label>Thumbnail URL</mat-label>
+                                        <input matInput formControlName="thumbnail"
+                                            placeholder="https://example.com/image.jpg" type="url">
+                                        <mat-icon matSuffix>image</mat-icon>
+                                        <mat-hint>Optional: Course thumbnail image URL</mat-hint>
+                                        <mat-error *ngIf="hasFieldError('thumbnail')">
+                                            {{ getFieldError('thumbnail') }}
+                                        </mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-tab>
+
+                    <!-- Course Setup Tab -->
+                    <mat-tab label="Course Setup">
+                        <div class="tab-content">
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <mat-icon>settings</mat-icon>
+                                    Course Configuration
+                                </h3>
+
+                                <div class="form-grid">
+                                    <!-- Price -->
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Price</mat-label>
+                                        <input matInput type="number" formControlName="price" min="0" max="9999.99"
+                                            step="0.01" placeholder="0.00">
+                                        <span matTextPrefix>Ksh.&nbsp;</span>
+                                        <mat-icon matSuffix>attach_money</mat-icon>
+                                        <mat-hint>Leave empty for free course</mat-hint>
+                                        <mat-error *ngIf="hasFieldError('price')">
+                                            {{ getFieldError('price') }}
+                                        </mat-error>
+                                    </mat-form-field>
+
+                                    <!-- Level -->
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Course Level *</mat-label>
+                                        <mat-select formControlName="level">
+                                            <mat-option *ngFor="let level of CourseLevels" [value]="level">
+                                                <div class="level-option">
+                                                    <mat-icon>{{ getLevelIcon(level) }}</mat-icon>
+                                                    <span>{{ level | titlecase }}</span>
+                                                </div>
+                                            </mat-option>
+                                        </mat-select>
+                                        <mat-icon matSuffix>signal_cellular_alt</mat-icon>
+                                        <mat-error *ngIf="hasFieldError('level')">
+                                            {{ getFieldError('level') }}
+                                        </mat-error>
+                                    </mat-form-field>
+
+                                    <!-- Category -->
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Category *</mat-label>
+                                        <mat-select formControlName="categoryId">
+                                            <mat-option value="">Select category</mat-option>
+                                            <mat-option *ngFor="let category of categories; trackBy: trackByCategory"
+                                                [value]="category.id">
+                                                <div class="category-option">
+                                                    <mat-icon>category</mat-icon>
+                                                    <span>{{ category.name }}</span>
+                                                </div>
+                                            </mat-option>
+                                        </mat-select>
+                                        <mat-icon matSuffix>category</mat-icon>
+                                        <mat-error *ngIf="hasFieldError('categoryId')">
+                                            {{ getFieldError('categoryId') }}
+                                        </mat-error>
+                                    </mat-form-field>
+
+                                    <!-- Instructor -->
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Instructor *</mat-label>
+                                        <mat-select formControlName="instructorId">
+                                            <mat-option value="">Select instructor</mat-option>
+                                            <mat-option
+                                                *ngFor="let instructor of instructors; trackBy: trackByInstructor"
+                                                [value]="instructor.id">
+                                                <div class="instructor-option">
+                                                    <mat-icon>person</mat-icon>
+                                                    <div class="instructor-details">
+                                                        <span class="instructor-name">
+                                                            {{ instructor.firstName }} {{ instructor.lastName }}
+                                                        </span>
+                                                        <span class="instructor-email">{{ instructor.email }}</span>
+                                                    </div>
+                                                </div>
+                                            </mat-option>
+                                        </mat-select>
+                                        <mat-icon matSuffix>person</mat-icon>
+                                        <mat-error *ngIf="hasFieldError('instructorId')">
+                                            {{ getFieldError('instructorId') }}
+                                        </mat-error>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-tab>
+
+                    <!-- Lessons Tab - Add this as a mat-tab in your course form -->
+                    
+                    <mat-tab label="Lessons">
+                        <div class="tab-content">
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <mat-icon>play_lesson</mat-icon>
+                                    Course Lessons
+                                </h3>
+                    
+                                <!-- Lessons Management for Edit Mode -->
+                                <div *ngIf="isEditMode && courseId" class="lessons-section">
+                                    <mat-divider></mat-divider>
+                    
+                                    <mat-expansion-panel class="lessons-panel" [expanded]="true">
+                                        <mat-expansion-panel-header>
+                                            <mat-panel-title>
+                                                <mat-icon>play_lesson</mat-icon>
+                                                Course Lessons
+                                            </mat-panel-title>
+                                            <mat-panel-description>
+                                                Manage lessons for this course
+                                            </mat-panel-description>
+                                        </mat-expansion-panel-header>
+                    
+                                        <app-lesson-list [courseId]="courseId" [readonly]="false"
+                                            >
+                                        </app-lesson-list>
+                                    </mat-expansion-panel>
+                                </div>
+                    
+                                <!-- Create Mode Instructions -->
+                                <div *ngIf="!isEditMode" class="lessons-placeholder">
+                                    <div class="placeholder-content">
+                                        <mat-icon class="placeholder-icon">play_lesson</mat-icon>
+                                        <h4>Lessons will be available after creating the course</h4>
+                                        <p class="placeholder-description">
+                                            You can add and manage lessons once the course is created. Save the course first,
+                                            then return to edit mode to add your course content.
+                                        </p>
+                                        <div class="placeholder-steps">
+                                            <div class="step-item">
+                                                <mat-icon class="step-icon">looks_one</mat-icon>
+                                                <span>Create the course with basic information</span>
+                                            </div>
+                                            <div class="step-item">
+                                                <mat-icon class="step-icon">looks_two</mat-icon>
+                                                <span>Add lessons and course content</span>
+                                            </div>
+                                            <div class="step-item">
+                                                <mat-icon class="step-icon">looks_3</mat-icon>
+                                                <span>Publish when ready for students</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </mat-tab>
+
+                    <!-- Settings Tab -->
+                    <mat-tab label="Settings">
+                        <div class="tab-content">
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <mat-icon>tune</mat-icon>
+                                    Publication Settings
+                                </h3>
+
+                                <div class="settings-content">
+                                    <!-- Publication Status -->
+                                    <div class="setting-item">
+                                        <mat-checkbox formControlName="isPublished" color="primary">
+                                            <div class="checkbox-content">
+                                                <span class="checkbox-label">Publish Course</span>
+                                                <span class="checkbox-description">
+                                                    Published courses are visible to students and available for
+                                                    enrollment
+                                                </span>
+                                            </div>
+                                        </mat-checkbox>
+                                    </div>
+
+                                    <!-- Publication Warning -->
+                                    <div class="publication-info" *ngIf="courseForm.get('isPublished')?.value">
+                                        <mat-icon class="info-icon">info</mat-icon>
+                                        <div class="info-content">
+                                            <strong>Course will be published</strong>
+                                            <p>Make sure all course details are complete before publishing.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Guidelines -->
+                                    <div class="guidelines">
+                                        <h4 class="guidelines-title">
+                                            <mat-icon>lightbulb</mat-icon>
+                                            Guidelines
+                                        </h4>
+                                        <ul class="guidelines-list">
+                                            <li>Use a clear, descriptive title</li>
+                                            <li>Provide a comprehensive description</li>
+                                            <li>Set appropriate difficulty level</li>
+                                            <li>Choose the right category</li>
+                                            <li>Assign qualified instructor</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-tab>
+
+                    <!-- Preview Tab (Edit Mode Only) -->
+                    <mat-tab label="Preview" *ngIf="canShowPreview()">
+                        <div class="tab-content">
+                            <div class="preview-section">
+                                <h3 class="section-title">
+                                    <mat-icon>visibility</mat-icon>
+                                    Course Preview
+                                </h3>
+
+                                <div class="course-preview" *ngIf="currentCourse">
+                                    <!-- Thumbnail -->
+                                    <div class="preview-thumbnail">
+                                        <img *ngIf="currentCourse.thumbnail" [src]="currentCourse.thumbnail"
+                                            [alt]="currentCourse.title" class="thumbnail-img">
+                                        <div *ngIf="!currentCourse.thumbnail" class="thumbnail-placeholder">
+                                            <mat-icon>image</mat-icon>
+                                            <span>No thumbnail</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Details -->
+                                    <div class="preview-details">
+                                        <h2 class="preview-title">{{ currentCourse.title }}</h2>
+
+                                        <p class="preview-description" *ngIf="currentCourse.description">
+                                            {{ currentCourse.description }}
+                                        </p>
+
+                                        <div class="preview-meta">
+                                            <mat-chip-set>
+                                                <mat-chip *ngIf="currentCourse.category" color="primary" selected>
+                                                    {{ currentCourse.category.name }}
+                                                </mat-chip>
+                                                <mat-chip color="accent" selected>
+                                                    {{ currentCourse.level | titlecase }}
+                                                </mat-chip>
+                                                <mat-chip [color]="currentCourse.isPublished ? 'primary' : 'warn'"
+                                                    selected>
+                                                    {{ currentCourse.isPublished ? 'Published' : 'Draft' }}
+                                                </mat-chip>
+                                            </mat-chip-set>
+                                        </div>
+
+                                        <div class="preview-stats">
+                                            <div class="stat-item">
+                                                <mat-icon>attach_money</mat-icon>
+                                                <span>{{ currentCourse.price ? ('Ksh. ' +
+                                                    currentCourse.price.toFixed(2)) : 'Free' }}</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <mat-icon>event</mat-icon>
+                                                <span>Created {{ formatDate(currentCourse.createdAt) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-tab>
+
+                </mat-tab-group>
+            </form>
+        </mat-card>
+
+        <!-- Action Buttons - Fixed at Bottom -->
+        <div class="action-bar">
+            <div class="action-buttons">
+                <!-- Left side buttons -->
+                <div class="left-actions">
+                    <button mat-button type="button" (click)="onReset()" [disabled]="isSubmitting">
+                        <mat-icon>refresh</mat-icon>
+                        Reset
+                    </button>
+                </div>
+
+                <!-- Right side buttons -->
+                <div class="right-actions">
+                    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isSubmitting">
+                        <mat-icon>cancel</mat-icon>
+                        Cancel
+                    </button>
+
+                    <button mat-raised-button type="button" (click)="onSaveDraft()"
+                        [disabled]="courseForm.invalid || isSubmitting"
+                        *ngIf="!isEditMode || !currentCourse?.isPublished">
+                        <mat-spinner *ngIf="isSubmitting && !courseForm.get('isPublished')?.value" diameter="20"
+                            class="button-spinner"></mat-spinner>
+                        <mat-icon *ngIf="!isSubmitting">save</mat-icon>
+                        Save Draft
+                    </button>
+
+                    <button mat-raised-button color="primary" type="button" (click)="onPublish()"
+                        [disabled]="courseForm.invalid || isSubmitting">
+                        <mat-spinner *ngIf="isSubmitting && courseForm.get('isPublished')?.value" diameter="20"
+                            class="button-spinner"></mat-spinner>
+                        <mat-icon *ngIf="!isSubmitting">publish</mat-icon>
+                        {{ isEditMode ? 'Update & Publish' : 'Create & Publish' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div *ngIf="loading$ | async" class="loading-overlay">
+        <div class="loading-content">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p class="loading-text">Loading...</p>
+        </div>
+    </div>
+    </div>

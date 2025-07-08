@@ -1,0 +1,149 @@
+<div class="category-list-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="page-title">Category Management</h1>
+            <p class="page-subtitle">Manage and organize your course categories</p>
+        </div>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()" [disabled]="loading$ | async">
+            <mat-icon>add</mat-icon>
+            Create Category
+        </button>
+    </div>
+
+    <!-- Search and Controls -->
+    <div class="controls-section">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search categories</mat-label>
+            <input matInput [formControl]="searchControl" placeholder="Search by name..." maxlength="100">
+            <mat-icon matPrefix>search</mat-icon>
+            <button mat-icon-button matSuffix *ngIf="isSearching" (click)="clearSearch()" matTooltip="Clear search">
+                <mat-icon>clear</mat-icon>
+            </button>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="refreshCategories()" matTooltip="Refresh" [disabled]="loading$ | async">
+            <mat-icon>refresh</mat-icon>
+        </button>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="results-summary" *ngIf="(loading$ | async) === false">
+        <span *ngIf="hasCategories">
+            Showing {{ categories.length }} of {{ totalCategories }} categories
+            <span *ngIf="isSearching"> for "{{ searchControl.value }}"</span>
+        </span>
+        <span *ngIf="!hasCategories && isSearching">
+            No categories found for "{{ searchControl.value }}"
+        </span>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="loading-text">Loading categories...</p>
+    </div>
+
+    <!-- Categories Grid -->
+    <div *ngIf="!(loading$ | async)" class="categories-grid">
+        <ng-container *ngIf="hasCategories; else emptyState">
+            <mat-card class="category-card" *ngFor="let category of categories; trackBy: trackByCategory">
+                <mat-card-header>
+                    <div class="category-icon">
+                        <mat-icon>category</mat-icon>
+                    </div>
+                    <div class="category-header-content">
+                        <mat-card-title>{{ category.name }}</mat-card-title>
+                        <mat-card-subtitle>
+                            {{ getCourseCount(category) }} course{{ getCourseCount(category) !== 1 ? 's' : '' }}
+                        </mat-card-subtitle>
+                    </div>
+                    <button mat-icon-button [matMenuTriggerFor]="menu" class="more-actions">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="openEditDialog(category)">
+                            <mat-icon>edit</mat-icon>
+                            Edit
+                        </button>
+                        <button mat-menu-item (click)="deleteCategory(category)"
+                            [disabled]="getCourseCount(category) > 0">
+                            <mat-icon>delete</mat-icon>
+                            Delete
+                        </button>
+                        <mat-divider *ngIf="getCourseCount(category) > 0"></mat-divider>
+                        <div *ngIf="getCourseCount(category) > 0" class="menu-info">
+                            <small>Cannot delete category with courses</small>
+                        </div>
+                    </mat-menu>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <p *ngIf="category.description; else noDescription" class="category-description">
+                        {{ category.description }}
+                    </p>
+                    <ng-template #noDescription>
+                        <p class="text-muted">No description available.</p>
+                    </ng-template>
+
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <mat-icon class="stat-icon">date_range</mat-icon>
+                            <span>
+                                <strong>Created:</strong>
+                                {{ category.createdAt | date: 'shortDate' }}
+                            </span>
+                        </div>
+                        <div *ngIf="category.updatedAt !== category.createdAt" class="stat-item">
+                            <mat-icon class="stat-icon">update</mat-icon>
+                            <span>
+                                <strong>Updated:</strong>
+                                {{ category.updatedAt | date: 'shortDate' }}
+                            </span>
+                        </div>
+                    </div>
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                    <button mat-button color="primary" (click)="openEditDialog(category)">
+                        <mat-icon>edit</mat-icon>
+                        Edit
+                    </button>
+                    <button mat-button color="warn" (click)="deleteCategory(category)"
+                        [disabled]="getCourseCount(category) > 0">
+                        <mat-icon>delete</mat-icon>
+                        Delete
+                    </button>
+                    <mat-icon *ngIf="getCourseCount(category) > 0"
+                        matTooltip="Cannot delete category with associated courses" class="warn-icon">
+                        warning
+                    </mat-icon>
+                </mat-card-actions>
+            </mat-card>
+        </ng-container>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="hasCategories && totalPages > 1" class="pagination-container">
+        <mat-paginator [length]="totalCategories" [pageSize]="pageSize" [pageIndex]="currentPage - 1"
+            [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event.pageIndex + 1)" showFirstLastButtons>
+        </mat-paginator>
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+        <div class="empty-state">
+            <mat-icon class="empty-icon">{{ isSearching ? 'search_off' : 'category' }}</mat-icon>
+            <h2>{{ isSearching ? 'No Categories Found' : 'No Categories Yet' }}</h2>
+            <p *ngIf="isSearching">
+                Try adjusting your search criteria or
+                <button mat-button color="primary" (click)="clearSearch()">clear the search</button>
+            </p>
+            <p *ngIf="!isSearching">Start by creating your first category</p>
+            <button *ngIf="!isSearching" mat-raised-button color="primary" (click)="openCreateDialog()">
+                <mat-icon>add</mat-icon>
+                Create First Category
+            </button>
+        </div>
+    </ng-template>
+</div>

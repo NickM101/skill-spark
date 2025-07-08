@@ -77,7 +77,7 @@ export class CategoryService {
           },
         },
         skip,
-        take: limit,
+        take: Number(limit),
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.category.count({ where }),

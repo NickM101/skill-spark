@@ -1,0 +1,199 @@
+// File: src/app/features/admin/components/admin-footer/admin-footer.component.scss
+
+.page-footer {
+    background: var(--surface-color);
+    border-top: 1px solid var(--divider-color);
+    padding: 0.75rem 1.5rem;
+    min-height: 48px;
+  
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 100%;
+  
+      .footer-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+  
+        .copyright {
+          font-size: 0.75rem;
+          color: var(--text-secondary);
+        }
+  
+        .footer-links {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.75rem;
+  
+          .footer-link {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0;
+            font-size: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+  
+            &:hover {
+              color: var(--primary-dark);
+              text-decoration: underline;
+            }
+  
+            &:focus {
+              outline: 2px solid var(--primary-color);
+              outline-offset: 2px;
+              border-radius: 2px;
+            }
+          }
+  
+          .separator {
+            color: var(--text-disabled);
+            font-size: 0.6rem;
+          }
+        }
+      }
+  
+      .footer-right {
+        .footer-stats {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          font-size: 0.75rem;
+  
+          .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--text-secondary);
+  
+            &.status-item {
+              .status-indicator {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+              }
+            }
+  
+            .stat-label {
+              font-weight: 500;
+            }
+  
+            .stat-value {
+              color: var(--text-primary);
+              font-weight: 600;
+            }
+          }
+        }
+      }
+    }
+  
+    // Pulse animation for status indicator
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  }
+  
+  // Responsive Design
+  @media (max-width: 768px) {
+    .page-footer {
+      padding: 0.5rem 1rem;
+  
+      .footer-content {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+  
+        .footer-left {
+          order: 2;
+          align-items: center;
+  
+          .footer-links {
+            justify-content: center;
+          }
+        }
+  
+        .footer-right {
+          order: 1;
+  
+          .footer-stats {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .page-footer {
+      .footer-content {
+        .footer-left {
+          .footer-links {
+            flex-direction: column;
+            gap: 0.25rem;
+  
+            .separator {
+              display: none;
+            }
+          }
+        }
+  
+        .footer-right {
+          .footer-stats {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+  
+            .stat-item {
+              flex-direction: column;
+              text-align: center;
+              gap: 0.125rem;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // High Contrast Mode Support
+  @media (prefers-contrast: high) {
+    .page-footer {
+      border-top: 2px solid var(--text-primary);
+    }
+  
+    .footer-link {
+      font-weight: 600;
+    }
+  }
+  
+  // Reduced Motion Support
+  @media (prefers-reduced-motion: reduce) {
+    .status-indicator {
+      animation: none !important;
+    }
+  
+    .footer-link {
+      transition: none !important;
+    }
+  }
+  
+  // Dark mode adjustments
+  @media (prefers-color-scheme: dark) {
+    .page-footer {
+      background: var(--surface-color);
+      border-top-color: var(--divider-color);
+    }
+  }

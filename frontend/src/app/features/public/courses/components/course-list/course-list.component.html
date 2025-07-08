@@ -1,0 +1,168 @@
+<!-- src/app/features/public/courses/components/course-list/course-list.component.html -->
+
+<div class="course-list-container">
+    <!-- Header Section -->
+    <div class="course-list-header">
+        <div class="header-content">
+            <h1 class="page-title">Explore Courses</h1>
+            <p class="page-subtitle">Discover and learn new skills with our comprehensive course catalog</p>
+        </div>
+    </div>
+
+    <!-- Filters and Controls Section -->
+    <div class="filters-section">
+        <form [formGroup]="filterForm" class="filters-form">
+            <!-- Search and Main Filters Row -->
+            <div class="filters-row">
+                <!-- Search Input -->
+                <mat-form-field class="search-field" appearance="outline">
+                    <mat-label>Search courses...</mat-label>
+                    <input matInput formControlName="search"
+                        placeholder="Enter course title, description, or instructor" autocomplete="off">
+                    <mat-icon matSuffix>search</mat-icon>
+                </mat-form-field>
+
+                <!-- Category Filter -->
+                <mat-form-field class="filter-field" appearance="outline">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="categoryId">
+                        <mat-option value="">All Categories</mat-option>
+                        <mat-option *ngFor="let category of categories" [value]="category.id">
+                            {{ category.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Level Filter -->
+                <mat-form-field class="filter-field" appearance="outline">
+                    <mat-label>Level</mat-label>
+                    <mat-select formControlName="level">
+                        <mat-option value="">All Levels</mat-option>
+                        <mat-option *ngFor="let level of courseLevels" [value]="level">
+                            {{ getLevelDisplayName(level) }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+                <!-- Sort Filter -->
+                <mat-form-field class="filter-field" appearance="outline">
+                    <mat-label>Sort By</mat-label>
+                    <mat-select formControlName="sortBy">
+                        <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+                            {{ option.label }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <!-- Advanced Filters Row -->
+            <div class="advanced-filters-row">
+                <!-- Price Range -->
+                <div class="price-range">
+                    <mat-form-field class="price-field" appearance="outline">
+                        <mat-label>Min Price</mat-label>
+                        <input matInput type="number" formControlName="minPrice" min="0" step="0.01" placeholder="0">
+                        <span matPrefix>$</span>
+                    </mat-form-field>
+
+                    <span class="price-separator">to</span>
+
+                    <mat-form-field class="price-field" appearance="outline">
+                        <mat-label>Max Price</mat-label>
+                        <input matInput type="number" formControlName="maxPrice" min="0" step="0.01" placeholder="1000">
+                        <span matPrefix>$</span>
+                    </mat-form-field>
+                </div>
+
+                <!-- Filter Actions -->
+                <div class="filter-actions">
+                    <!-- Active Filters Badge -->
+                    <div class="active-filters" *ngIf="hasActiveFilters()">
+                        <mat-icon>filter_list</mat-icon>
+                        <span>{{ getActiveFiltersCount() }} filter(s) applied</span>
+                    </div>
+
+                    <!-- Clear Filters Button -->
+                    <button mat-button type="button" color="warn" (click)="clearFilters()" *ngIf="hasActiveFilters()"
+                        class="clear-filters-btn">
+                        <mat-icon>clear</mat-icon>
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Header -->
+    <div class="results-header">
+        <div class="results-info">
+            <span class="results-count" *ngIf="!isLoading">
+                {{ totalCourses }} course{{ totalCourses !== 1 ? 's' : '' }} found
+            </span>
+            <span class="loading-text" *ngIf="isLoading">
+                Loading courses...
+            </span>
+        </div>
+
+        <!-- View Mode Toggle -->
+        <div class="view-controls">
+            <mat-button-toggle-group [value]="viewMode" (change)="onViewModeChange($event.value)"
+                aria-label="View mode">
+                <mat-button-toggle value="grid" aria-label="Grid view">
+                    <mat-icon>grid_view</mat-icon>
+                </mat-button-toggle>
+                <mat-button-toggle value="list" aria-label="List view">
+                    <mat-icon>view_list</mat-icon>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+        <div class="loading-grid" [ngClass]="viewMode + '-view'">
+            <div class="skeleton-card" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10,11,12]">
+                <div class="skeleton-thumbnail"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line skeleton-description"></div>
+                    <div class="skeleton-line skeleton-meta"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Results -->
+    <div class="courses-container" *ngIf="!isLoading">
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="courses.length === 0">
+            <div class="empty-content">
+                <mat-icon class="empty-icon">search_off</mat-icon>
+                <h3 class="empty-title">No courses found</h3>
+                <p class="empty-description">
+                    Try adjusting your search criteria or filters to find more courses.
+                </p>
+                <button mat-raised-button color="primary" (click)="clearFilters()" *ngIf="hasActiveFilters()">
+                    <mat-icon>refresh</mat-icon>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Course Grid/List -->
+        <div class="courses-grid" [ngClass]="viewMode + '-view'" *ngIf="courses.length > 0">
+            <app-course-card *ngFor="let course of courses; trackBy: trackByCourseId" [course]="course"
+                [compact]="viewMode === 'list'" (courseClick)="onCourseClick($event)"
+                (enrollClick)="onEnrollClick($event)" (continueClick)="onContinueClick($event)">
+            </app-course-card>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" *ngIf="courses.length > 0">
+            <mat-paginator [length]="totalCourses" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+                [pageIndex]="currentPage - 1" (page)="onPageChange($event)" showFirstLastButtons
+                aria-label="Select page of courses">
+            </mat-paginator>
+        </div>
+    </div>
+    </div>

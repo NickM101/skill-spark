@@ -1,0 +1,213 @@
+// File: src/app/features/admin/components/admin-header/admin-header.component.scss
+
+.top-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: var(--shadow-light);
+  
+    .toolbar-content {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+  
+    .page-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+  
+      .page-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: white;
+      }
+  
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        opacity: 0.8;
+  
+        .breadcrumb-item {
+          &.current {
+            font-weight: 500;
+          }
+        }
+  
+        .breadcrumb-separator {
+          font-size: 0.875rem;
+          width: 0.875rem;
+          height: 0.875rem;
+        }
+      }
+    }
+  
+    .toolbar-spacer {
+      flex: 1;
+    }
+  
+    .search-container {
+      .search-field {
+        width: 300px;
+  
+        .mat-mdc-form-field-wrapper {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }
+  
+        .mat-mdc-text-field-wrapper {
+          background: transparent;
+        }
+  
+        input {
+          color: white;
+  
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+          }
+        }
+  
+        .mat-mdc-form-field-label {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+    }
+  
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+  
+      .action-btn {
+        color: white;
+  
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+  
+      .user-menu-trigger {
+        color: white;
+        padding: 0.5rem;
+  
+        .user-menu-content {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+  
+          .user-avatar-icon {
+            font-size: 1.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+          }
+  
+          .user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+          }
+  
+          .dropdown-icon {
+            font-size: 1rem;
+            width: 1rem;
+            height: 1rem;
+          }
+        }
+  
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+  
+  // User Dropdown
+  :host ::ng-deep .user-dropdown {
+    .user-dropdown-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+  
+      .user-dropdown-avatar {
+        mat-icon {
+          font-size: 2rem;
+          width: 2rem;
+          height: 2rem;
+          color: var(--text-secondary);
+        }
+      }
+  
+      .user-dropdown-info {
+        .user-dropdown-name {
+          font-weight: 500;
+          color: var(--text-primary);
+          margin-bottom: 0.25rem;
+        }
+  
+        .user-dropdown-email {
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+        }
+      }
+    }
+  
+    .logout-item {
+      color: var(--warn-color);
+  
+      mat-icon {
+        color: var(--warn-color);
+      }
+    }
+  }
+  
+  // Responsive Design
+  @media (max-width: 768px) {
+    .top-toolbar {
+      .page-info {
+        .breadcrumb {
+          display: none;
+        }
+      }
+  
+      .search-container {
+        display: none;
+      }
+  
+      .toolbar-actions {
+        .user-name {
+          display: none;
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .top-toolbar {
+      .page-info {
+        .page-title {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+  
+  // Dark Mode Specific Styles
+  @media (prefers-color-scheme: dark) {
+    .search-field {
+      .mat-mdc-form-field-wrapper {
+        background: rgba(255, 255, 255, 0.05);
+      }
+    }
+  
+    .user-menu-trigger:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }

@@ -178,7 +178,12 @@ export class CourseService {
     }
 
     if (isPublished !== undefined) {
-      where.isPublished = isPublished;
+      // Convert string "true"/"false" to boolean if necessary
+      if (typeof isPublished === 'string') {
+        where.isPublished = isPublished === 'true';
+      } else {
+        where.isPublished = isPublished;
+      }
     }
 
     const [courses, total] = await Promise.all([
@@ -208,7 +213,7 @@ export class CourseService {
           },
         },
         skip,
-        take: limit,
+        take: Number(limit),
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.course.count({ where }),

@@ -1,0 +1,125 @@
+<section class="featured-courses-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured Courses</h2>
+            <p class="section-subtitle">
+                Discover our most popular courses, handpicked by our experts
+            </p>
+            <button mat-stroked-button routerLink="/courses" class="view-all-btn">
+                <span>View All Courses</span>
+                <mat-icon>arrow_forward</mat-icon>
+            </button>
+        </div>
+
+        <div class="courses-grid">
+            @for (course of featuredCourses(); track course.id) {
+            <div class="course-card" [routerLink]="['/courses', course.id]">
+                <!-- Course Thumbnail -->
+                <div class="course-thumbnail">
+                    <img [src]="course.thumbnail" [alt]="course.title" />
+                    <div class="course-overlay">
+                        <button mat-fab color="primary" class="play-btn">
+                            <mat-icon>play_arrow</mat-icon>
+                        </button>
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="course-badges">
+                        @if (course.isBestseller) {
+                        <span class="badge badge-bestseller">Bestseller</span>
+                        } @if (course.isNew) {
+                        <span class="badge badge-new">New</span>
+                        }
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="course-duration">
+                        <mat-icon>access_time</mat-icon>
+                        <span>{{ course.duration }}</span>
+                    </div>
+                </div>
+
+                <!-- Course Content -->
+                <div class="course-content">
+                    <!-- Header -->
+                    <div class="course-header">
+                        <div class="course-category">
+                            <mat-chip color="primary">{{ course.category }}</mat-chip>
+                        </div>
+                        <div class="course-level">
+                            <span class="level-badge" [class]="'level-' + course.level.toLowerCase()">
+                                {{ course.level }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="course-title">{{ course.title }}</h3>
+                    <p class="course-description">{{ course.description }}</p>
+
+                    <!-- Skills -->
+                    <div class="course-skills">
+                        <span class="skills-label">You'll learn:</span>
+                        <div class="skills-list">
+                            @for (skill of course.skills.slice(0, 3); track skill) {
+                            <span class="skill-tag">{{ skill }}</span>
+                            } @if (course.skills.length > 3) {
+                            <span class="skill-tag more">+{{ course.skills.length - 3 }} more</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Instructor -->
+                    <div class="course-instructor">
+                        <img [src]="course.instructorAvatar" [alt]="course.instructor" class="instructor-avatar" />
+                        <div class="instructor-info">
+                            <span class="instructor-name">{{ course.instructor }}</span>
+                            <span class="instructor-title">Expert Instructor</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="course-stats">
+                        <div class="stat-item">
+                            <mat-icon>star</mat-icon>
+                            <span>{{ course.rating }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <mat-icon>people</mat-icon>
+                            <span>{{ formatNumber(course.studentCount) }} students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Footer -->
+                <div class="course-footer">
+                    <div class="course-price">
+                        @if (course.originalPrice) {
+                        <span class="original-price">\${{ course.originalPrice }}</span>
+                        }
+                        <span class="current-price">\${{ course.price }}</span>
+                        @if (course.originalPrice) {
+                        <span class="discount">
+                            {{ calculateDiscount(course.price, course.originalPrice) }}%
+                            off
+                        </span>
+                        }
+                    </div>
+                    <button mat-raised-button color="primary" class="enroll-btn"
+                        (click)="enrollCourse($event, course.id)">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Load More Button -->
+        <div class="load-more-section">
+            <button mat-stroked-button (click)="loadMoreCourses()" class="load-more-btn">
+                <mat-icon>refresh</mat-icon>
+                Load More Courses
+            </button>
+        </div>
+    </div>
+</section>

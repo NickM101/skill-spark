@@ -1,150 +1,59 @@
-# Skill-Spark
+# Frontend
 
-*"Your Straightforward Path to Understanding and Mastery."*
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.5.
 
-Skill-Spark is a dynamic Learning Management System designed to simplify and enrich the educational journey.
-For instructors, it offers intuitive tools to create, manage, and deliver engaging courses, complete with structured lessons and insightful quizzes.
-For students, Skill-Spark provides a clear, interactive platform to discover new knowledge, track progress, and achieve learning goals through accessible content and performance monitoring.
+## Development server
 
-This project is built as a robust and scalable solution, utilizing **Angular** for a responsive and modern frontend and **NestJS** for a powerful and efficient backend.
-
----
-
-## Features
-
-### Core Features (MVP)
-
-* **User Authentication & Authorization**
-  Secure login, registration, and role-based access control (Student, Instructor, Admin).
-
-* **User Profile Management**
-  View and update personal details.
-
-* **Course Management**
-
-  * Create, view, update, and delete courses.
-  * Publish/unpublish courses.
-  * Associate courses with instructors and categories.
-
-* **Category Management**
-  Create, view, update, and delete course categories.
-
-* **Lesson Management**
-
-  * Add, view, update, and delete lessons within a course.
-  * Support for different lesson types (text, video, PDF).
-  * Order lessons within a course.
-
-* **Enrollment System**
-  Students can enroll in courses.
-
-* **Progress Tracking**
-  Students can mark lessons as complete, and overall course progress is tracked.
-
-* **Quiz System**
-
-  * Create quizzes with multiple-choice and true/false questions.
-  * Set passing scores and time limits.
-  * Students can attempt quizzes.
-  * Automatic grading of quiz attempts.
-
-
-## Technologies Used
-
-Skill-Spark leverages a modern tech stack:
-
-* **Frontend**: Angular – A powerful SPA framework for dynamic and responsive UI.
-* **Backend**: NestJS – A progressive Node.js framework for scalable APIs.
-* **Database**: PostgreSQL, managed using **Prisma ORM**.
-* **Authentication**: JWT (JSON Web Tokens) for secure user sessions.
-
----
-
-
-## Getting Started
-
-### 1. Clone the Repository
+To start a local development server, run:
 
 ```bash
-git clone https://github.com/NickM101/Skill-Spark.git
-cd Skill-Spark
+ng serve
 ```
 
-### 2. Backend Setup
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-> See [backend/README.md](backend/README.md) for setup and running instructions.
+## Code scaffolding
 
-### 3. Frontend Setup
-
-Navigate into the frontend directory:
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
 
 ```bash
-cd Skill-Spark/frontend
+ng generate component component-name
 ```
 
-Install dependencies:
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
 
 ```bash
-npm install
+ng generate --help
 ```
 
-Configure API endpoint:
-Edit `src/environments/environment.development.ts`:
+## Building
 
-```ts
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:3000/api/v1',
-};
-```
-
-Update `environment.ts` as well for production builds if necessary.
-
-Start the frontend:
+To build the project run:
 
 ```bash
-ng serve -o
+ng build
 ```
 
-This will:
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
-* Compile the Angular application.
-* Start a development server at `http://localhost:4200`
-* Open the app automatically in your default browser.
-* Auto-reload on file changes.
+## Running unit tests
 
----
+To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
-## Project Structure
-
-```
-Skill-Spark/
-├── backend/                  # NestJS API (See backend/README.md)
-│   ├── src/
-│   ├── prisma/
-│   ├── test/
-│   ├── .env.example
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/                 # Angular UI
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── auth/
-│   │   │   ├── courses/
-│   │   │   ├── shared/
-│   │   │   ├── core/
-│   │   │   ├── app-routing.module.ts
-│   │   │   ├── app.component.ts
-│   │   │   └── app.module.ts
-│   ├── assets/
-│   ├── environments/
-│   ├── styles.scss
-│   └── main.ts
-├── angular.json
-├── package.json
-├── tsconfig.json
-├── .gitignore
-├── README.md
+```bash
+ng test
 ```
 
----
+## Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+## Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

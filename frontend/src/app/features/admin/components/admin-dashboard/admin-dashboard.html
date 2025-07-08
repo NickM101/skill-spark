@@ -1,0 +1,282 @@
+<!-- File: src/app/features/admin/components/admin-dashboard/admin-dashboard.component.html -->
+
+<div class="admin-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-info">
+                <h1 class="dashboard-title">Admin Dashboard</h1>
+                <p class="dashboard-subtitle">Monitor and manage your e-learning platform</p>
+            </div>
+            <div class="header-actions">
+                <button mat-raised-button color="primary" (click)="onRefreshDashboard()" [disabled]="isLoadingStats">
+                    <mat-icon>refresh</mat-icon>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-section" *ngIf="adminStats$ | async as stats">
+        <!-- <div class="stats-grid">
+            <app-stats-card title="Total Users" [value]="stats.totalUsers" icon="people"
+                [growth]="stats.monthlyGrowth.users" [isLoading]="isLoadingStats">
+            </app-stats-card>
+
+            <app-stats-card title="Total Courses" [value]="stats.totalCourses" icon="school"
+                [growth]="stats.monthlyGrowth.courses" [isLoading]="isLoadingStats">
+            </app-stats-card>
+
+            <app-stats-card title="Total Enrollments" [value]="stats.totalEnrollments" icon="assignment"
+                [growth]="stats.monthlyGrowth.enrollments" [isLoading]="isLoadingStats">
+            </app-stats-card>
+
+            <app-stats-card title="Total Revenue" [value]="formatCurrency(stats.totalRevenue)" icon="attach_money"
+                [growth]="stats.monthlyGrowth.revenue" [isLoading]="isLoadingStats">
+            </app-stats-card>
+        </div> -->
+
+        <!-- Secondary Stats -->
+        <div class="secondary-stats">
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-info">
+                        <span class="stat-label">Published Courses</span>
+                        <span class="stat-value">{{ stats.publishedCourses }}</span>
+                    </div>
+                    <div class="stat-percentage">
+                        {{ formatPercentage((stats.publishedCourses / stats.totalCourses) * 100) }}
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Students</span>
+                        <span class="stat-value">{{ stats.totalStudents }}</span>
+                    </div>
+                    <div class="stat-percentage">
+                        {{ formatPercentage((stats.totalStudents / stats.totalUsers) * 100) }}
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-info">
+                        <span class="stat-label">Instructors</span>
+                        <span class="stat-value">{{ stats.totalInstructors }}</span>
+                    </div>
+                    <div class="stat-percentage">
+                        {{ formatPercentage((stats.totalInstructors / stats.totalUsers) * 100) }}
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <mat-card-content>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Quizzes</span>
+                        <span class="stat-value">{{ stats.totalQuizzes }}</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="quick-actions-grid">
+            <mat-card *ngFor="let action of quickActions" class="action-card" [routerLink]="action.route"
+                (click)="onQuickAction(action)">
+                <mat-card-content>
+                    <mat-icon [ngClass]="'text-' + action.color">{{ action.icon }}</mat-icon>
+                    <h3>{{ action.title }}</h3>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity-section">
+        <div class="activity-grid">
+            <!-- Recent Users -->
+            <mat-card class="activity-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>person_add</mat-icon>
+                        Recent Users
+                    </mat-card-title>
+                    <div class="card-actions">
+                        <button mat-icon-button routerLink="/admin/users">
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                    </div>
+                </mat-card-header>
+                <mat-card-content>
+                    <div *ngIf="isLoadingRecentUsers" class="loading-state">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <span>Loading users...</span>
+                    </div>
+
+                    <div *ngIf="!isLoadingRecentUsers" class="user-list">
+                        <div *ngFor="let user of recentUsers" class="user-item">
+                            <div class="user-avatar">
+                                <mat-icon>account_circle</mat-icon>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">{{ user.fullName }}</div>
+                                <div class="user-email">{{ user.email }}</div>
+                                <div class="user-meta">
+                                    <span class="user-role" [ngClass]="'role-' + user.role.toLowerCase()">
+                                        {{ user.role }}
+                                    </span>
+                                    <span class="user-date">
+                                        {{ user.registrationDate | date:'short' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="user-status">
+                                <mat-icon [ngClass]="user.isActive ? 'text-success' : 'text-warn'"
+                                    [matTooltip]="user.isActive ? 'Active' : 'Inactive'">
+                                    {{ user.isActive ? 'check_circle' : 'cancel' }}
+                                </mat-icon>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Recent Courses -->
+            <mat-card class="activity-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>school</mat-icon>
+                        Recent Courses
+                    </mat-card-title>
+                    <div class="card-actions">
+                        <button mat-icon-button routerLink="/admin/courses">
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                    </div>
+                </mat-card-header>
+                <mat-card-content>
+                    <div *ngIf="isLoadingRecentCourses" class="loading-state">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <span>Loading courses...</span>
+                    </div>
+
+                    <div *ngIf="!isLoadingRecentCourses" class="course-list">
+                        <div *ngFor="let course of recentCourses" class="course-item">
+                            <div class="course-info">
+                                <div class="course-title">{{ course.title }}</div>
+                                <div class="course-instructor">by {{ course.instructor }}</div>
+                                <div class="course-meta">
+                                    <span class="course-category">{{ course.category }}</span>
+                                    <span class="course-level" [ngClass]="'level-' + course.level.toLowerCase()">
+                                        {{ course.level }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="course-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">{{ course.enrollmentCount }}</span>
+                                    <span class="stat-label">Enrollments</span>
+                                </div>
+                                <div class="course-status">
+                                    <mat-icon [ngClass]="course.isPublished ? 'text-success' : 'text-warn'"
+                                        [matTooltip]="course.isPublished ? 'Published' : 'Draft'">
+                                        {{ course.isPublished ? 'publish' : 'draft' }}
+                                    </mat-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Recent Enrollments -->
+            <mat-card class="activity-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>assignment</mat-icon>
+                        Recent Enrollments
+                    </mat-card-title>
+                    <div class="card-actions">
+                        <button mat-icon-button routerLink="/admin/enrollments">
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
+                    </div>
+                </mat-card-header>
+                <mat-card-content>
+                    <div *ngIf="isLoadingRecentEnrollments" class="loading-state">
+                        <mat-spinner diameter="30"></mat-spinner>
+                        <span>Loading enrollments...</span>
+                    </div>
+
+                    <div *ngIf="!isLoadingRecentEnrollments" class="enrollment-list">
+                        <div *ngFor="let enrollment of recentEnrollments" class="enrollment-item">
+                            <div class="enrollment-info">
+                                <div class="student-name">{{ enrollment.studentName }}</div>
+                                <div class="course-name">{{ enrollment.courseName }}</div>
+                                <div class="enrollment-date">
+                                    {{ enrollment.enrolledAt | date:'short' }}
+                                </div>
+                            </div>
+                            <div class="enrollment-progress">
+                                <div class="progress-info">
+                                    <span class="progress-text">{{ enrollment.progress }}%</span>
+                                </div>
+                                <mat-progress-bar mode="determinate" [value]="enrollment.progress"
+                                    [ngClass]="'progress-' + enrollment.status.toLowerCase()">
+                                </mat-progress-bar>
+                                <div class="status-badge" [ngClass]="'status-' + enrollment.status.toLowerCase()">
+                                    {{ enrollment.status }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="system-status-section">
+        <mat-card class="status-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>monitor</mat-icon>
+                    System Status
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <mat-icon class="text-success">check_circle</mat-icon>
+                        <span class="status-label">API Status</span>
+                        <span class="status-value text-success">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <mat-icon class="text-success">check_circle</mat-icon>
+                        <span class="status-label">Database</span>
+                        <span class="status-value text-success">Connected</span>
+                    </div>
+                    <div class="status-item">
+                        <mat-icon class="text-success">check_circle</mat-icon>
+                        <span class="status-label">File Storage</span>
+                        <span class="status-value text-success">Available</span>
+                    </div>
+                    <div class="status-item">
+                        <mat-icon class="text-warn">warning</mat-icon>
+                        <span class="status-label">Email Service</span>
+                        <span class="status-value text-warn">Limited</span>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    </div>

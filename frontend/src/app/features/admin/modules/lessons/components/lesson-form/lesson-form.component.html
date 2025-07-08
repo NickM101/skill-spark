@@ -1,0 +1,165 @@
+<!-- src/app/features/lessons/components/lesson-form/lesson-form.component.html -->
+
+<div class="lesson-form-container">
+    <!-- Dialog Header -->
+    <div class="dialog-header">
+        <h2 mat-dialog-title class="dialog-title">
+            <mat-icon class="title-icon">{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+            {{ getTitle() }}
+        </h2>
+        <button mat-icon-button mat-dialog-close class="close-button" [disabled]="loading">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- Form Content -->
+    <div mat-dialog-content class="dialog-content">
+        <form [formGroup]="lessonForm" (ngSubmit)="onSubmit()" class="lesson-form" novalidate>
+
+            <!-- Lesson Title -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Lesson Title</mat-label>
+                <input matInput formControlName="title" placeholder="Enter a clear, descriptive lesson title"
+                    maxlength="200">
+                <mat-icon matSuffix>title</mat-icon>
+                <mat-hint align="end">{{ lessonForm.get('title')?.value?.length || 0 }}/200</mat-hint>
+            </mat-form-field>
+
+            <!-- Lesson Type -->
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Lesson Type</mat-label>
+                <mat-select formControlName="type">
+                    <mat-option *ngFor="let type of lessonTypes" [value]="type.value">
+                        <div class="type-option">
+                            <mat-icon>{{ type.icon }}</mat-icon>
+                            <span>{{ type.label }}</span>
+                        </div>
+                    </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>category</mat-icon>
+                <mat-hint>Choose the type of content for this lesson</mat-hint>
+            </mat-form-field>
+
+            <!-- Content Field -->
+            <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowField('content')">
+                <mat-label>Lesson Content</mat-label>
+                <textarea matInput formControlName="content" rows="6" [placeholder]="getFieldPlaceholder('content')"
+                    maxlength="10000"></textarea>
+                <mat-icon matSuffix>description</mat-icon>
+                <mat-hint align="end">{{ lessonForm.get('content')?.value?.length || 0 }}/10000</mat-hint>
+            </mat-form-field>
+
+            <!-- Video URL Field -->
+            <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowField('videoUrl')">
+                <mat-label>Video URL</mat-label>
+                <input matInput formControlName="videoUrl" [placeholder]="getFieldPlaceholder('videoUrl')" type="url">
+                <mat-icon matSuffix>play_circle</mat-icon>
+                <mat-hint>Enter a direct link to the video file or streaming URL</mat-hint>
+            </mat-form-field>
+
+            <!-- File URL Field -->
+            <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowField('fileUrl')">
+                <mat-label>File URL</mat-label>
+                <input matInput formControlName="fileUrl" [placeholder]="getFieldPlaceholder('fileUrl')" type="url">
+                <mat-icon matSuffix>attach_file</mat-icon>
+                <mat-hint>Enter a direct link to the PDF file or document</mat-hint>
+            </mat-form-field>
+
+            <!-- Published Status -->
+            <div class="checkbox-field full-width">
+                <mat-checkbox formControlName="isPublished" color="primary">
+                    <div class="checkbox-content">
+                        <span class="checkbox-label">Publish lesson immediately</span>
+                        <span class="checkbox-description">Published lessons are visible to enrolled students</span>
+                    </div>
+                </mat-checkbox>
+                <div class="publication-info" *ngIf="lessonForm.get('isPublished')?.value">
+                    <mat-icon class="info-icon">info</mat-icon>
+                    <span>Students will be able to access this lesson immediately after saving</span>
+                </div>
+            </div>
+
+            <!-- Lesson Guidelines -->
+            <div class="lesson-guidelines">
+                <h4 class="guidelines-title">
+                    <mat-icon>lightbulb</mat-icon>
+                    Lesson Creation Tips
+                </h4>
+                <ul class="guidelines-list">
+                    <li>Use clear, descriptive titles that indicate what students will learn</li>
+                    <li>For text lessons, provide comprehensive content that covers the topic thoroughly</li>
+                    <li>For video lessons, ensure the video URL is accessible and loads properly</li>
+                    <li>For PDF lessons, make sure the document is readable and well-formatted</li>
+                    <li>Consider the lesson order - students typically progress sequentially</li>
+                    <li *ngIf="!isEditMode">Save as draft first to review content before publishing</li>
+                </ul>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="lesson-preview" *ngIf="lessonForm.get('title')?.value">
+                <h4 class="preview-title">
+                    <mat-icon>visibility</mat-icon>
+                    Lesson Preview
+                </h4>
+                <mat-card class="preview-card">
+                    <mat-card-header>
+                        <div class="preview-header">
+                            <mat-icon class="preview-icon"
+                                [color]="lessonForm.get('isPublished')?.value ? 'primary' : 'warn'">
+                                {{ getLessonIcon() }}
+                            </mat-icon>
+                            <div class="preview-info">
+                                <mat-card-title>{{ lessonForm.get('title')?.value }}</mat-card-title>
+                                <mat-card-subtitle>
+                                    {{ getLessonLabel() }}
+                                </mat-card-subtitle>
+                            </div>
+                            <mat-chip [color]="lessonForm.get('isPublished')?.value ? 'primary' : 'warn'" selected>
+                                {{ lessonForm.get('isPublished')?.value ? 'Published' : 'Draft' }}
+                            </mat-chip>
+                        </div>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="preview-content" *ngIf="lessonForm.get('content')?.value">
+                            <p>{{ lessonForm.get('content')?.value | slice:0:150 }}{{
+                                lessonForm.get('content')?.value?.length > 150 ? '...' : '' }}</p>
+                        </div>
+                        <div class="preview-links">
+                            <div class="preview-link" *ngIf="lessonForm.get('videoUrl')?.value">
+                                <mat-icon>play_circle</mat-icon>
+                                <span>Video content available</span>
+                            </div>
+                            <div class="preview-link" *ngIf="lessonForm.get('fileUrl')?.value">
+                                <mat-icon>attach_file</mat-icon>
+                                <span>File attachment available</span>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </form>
+    </div>
+
+    <!-- Dialog Actions -->
+    <div mat-dialog-actions class="dialog-actions">
+        <button mat-button type="button" (click)="onReset()" [disabled]="loading" class="reset-button">
+            <mat-icon>refresh</mat-icon>
+            Reset
+        </button>
+
+        <button mat-button type="button" (click)="onCancel()" [disabled]="loading" class="cancel-button">
+            Cancel
+        </button>
+
+        <button mat-raised-button color="primary" type="submit" (click)="onSubmit()"
+            [disabled]="!lessonForm.get('title')?.value?.trim() || loading" class="submit-button">
+
+            <!-- Loading State -->
+            <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
+
+            <!-- Button Icon and Text -->
+            <mat-icon *ngIf="!loading">{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            <span>{{ getSubmitButtonText() }}</span>
+        </button>
+    </div>
+</div>

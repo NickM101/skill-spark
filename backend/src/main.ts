@@ -8,7 +8,11 @@ async function bootstrap() {
 
   const apiResponseService = app.get(ApiResponseService);
   app.enableCors({
-    origin: 'https://a6bb-197-136-183-18.ngrok-free.app',
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true,
   });
   app.useGlobalFilters(new HttpExceptionFilter(apiResponseService));
 

@@ -1,0 +1,149 @@
+<mat-toolbar class="header" color="primary">
+    <div class="container">
+        <div class="header-content">
+            <!-- Logo and Brand -->
+            <div class="brand">
+                <a routerLink="/home" class="logo-link">
+                    <mat-icon class="logo-icon">school</mat-icon>
+                    <span class="brand-text">SkillSpark</span>
+                </a>
+            </div>
+
+            <!-- Desktop Navigation -->
+            @if (!isMobile()) {
+            <nav class="nav-links">
+                <a routerLink="/home" routerLinkActive="active" class="nav-link">
+                    Home
+                </a>
+                <a routerLink="/courses" routerLinkActive="active" class="nav-link">
+                    Courses
+                </a>
+                <a routerLink="/about" routerLinkActive="active" class="nav-link">
+                    About
+                </a>
+                <a routerLink="/contact" routerLinkActive="active" class="nav-link">
+                    Contact
+                </a>
+            </nav>
+            }
+
+            <!-- User Actions -->
+            <div class="user-actions">
+                @if (!isLoggedIn()) {
+                <!-- Guest User Actions -->
+                <div class="auth-buttons">
+                    <button mat-button routerLink="/auth/login" class="login-btn">
+                        Login
+                    </button>
+                    <button mat-raised-button routerLink="/auth/signup" class="signup-btn">
+                        Get Started
+                    </button>
+                </div>
+                } @else {
+                <!-- Logged In User Actions -->
+                <div class="user-menu">
+                    <!-- Notifications -->
+                    <button mat-icon-button [matMenuTriggerFor]="notificationMenu">
+                        <mat-icon [matBadge]="notificationCount()" [matBadgeHidden]="notificationCount() === 0" matBadgeColor="warn">
+                            notifications
+                        </mat-icon>             </button>
+
+                    <!-- User Profile Menu -->
+                    <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
+                        <div class="user-avatar">
+                            <mat-icon>account_circle</mat-icon>
+                        </div>
+                        <span class="user-name">{{ currentUser()?.firstName }}</span>
+                        <mat-icon>arrow_drop_down</mat-icon>
+                    </button>
+                </div>
+                }
+
+                <!-- Mobile Menu Button -->
+                @if (isMobile()) {
+                <button mat-icon-button [matMenuTriggerFor]="mobileMenu" class="mobile-menu-btn">
+                    <mat-icon>menu</mat-icon>
+                </button>
+                }
+            </div>
+        </div>
+    </div>
+</mat-toolbar>
+
+<!-- User Profile Menu -->
+<mat-menu #userMenu="matMenu" class="user-dropdown">
+    <button mat-menu-item routerLink="/dashboard">
+        <mat-icon>dashboard</mat-icon>
+        <span>Dashboard</span>
+    </button>
+    <button mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        <span>Profile</span>
+    </button>
+    <button mat-menu-item routerLink="/settings">
+        <mat-icon>settings</mat-icon>
+        <span>Settings</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+    </button>
+</mat-menu>
+
+<!-- Notifications Menu -->
+<mat-menu #notificationMenu="matMenu" class="notification-dropdown">
+    <div class="notification-header">
+        <h3>Notifications</h3>
+        <button mat-button color="primary" (click)="markAllAsRead()">
+            Mark all as read
+        </button>
+    </div>
+    <mat-divider></mat-divider>
+    @for (notification of notifications(); track notification.id) {
+    <button mat-menu-item class="notification-item" [class.unread]="!notification.read">
+        <div class="notification-content">
+            <div class="notification-text">{{ notification.message }}</div>
+            <div class="notification-time">
+                {{ notification.timestamp | date : 'short' }}
+            </div>
+        </div>
+    </button>
+    } @empty {
+    <div class="no-notifications">
+        <mat-icon>notifications_none</mat-icon>
+        <p>No notifications</p>
+    </div>
+    }
+</mat-menu>
+
+<!-- Mobile Menu -->
+<mat-menu #mobileMenu="matMenu" class="mobile-dropdown">
+    <a mat-menu-item routerLink="/home">
+        <mat-icon>home</mat-icon>
+        <span>Home</span>
+    </a>
+    <a mat-menu-item routerLink="/courses">
+        <mat-icon>school</mat-icon>
+        <span>Courses</span>
+    </a>
+    <a mat-menu-item routerLink="/about">
+        <mat-icon>info</mat-icon>
+        <span>About</span>
+    </a>
+    <a mat-menu-item routerLink="/contact">
+        <mat-icon>contact_support</mat-icon>
+        <span>Contact</span>
+    </a>
+    @if (!isLoggedIn()) {
+    <mat-divider></mat-divider>
+    <a mat-menu-item routerLink="/auth/login">
+        <mat-icon>login</mat-icon>
+        <span>Login</span>
+    </a>
+    <a mat-menu-item routerLink="/auth/signup">
+        <mat-icon>person_add</mat-icon>
+        <span>Sign Up</span>
+    </a>
+    }
+</mat-menu>

@@ -1,0 +1,64 @@
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">What Our Students Say</h2>
+            <p class="section-subtitle">
+                Join thousands of successful learners who have transformed their
+                careers
+            </p>
+        </div>
+
+        <div class="testimonials-container">
+            <div class="testimonials-track" [style.transform]="'translateX(' + translateX() + 'px)'">
+                @for (testimonial of testimonials(); track testimonial.id) {
+                <div class="testimonial-card">
+                    <div class="testimonial-header">
+                        <div class="testimonial-avatar">
+                            <img [src]="testimonial.avatar" [alt]="testimonial.name" />
+                        </div>
+                        <div class="testimonial-info">
+                            <h4 class="testimonial-name">{{ testimonial.name }}</h4>
+                            <p class="testimonial-role">{{ testimonial.role }}</p>
+                            <p class="testimonial-company">{{ testimonial.company }}</p>
+                        </div>
+                        <div class="testimonial-rating">
+                            @for (star of [1,2,3,4,5]; track star) {
+                            <mat-icon [class.filled]="star <= testimonial.rating">
+                                {{ star <= testimonial.rating ? 'star' : 'star_border' }} </mat-icon>
+                                    }
+                        </div>
+                    </div>
+
+                    <div class="testimonial-content">
+                        <mat-icon class="quote-icon">format_quote</mat-icon>
+                        <p class="testimonial-text">{{ testimonial.content }}</p>
+                    </div>
+
+                    <div class="testimonial-footer">
+                        <div class="course-info">
+                            <mat-icon>school</mat-icon>
+                            <span>{{ testimonial.course }}</span>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+
+        <div class="testimonials-controls">
+            <button mat-icon-button (click)="previousSlide()" [disabled]="currentIndex() === 0" class="nav-btn">
+                <mat-icon>chevron_left</mat-icon>
+            </button>
+
+            <div class="testimonials-dots">
+                @for (dot of dots(); track $index) {
+                <button class="dot" [class.active]="$index === currentIndex()" (click)="goToSlide($index)"></button>
+                }
+            </div>
+
+            <button mat-icon-button (click)="nextSlide()" [disabled]="currentIndex() >= maxIndex()" class="nav-btn">
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+        </div>
+    </div>
+</section>

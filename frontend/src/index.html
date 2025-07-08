@@ -1,13 +1,201 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
-  <title>Frontend</title>
+  <title>SkillSpark - Transform Your Career with Expert-Led Courses</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="Master new skills and advance your career with SkillSpark's expert-led online courses. From programming to design, business to data science - start learning today!">
+  <meta name="keywords"
+    content="online courses, e-learning, programming, design, business, data science, career development, education">
+  <meta name="author" content="SkillSpark">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="SkillSpark - Transform Your Career with Expert-Led Courses">
+  <meta property="og:description"
+    content="Master new skills and advance your career with SkillSpark's expert-led online courses. Join thousands of successful learners today!">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://skillspark.com">
+  <!-- <meta property="og:image" content="/assets/images/og-image.jpg"> -->
+  <meta property="og:site_name" content="SkillSpark">
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SkillSpark - Transform Your Career with Expert-Led Courses">
+  <meta name="twitter:description"
+    content="Master new skills and advance your career with SkillSpark's expert-led online courses.">
+  <!-- <meta name="twitter:image" content="/assets/images/twitter-image.jpg"> -->
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <!-- <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+  <link rel="manifest" href="/assets/icons/site.webmanifest"> -->
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#f55108">
+  <meta name="msapplication-TileColor" content="#f55108">
+
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+
+  <!-- Preload critical fonts -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    as="style">
+  <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style">
+
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+
+  <!-- Critical CSS for above-the-fold content -->
+  <style>
+    /* Critical CSS for faster rendering */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      font-size: 16px;
+    }
+
+    body {
+      height: 100%;
+      font-family: 'Inter', 'Helvetica Neue', sans-serif;
+      background-color: #fafafa;
+      color: #212121;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #f55108 0%, #ff9800 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      color: white;
+    }
+
+    .loading-logo {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      margin-top: 1rem;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Hide loading screen when Angular app is ready */
+    .app-loaded .loading-screen {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    }
+  </style>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "SkillSpark",
+    "description": "Online learning platform offering expert-led courses in programming, design, business, and data science",
+    "url": "https://skillspark.com",
+    "logo": "https://skillspark.com/assets/images/logo.png",
+    "sameAs": [
+      "https://facebook.com/skillspark",
+      "https://twitter.com/skillspark",
+      "https://linkedin.com/company/skillspark"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+1-555-LEARN-HUB",
+      "contactType": "Customer Service",
+      "email": "support@skillspark.com"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "US"
+    }
+  }
+  </script>
 </head>
-<body>
+
+<body class="mat-typography light-theme">
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-logo">🎓</div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading SkillSpark...</div>
+  </div>
+
+  <!-- Angular App Root -->
   <app-root></app-root>
+
+  <!-- Remove loading screen when app is ready -->
+  <script>
+    // Hide loading screen when Angular is ready
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(function () {
+        document.body.classList.add('app-loaded');
+        setTimeout(function () {
+          const loadingScreen = document.getElementById('loadingScreen');
+          if (loadingScreen) {
+            loadingScreen.remove();
+          }
+        }, 500);
+      }, 1000);
+    });
+
+    // Performance optimization: Remove loading screen if it takes too long
+    setTimeout(function () {
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen) {
+        document.body.classList.add('app-loaded');
+        setTimeout(function () {
+          loadingScreen.remove();
+        }, 500);
+      }
+    }, 5000);
+  </script>
 </body>
+
 </html>

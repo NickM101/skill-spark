@@ -1,0 +1,25 @@
+<!-- src/app/features/admin/modules/user-management/components/confirm-dialog/confirm-dialog.component.html -->
+
+<div class="confirm-dialog">
+    <div class="dialog-content">
+        <div class="icon-container">
+            <mat-icon [color]="getIconColor()" class="dialog-icon">
+                {{getIcon()}}
+            </mat-icon>
+        </div>
+
+        <div class="dialog-text">
+            <h2 mat-dialog-title class="dialog-title">{{data.title}}</h2>
+            <p class="dialog-message">{{data.message}}</p>
+        </div>
+    </div>
+
+    <mat-dialog-actions class="dialog-actions">
+        <button mat-stroked-button type="button" (click)="onCancel()">
+            {{data.cancelText}}
+        </button>
+        <button mat-raised-button [color]="getConfirmButtonColor()" (click)="onConfirm()">
+            {{data.confirmText}}
+        </button>
+    </mat-dialog-actions>
+    </div>

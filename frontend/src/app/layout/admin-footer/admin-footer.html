@@ -1,0 +1,59 @@
+<!-- File: src/app/features/admin/components/admin-footer/admin-footer.component.html -->
+
+<footer class="page-footer">
+    <div class="footer-content">
+
+        <!-- Left Section: Copyright and Links -->
+        <div class="footer-left">
+            <span class="copyright">
+                &copy; {{ currentYear }} LearnHub. All rights reserved.
+            </span>
+            <div class="footer-links">
+                <button class="footer-link" (click)="onSupportClick()">
+                    Support
+                </button>
+                <span class="separator">•</span>
+                <button class="footer-link" (click)="onDocumentationClick()">
+                    Documentation
+                </button>
+                <span class="separator">•</span>
+                <button class="footer-link" (click)="onStatusClick()">
+                    System Status
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Section: System Stats -->
+        <div class="footer-right" *ngIf="footerStats$ | async as stats">
+            <div class="footer-stats">
+
+                <!-- Server Status -->
+                <div class="stat-item status-item">
+                    <div class="status-indicator" [style.background-color]="getStatusColor(stats.serverStatus)">
+                    </div>
+                    <span class="stat-label">{{ getStatusText(stats.serverStatus) }}</span>
+                </div>
+
+                <!-- Version -->
+                <div class="stat-item">
+                    <span class="stat-label">Version:</span>
+                    <span class="stat-value">{{ stats.version }}</span>
+                </div>
+
+                <!-- Uptime -->
+                <div class="stat-item">
+                    <span class="stat-label">Uptime:</span>
+                    <span class="stat-value">{{ stats.uptime }}</span>
+                </div>
+
+                <!-- Last Update -->
+                <div class="stat-item">
+                    <span class="stat-label">Updated:</span>
+                    <span class="stat-value">{{ stats.lastUpdate | date:'short' }}</span>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    </footer>

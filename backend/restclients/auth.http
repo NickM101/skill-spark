@@ -47,7 +47,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "melissa.waititu@strathmore.edu",
+  "email": "melissa.waitituh@strathmore.edu",
   "password": "Const4321"
 }
 

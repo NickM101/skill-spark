@@ -1,0 +1,19 @@
+<section class="stats-section" #statsSection>
+    <div class="container">
+        <div class="stats-grid">
+            @for (stat of stats(); track stat.id) {
+            <div class="stat-card" [class.animate]="isVisible()">
+                <div class="stat-icon">
+                    <mat-icon>{{ stat.icon }}</mat-icon>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">
+                        {{ stat.animatedValue }}{{ stat.suffix || '' }}
+                    </div>
+                    <div class="stat-label">{{ stat.label }}</div>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</section>
