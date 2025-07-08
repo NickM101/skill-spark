@@ -6,6 +6,8 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +20,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { User } from '@core/models/user.model';
+import { AuthService } from '../../core/services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-header',
@@ -41,12 +45,17 @@ export class AdminHeaderComponent {
   @Input() pageTitle: string = 'Dashboard';
   @Input() currentUser: User | null = null;
   @Input() isHandset: boolean = false;
+  private authService = inject(AuthService);
+ 
 
   @Output() menuClick = new EventEmitter<void>();
   @Output() searchSubmit = new EventEmitter<string>();
   @Output() notificationsClick = new EventEmitter<void>();
   @Output() userMenuAction = new EventEmitter<string>();
-
+  // constructor(
+  //   private cdr: ChangeDetectorRef,
+  //   private router: Router
+  // ) {}
   // Search input value
   searchValue: string = '';
 
@@ -78,8 +87,8 @@ export class AdminHeaderComponent {
     this.userMenuAction.emit('settings');
   }
 
-  onLogout(): void {
-    this.userMenuAction.emit('logout');
+  logout() {
+    this.authService.logout();
   }
 
   formatUserName(user: User): string {

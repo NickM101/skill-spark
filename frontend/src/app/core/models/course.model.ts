@@ -45,7 +45,7 @@ export interface CourseFilters {
   level?: CourseLevel;
   isPublished?: boolean;
   instructorId?: string;
-  sortBy?: 'title' | 'price' | 'createdAt' | 'level' | 'updatedAt' | 'enrollments';
+  sortBy?: 'title' | 'price' | 'createdAt' | 'updatedAt' | 'enrollments';
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;

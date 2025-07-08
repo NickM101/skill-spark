@@ -43,7 +43,20 @@ export interface AuthResponse {
 
 export interface LoginResponse extends AuthResponse {}
 
-export interface RegisterResponse extends AuthResponse {}
+export interface RegisterResponse {
+  message: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      isVerified: boolean;
+      createdAt: Date;
+    };
+  };
+}
 
 export interface ProfileResponse {
   message: string;

@@ -15,6 +15,8 @@ export interface User {
   verificationExpires?: Date | null;
   passwordResetCode?: string | null;
   passwordResetExpires?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+export type UserWithoutPassword = Omit<User, 'password'>;

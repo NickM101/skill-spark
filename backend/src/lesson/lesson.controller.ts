@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Get,
@@ -174,6 +176,107 @@ export class LessonController {
       return this.apiResponseService.error(
         error.message || 'Failed to reorder lessons',
         'LESSON_REORDER_ERROR',
+      );
+    }
+  }
+
+  @Post(':id/publish')
+  @UseGuards(RolesGuard)
+  async publish(
+    @Param('courseId') courseId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      const lesson = await this.lessonService.publish(
+        courseId,
+        id,
+        user.role,
+        user.id,
+      );
+      return this.apiResponseService.success(
+        lesson,
+        'Lesson published successfully',
+      );
+    } catch (error: any) {
+      return this.apiResponseService.error(
+        error.message || 'Failed to publish lesson',
+        'LESSON_PUBLISH_ERROR',
+      );
+    }
+  }
+
+  @Post(':id/unpublish')
+  @UseGuards(RolesGuard)
+  async unpublish(
+    @Param('courseId') courseId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      const lesson = await this.lessonService.unpublish(
+        courseId,
+        id,
+        user.role,
+        user.id,
+      );
+      return this.apiResponseService.success(
+        lesson,
+        'Lesson unpublished successfully',
+      );
+    } catch (error: any) {
+      return this.apiResponseService.error(
+        error.message || 'Failed to unpublish lesson',
+        'LESSON_UNPUBLISH_ERROR',
+      );
+    }
+  }
+
+  @Post('publish-all')
+  @Roles(Role.ADMIN, Role.INSTRUCTOR)
+  @UseGuards(RolesGuard)
+  async publishAll(
+    @Param('courseId') courseId: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      const lessons = await this.lessonService.publishAll(
+        courseId,
+        user.role,
+        user.id,
+      );
+      return this.apiResponseService.success(
+        lessons,
+        'All lessons published successfully',
+      );
+    } catch (error: any) {
+      return this.apiResponseService.error(
+        error.message || 'Failed to publish all lessons',
+        'LESSONS_PUBLISH_ALL_ERROR',
+      );
+    }
+  }
+
+  @Get('stats')
+  @UseGuards(RolesGuard)
+  async getLessonStats(
+    @Param('courseId') courseId: string,
+    @CurrentUser() user: any,
+  ) {
+    try {
+      const stats = await this.lessonService.getLessonStats(
+        courseId,
+        user.role,
+        user.id,
+      );
+      return this.apiResponseService.success(
+        stats,
+        'Lesson statistics retrieved successfully',
+      );
+    } catch (error: any) {
+      return this.apiResponseService.error(
+        error.message || 'Failed to retrieve lesson statistics',
+        'LESSON_STATS_ERROR',
       );
     }
   }

@@ -190,6 +190,7 @@ export class CourseListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: CourseListResponse) => {
+          console.log(response)
           this.courses = response.courses;
           this.totalCourses = response.total;
           this.totalPages =

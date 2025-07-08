@@ -91,12 +91,13 @@ export class AuthService {
   }
 
   logout(): void {
-    console.log("LOGGED OUT")
+    console.log("LOGGED OUT");
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
     this.tokenSubject.next(null);
+    this.router.navigate(['/']);
   }
 
   changePassword(

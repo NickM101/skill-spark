@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Controller,
   Get,
@@ -23,6 +25,7 @@ import { Roles } from '../auth/decorators/roles.decorators';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ApiResponseService } from '../shared/api-rensponse.service';
 import { Role } from '../../generated/prisma';
+import { User } from '../users/interfaces/user.interface';
 
 @Controller('courses')
 @UseGuards(JwtAuthGuard)
@@ -37,7 +40,7 @@ export class CourseController {
   @UseGuards(RolesGuard)
   async create(
     @Body() createCourseDto: CreateCourseDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     try {
       const course = await this.courseService.create(createCourseDto, user.id);
@@ -54,13 +57,9 @@ export class CourseController {
   }
 
   @Get()
-  async findAll(@Query() query: CourseQueryDto, @CurrentUser() user: any) {
+  async findAll(@Query() query: CourseQueryDto, @CurrentUser() user: User) {
     try {
-      const result = await this.courseService.findAll(
-        query,
-        user.role,
-        user.id,
-      );
+      const result = await this.courseService.findAll(query, user.role);
       return this.apiResponseService.paginated(
         result.courses,
         result.page,
@@ -79,7 +78,10 @@ export class CourseController {
   @Get('my-courses')
   @Roles(Role.INSTRUCTOR)
   @UseGuards(RolesGuard)
-  async getMyCourses(@Query() query: CourseQueryDto, @CurrentUser() user: any) {
+  async getMyCourses(
+    @Query() query: CourseQueryDto,
+    @CurrentUser() user: User,
+  ) {
     try {
       const result = await this.courseService.getMyCourses(user.id, query);
       return this.apiResponseService.paginated(
@@ -98,7 +100,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @CurrentUser() user: any) {
+  async findOne(@Param('id') id: string, @CurrentUser() user: User) {
     try {
       const course = await this.courseService.findOne(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -118,7 +120,7 @@ export class CourseController {
   async update(
     @Param('id') id: string,
     @Body() updateCourseDto: UpdateCourseDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     try {
       const course = await this.courseService.update(
@@ -145,7 +147,7 @@ export class CourseController {
   async assignInstructor(
     @Param('id') id: string,
     @Body() assignInstructorDto: AssignInstructorDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     try {
       const course = await this.courseService.assignInstructor(
@@ -167,7 +169,7 @@ export class CourseController {
 
   @Post(':id/publish')
   @UseGuards(RolesGuard)
-  async publish(@Param('id') id: string, @CurrentUser() user: any) {
+  async publish(@Param('id') id: string, @CurrentUser() user: User) {
     try {
       const course = await this.courseService.publish(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -184,7 +186,7 @@ export class CourseController {
 
   @Post(':id/unpublish')
   @UseGuards(RolesGuard)
-  async unpublish(@Param('id') id: string, @CurrentUser() user: any) {
+  async unpublish(@Param('id') id: string, @CurrentUser() user: User) {
     try {
       const course = await this.courseService.unpublish(id, user.role, user.id);
       return this.apiResponseService.success(
@@ -205,7 +207,7 @@ export class CourseController {
   async uploadThumbnail(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     try {
       const course = await this.courseService.uploadCourseThumbnail(
@@ -229,7 +231,7 @@ export class CourseController {
   @Delete(':id')
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
-  async remove(@Param('id') id: string, @CurrentUser() user: any) {
+  async remove(@Param('id') id: string, @CurrentUser() user: User) {
     try {
       await this.courseService.remove(id, user.id);
       return this.apiResponseService.success(

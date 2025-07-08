@@ -2,8 +2,8 @@
 @contentType = application/json
 
 ### Variables - Run the login request in auth.http first
-@userToken = 
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmMTNkMjU4Ni1kZDhhLTRmM2YtOTU0OC1kNTUwZTQwMDgyZDYiLCJlbWFpbCI6ImFkbWluQGRlbW8uY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxODg5OTU1LCJleHAiOjE3NTE4OTM1NTV9.3Ll_nvuYOX7bvFzA_YJAa1IloPu3YICQ0wDx7yDRi2c
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTkwOTczOCwiZXhwIjoxNzUxOTEzMzM4fQ.7Xw4za1CUj8gNPrpUmr8E13pCZi9XOxN-CFCnUok-yA
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGViNWJmZi05ZmJhLTRjNWItOTI4MC0wMzIyMDE4MzM3ZGEiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxOTA5NjQyLCJleHAiOjE3NTE5MTMyNDJ9.seTlmdTCuC5sd1o3CtvN6waa2Mvg2OLcFIH01k4M8Ck
 ### Get current user profile
 GET {{baseUrl}}/users/profile/me
 Authorization: Bearer {{userToken}}
@@ -47,5 +47,5 @@ GET {{baseUrl}}/users?page=1&limit=10
 Authorization: Bearer {{adminToken}}
 
 ### Delete user (admin only)
-DELETE {{baseUrl}}/users/65161e81-7fc1-4cfe-a962-dffe5638952a
+DELETE {{baseUrl}}/users/19e24192-5aef-4938-8020-a9bb79ad9952
 Authorization: Bearer {{adminToken}}

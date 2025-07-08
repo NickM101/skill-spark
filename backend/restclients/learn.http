@@ -1,27 +1,27 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@adminToken = 
-@instructorToken =
-@studentToken =
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OGViNWJmZi05ZmJhLTRjNWItOTI4MC0wMzIyMDE4MzM3ZGEiLCJlbWFpbCI6Im1lbGlzc2FtYWtlYmFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUxOTA5NjQyLCJleHAiOjE3NTE5MTMyNDJ9.seTlmdTCuC5sd1o3CtvN6waa2Mvg2OLcFIH01k4M8Ck
+@instructorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmZGM3MGM1Yy01ZTcyLTQxODktYjQzYi1kYjRjNGM1NDg0MDYiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dWhAc3RyYXRobW9yZS5lZHUiLCJyb2xlIjoiSU5TVFJVQ1RPUiIsImlhdCI6MTc1MTk2MjA4NywiZXhwIjoxNzUxOTY1Njg3fQ.vHKI6J_Q6kkUNYjSbL2iRDlb9rOvaS1Nh8qcJMLqgRw
+@studentToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzOGNhMDEzMC02ODUyLTQ3NTktOTZlNi03MWFiNWFhMGYyZTMiLCJlbWFpbCI6Im1lbGlzc2Eud2FpdGl0dUBzdHJhdGhtb3JlLmVkdSIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzUxOTYyMDE0LCJleHAiOjE3NTE5NjU2MTR9.j938cES4BzlJCnoV12Z6mifOw9S5OzttU-UISYr5ewg
 
-@categoryId = 
-@courseId = 
-@lessonId = 
-@instructorId = 
-@enrollmentId = 
+@categoryId = 43f03db4-6602-447d-84e6-3ef68eff0860
+@courseId = 2adcf161-67f3-474b-91a9-119088abd05d
+@lessonId = cdee90cf-7984-4d30-bf9c-8ab4bd1fa1cc
+@instructorId =  75693ad3-e799-4938-8ec1-fafaf8766d11
+@enrollmentId = b8ea748c-4500-4754-b273-d0e78da75003
 @quizId = 
 @questionId = 
 @attemptId = 
 
-
+##@ cdee90cf-7984-4d30-bf9c-8ab4bd1fa1cc, 75693ad3-e799-4938-8ec1-fafaf8766d11
 ### Create Category (Admin)
 POST {{baseUrl}}/categories
 Authorization: Bearer {{adminToken}}
 Content-Type: {{contentType}}
 
 {
-  "name": "Software Development",
-  "description": "Learn modern Software development technologies"
+  "name": "Introduction to Javascript",
+  "description": "Learn modern Javascript development technologies"
 }
 
 ### Get All Categories
@@ -246,6 +246,42 @@ Content-Type: {{contentType}}
 
 ### Delete Lesson (Instructor)
 DELETE {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}
+Authorization: Bearer {{instructorToken}}
+
+### Publish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Unpublish Individual Lesson (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/unpublish
+Authorization: Bearer {{instructorToken}}
+
+### Publish All Lessons at Once (Instructor)
+POST {{baseUrl}}/courses/{{courseId}}/lessons/publish-all
+Authorization: Bearer {{instructorToken}}
+
+### Get Lesson Statistics (Instructor)
+GET {{baseUrl}}/courses/{{courseId}}/lessons/stats
+Authorization: Bearer {{instructorToken}}
+
+### Test Workflow - Create, Publish Lesson, then Publish Course
+POST {{baseUrl}}/courses/{{courseId}}/lessons
+Authorization: Bearer {{instructorToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "New React Lesson",
+  "content": "This lesson covers React fundamentals",
+  "type": "TEXT",
+  "orderIndex": 4
+}
+
+### Publish the lesson
+POST {{baseUrl}}/courses/{{courseId}}/lessons/{{lessonId}}/publish
+Authorization: Bearer {{instructorToken}}
+
+### Now publish the course (should work)
+POST {{baseUrl}}/courses/{{courseId}}/publish
 Authorization: Bearer {{instructorToken}}
 
 ### Test Lesson Access Control - Student should fail

@@ -21,7 +21,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { CourseService } from '../../services/course.service';
 import { SharedModule } from '@shared/shared.module';
 import { Category } from '@core/models/category.model';
-import { Course, CourseLevel, CourseResponse, CourseFilters } from '@core/models/course.model';
+import { Course, CourseLevel, CourseResponse, CourseFilters, CourseListResponse } from '@core/models/course.model';
 import { CourseCardComponent } from "../course-card/course-card.component";
 
 @Component({
@@ -77,18 +77,6 @@ export class CourseListComponent implements OnInit, OnDestroy {
       value: 'price-desc',
       label: 'Price (High to Low)',
       sortBy: 'price',
-      sortOrder: 'desc',
-    },
-    {
-      value: 'level-asc',
-      label: 'Level (Beginner First)',
-      sortBy: 'level',
-      sortOrder: 'asc',
-    },
-    {
-      value: 'level-desc',
-      label: 'Level (Advanced First)',
-      sortBy: 'level',
       sortOrder: 'desc',
     },
     {
@@ -156,7 +144,7 @@ export class CourseListComponent implements OnInit, OnDestroy {
     this.courseService
       .getCategories()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((categories) => {
+      .subscribe((categories: Category[]) => {
         this.categories = categories;
         this.cdr.markForCheck();
       });
@@ -172,9 +160,9 @@ export class CourseListComponent implements OnInit, OnDestroy {
       .getCourses(filters)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response: CourseResponse) => {
+        next: (response: CourseListResponse) => {
           this.courses = response.courses;
-          this.totalCourses = response.totalCount;
+          this.totalCourses = response.total;
           this.isLoading = false;
           this.cdr.markForCheck();
         },
@@ -249,7 +237,12 @@ export class CourseListComponent implements OnInit, OnDestroy {
   }
 
   getLevelDisplayName(level: CourseLevel): string {
-    return this.courseService.getLevelDisplayName(level);
+    switch (level) {
+      case CourseLevel.BEGINNER: return 'Beginner';
+      case CourseLevel.INTERMEDIATE: return 'Intermediate';
+      case CourseLevel.ADVANCED: return 'Advanced';
+      default: return 'Unknown';
+    }
   }
 
   trackByCourseId(index: number, course: Course): string {

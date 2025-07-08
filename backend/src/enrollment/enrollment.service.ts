@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Injectable,
   NotFoundException,
@@ -229,10 +232,11 @@ export class EnrollmentService {
 
   async getCourseEnrollments(
     courseId: string,
+    userId: string,
+    lessonId: string,
     page: number,
     limit: number,
     userRole: Role,
-    userId: string,
   ): Promise<{
     enrollments: EnrollmentResponseDto[];
     total: number;
@@ -347,7 +351,12 @@ export class EnrollmentService {
     const enrollment = await this.findOne(enrollmentId, userRole, userId);
 
     const progress = await this.prisma.progress.findMany({
-      where: { enrollmentId },
+      where: {
+        userId: enrollment.userId,
+        lesson: {
+          courseId: enrollment.courseId,
+        },
+      },
       include: {
         lesson: {
           select: {
@@ -364,7 +373,7 @@ export class EnrollmentService {
       where: { courseId: enrollment.courseId, isPublished: true },
     });
 
-    const completedLessons = progress.filter((p) => p.isCompleted).length;
+    const completedLessons = progress.filter((p) => p.completed).length;
     const progressPercent =
       totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
@@ -481,15 +490,13 @@ export class EnrollmentService {
         },
       },
       update: {
-        isCompleted: true,
+        completed: true,
         completedAt: new Date(),
       },
       create: {
         userId,
-        courseId: lesson.courseId,
         lessonId,
-        enrollmentId: enrollment.id,
-        isCompleted: true,
+        completed: true,
         completedAt: new Date(),
       },
     });
@@ -502,8 +509,10 @@ export class EnrollmentService {
     const completedLessons = await this.prisma.progress.count({
       where: {
         userId,
-        courseId: lesson.courseId,
-        isCompleted: true,
+        lesson: {
+          courseId: lesson.courseId,
+        },
+        completed: true,
       },
     });
 
@@ -524,5 +533,34 @@ export class EnrollmentService {
 
     this.logger.log(`Lesson ${lessonId} marked complete for user ${userId}`);
     return progress;
+  }
+
+  async findEnrollmentByUserAndCourse(userId: string, courseId: string) {
+    return this.prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            thumbnail: true,
+          },
+        },
+      },
+    });
   }
 }
