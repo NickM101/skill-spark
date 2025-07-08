@@ -1,6 +1,6 @@
 <!-- course-detail.component.html -->
 
-<div class="course-detail-container" *ngIf="!loading$ && course; else loadingOrError">
+<div class="course-detail-container" *ngIf="!(loading$ | async) && course; else loadingOrError">
     <!-- Header Section -->
     <div class="page-header">
         <div class="header-content">
@@ -155,7 +155,7 @@
 
 <!-- Loading or Error Template -->
 <ng-template #loadingOrError>
-    <div *ngIf="loading$" class="loading-container">
+    <div *ngIf="loading$ | async" class="loading-container">
         <mat-spinner diameter="50"></mat-spinner>
         <p>Loading course details...</p>
     </div>

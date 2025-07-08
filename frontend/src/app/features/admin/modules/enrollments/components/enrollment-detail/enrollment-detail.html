@@ -1,0 +1,299 @@
+<div class="enrollment-detail-container" *ngIf="enrollment">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <button mat-button (click)="goBack()" class="back-button">
+                    <mat-icon>arrow_back</mat-icon>
+                    Back to Enrollments
+                </button>
+            </div>
+
+            <h1 class="page-title">
+                <mat-icon>school</mat-icon>
+                Enrollment Details
+            </h1>
+
+            <div class="student-course-info">
+                <div class="info-item">
+                    <span class="label">Student:</span>
+                    <span class="value">{{getStudentName()}}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Course:</span>
+                    <span class="value">{{getCourseName()}}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button mat-stroked-button (click)="exportProgressData()">
+                <mat-icon>download</mat-icon>
+                Export Data
+            </button>
+
+            <button mat-raised-button color="primary" (click)="toggleEdit()" *ngIf="!editing">
+                <mat-icon>edit</mat-icon>
+                Edit
+            </button>
+
+            <div *ngIf="editing" class="edit-actions">
+                <button mat-button (click)="toggleEdit()">
+                    Cancel
+                </button>
+                <button mat-raised-button color="primary" (click)="saveChanges()" [disabled]="!editForm.valid">
+                    <mat-icon>save</mat-icon>
+                    Save
+                </button>
+            </div>
+
+            <button mat-raised-button color="warn" (click)="deleteEnrollment()">
+                <mat-icon>delete</mat-icon>
+                Delete
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading enrollment details...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!loading" class="main-content">
+        <!-- Overview Cards -->
+        <div class="overview-section">
+            <div class="stats-grid">
+                <!-- Status Card -->
+                <mat-card class="stat-card status-card">
+                    <mat-card-content>
+                        <div class="stat-header">
+                            <mat-icon>flag</mat-icon>
+                            <h3>Status</h3>
+                        </div>
+                        <div class="stat-value" *ngIf="!editing">
+                            <mat-chip [color]="getStatusColor(enrollment.status)" selected>
+                                {{enrollment.status}}
+                            </mat-chip>
+                        </div>
+                        <div class="stat-value" *ngIf="editing">
+                            <mat-form-field appearance="outline">
+                                <mat-select formControlName="status" [formGroup]="editForm">
+                                    <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+                                        {{option.label}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Progress Card -->
+                <mat-card class="stat-card progress-card">
+                    <mat-card-content>
+                        <div class="stat-header">
+                            <mat-icon>trending_up</mat-icon>
+                            <h3>Progress</h3>
+                        </div>
+                        <div class="stat-value" *ngIf="!editing">
+                            <div class="progress-display">
+                                <div class="progress-circle">
+                                    <span class="progress-text">{{formatProgress(enrollment.progressPercent)}}</span>
+                                </div>
+                                <mat-progress-bar mode="determinate" [value]="enrollment.progressPercent"
+                                    [color]="getProgressColor(enrollment.progressPercent)">
+                                </mat-progress-bar>
+                            </div>
+                        </div>
+                        <div class="stat-value" *ngIf="editing">
+                            <mat-form-field appearance="outline">
+                                <mat-label>Progress (%)</mat-label>
+                                <input matInput type="number" formControlName="progressPercent" [formGroup]="editForm"
+                                    min="0" max="100">
+                            </mat-form-field>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Completion Rate Card -->
+                <mat-card class="stat-card completion-card">
+                    <mat-card-content>
+                        <div class="stat-header">
+                            <mat-icon>check_circle</mat-icon>
+                            <h3>Lessons Completed</h3>
+                        </div>
+                        <div class="stat-value">
+                            <div class="completion-stats">
+                                <span class="completed">{{progressStats.completedLessons}}</span>
+                                <span class="separator">/</span>
+                                <span class="total">{{progressStats.totalLessons}}</span>
+                            </div>
+                            <div class="completion-rate">
+                                {{getCompletionRate()}}% Complete
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Duration Card -->
+                <mat-card class="stat-card duration-card">
+                    <mat-card-content>
+                        <div class="stat-header">
+                            <mat-icon>schedule</mat-icon>
+                            <h3>Duration</h3>
+                        </div>
+                        <div class="stat-value">
+                            <div class="duration-info">
+                                <div class="enrolled-date">
+                                    Enrolled: {{enrollment.enrolledAt | date:'mediumDate'}}
+                                </div>
+                                <div class="duration">
+                                    {{getEnrollmentDuration()}}
+                                </div>
+                                <div class="last-activity" *ngIf="progressStats.lastActivity">
+                                    Last activity: {{progressStats.lastActivity | date:'short'}}
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+
+        <!-- Student and Course Info -->
+        <div class="info-section">
+            <div class="info-grid">
+                <!-- Student Info Card -->
+                <mat-card class="info-card student-card">
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>person</mat-icon>
+                            Student Information
+                        </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="student-details">
+                            <div class="avatar-section">
+                                <div class="student-avatar">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                                <div class="student-info">
+                                    <h3>{{getStudentName()}}</h3>
+                                    <p>{{enrollment.user?.email}}</p>
+                                    <mat-chip class="role-chip">{{enrollment.user?.role}}</mat-chip>
+                                </div>
+                            </div>
+                            <div class="student-actions">
+                                <button mat-stroked-button (click)="viewStudent()">
+                                    <mat-icon>visibility</mat-icon>
+                                    View Profile
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+
+                <!-- Course Info Card -->
+                <mat-card class="info-card course-card">
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>book</mat-icon>
+                            Course Information
+                        </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="course-details">
+                            <div class="course-info">
+                                <h3>{{getCourseName()}}</h3>
+                                <p class="course-description">{{enrollment.course?.description}}</p>
+                                <div class="course-meta">
+                                    <mat-chip class="level-chip">{{enrollment.course?.level}}</mat-chip>
+                                    <mat-chip class="category-chip">{{enrollment.course?.category?.name}}</mat-chip>
+                                </div>
+                            </div>
+                            <div class="course-actions">
+                                <button mat-stroked-button (click)="viewCourse()">
+                                    <mat-icon>visibility</mat-icon>
+                                    View Course
+                                </button>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
+        </div>
+
+        <!-- Progress Details -->
+        <mat-card class="progress-section">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>list</mat-icon>
+                    Lesson Progress
+                </mat-card-title>
+                <div class="progress-summary">
+                    {{progressStats.completedLessons}} of {{progressStats.totalLessons}} lessons completed
+                </div>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="lessons-list" *ngIf="progressData.length > 0">
+                    <div class="lesson-item" *ngFor="let progress of progressData; trackBy: trackByLessonId"
+                        [class.completed]="progress.isCompleted">
+                        <div class="lesson-info">
+                            <div class="lesson-icon">
+                                <mat-icon>{{getLessonIcon(progress.lesson?.type || 'TEXT')}}</mat-icon>
+                            </div>
+                            <div class="lesson-details">
+                                <h4>{{progress.lesson?.title}}</h4>
+                                <p class="lesson-type">{{progress.lesson?.type}}</p>
+                            </div>
+                        </div>
+
+                        <div class="lesson-status">
+                            <div class="completion-info">
+                                <mat-icon [class.completed]="progress.isCompleted"
+                                    [class.pending]="!progress.isCompleted">
+                                    {{progress.isCompleted ? 'check_circle' : 'radio_button_unchecked'}}
+                                </mat-icon>
+                                <span class="status-text">
+                                    {{progress.isCompleted ? 'Completed' : 'Not Started'}}
+                                </span>
+                            </div>
+                            <div class="completion-date" *ngIf="progress.completedAt">
+                                {{progress.completedAt | date:'short'}}
+                            </div>
+                        </div>
+
+                        <div class="lesson-actions">
+                            <button mat-icon-button *ngIf="!progress.isCompleted"
+                                (click)="markLessonComplete(progress.lessonId)" matTooltip="Mark as Complete"
+                                color="primary">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button mat-icon-button *ngIf="progress.isCompleted"
+                                (click)="markLessonIncomplete(progress.lessonId)" matTooltip="Mark as Incomplete"
+                                color="warn">
+                                <mat-icon>undo</mat-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="no-progress" *ngIf="progressData.length === 0">
+                    <mat-icon>info</mat-icon>
+                    <p>No lesson progress data available</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="!enrollment && !loading" class="error-container">
+    <mat-icon>error</mat-icon>
+    <h2>Enrollment Not Found</h2>
+    <p>The requested enrollment could not be found.</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+        Go Back
+    </button>
+    </div>

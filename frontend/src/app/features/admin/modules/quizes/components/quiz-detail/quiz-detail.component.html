@@ -1,0 +1,337 @@
+<!-- src/app/features/admin/modules/quizzes/components/quiz-detail/quiz-detail.component.html -->
+
+<div class="quiz-detail-container" *ngIf="quiz$ | async as quiz">
+
+    <!-- Header Section -->
+    <div class="quiz-detail-header">
+        <div class="header-content">
+            <div class="header-info">
+                <button mat-icon-button (click)="goBack()" class="back-button">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
+                <div class="title-section">
+                    <h1 class="quiz-title">{{ quiz.title }}</h1>
+                    <div class="quiz-meta">
+                        <span class="status-badge" [ngClass]="getStatusClass(quiz)">
+                            {{ getStatusText(quiz) }}
+                        </span>
+                        <span class="course-info" *ngIf="quiz.course">
+                            <mat-icon>book</mat-icon>
+                            {{ quiz.course.title }}
+                        </span>
+                        <span class="created-date">
+                            <mat-icon>schedule</mat-icon>
+                            Created {{ formatDate(quiz.createdAt) }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button mat-stroked-button (click)="editQuiz()">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                </button>
+
+                <button mat-raised-button [color]="quiz.isPublished ? 'accent' : 'primary'" (click)="togglePublished()">
+                    <mat-icon>{{ quiz.isPublished ? 'visibility_off' : 'publish' }}</mat-icon>
+                    {{ quiz.isPublished ? 'Unpublish' : 'Publish' }}
+                </button>
+
+                <button mat-stroked-button color="warn" (click)="deleteQuiz()">
+                    <mat-icon>delete</mat-icon>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div *ngIf="!(loading$ | async)" class="quiz-content">
+
+        <!-- Tab Navigation -->
+        <mat-tab-group [(selectedIndex)]="activeTab" (selectedTabChange)="onTabChange($event.index)">
+
+            <!-- Overview Tab -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon>info</mat-icon>
+                    Overview
+                </ng-template>
+
+                <div class="tab-content">
+                    <!-- Quiz Information Card -->
+                    <mat-card class="info-card">
+                        <mat-card-header>
+                            <mat-card-title>Quiz Information</mat-card-title>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <div class="info-grid">
+
+                                <!-- Description -->
+                                <div class="info-item full-width" *ngIf="quiz.description">
+                                    <h4>Description</h4>
+                                    <p>{{ quiz.description }}</p>
+                                </div>
+
+                                <!-- Time Limit -->
+                                <div class="info-item">
+                                    <h4>Time Limit</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">timer</mat-icon> {{ quiz.timeLimit ? formatDuration(quiz.timeLimit) : 'No limit' }}
+                                        {{ formatDuration(quiz.timeLimit ?? 0) }}
+                                    </p>
+                                </div>
+
+                                <!-- Passing Score -->
+                                <div class="info-item">
+                                    <h4>Passing Score</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">grade</mat-icon>
+                                        {{ quiz.passingScore }}%
+                                    </p>
+                                </div>
+
+                                <!-- Total Questions -->
+                                <div class="info-item">
+                                    <h4>Total Questions</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">quiz</mat-icon>
+                                        {{ getQuestionCount() }} questions
+                                    </p>
+                                </div>
+
+                                <!-- Total Points -->
+                                <div class="info-item">
+                                    <h4>Total Points</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">star</mat-icon>
+                                        {{ getTotalPoints(quiz) }} points
+                                    </p>
+                                </div>
+
+                                <!-- Total Attempts -->
+                                <div class="info-item">
+                                    <h4>Student Attempts</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">assignment</mat-icon>
+                                        {{ quiz._count?.attempts || 0 }} attempts
+                                    </p>
+                                </div>
+
+                                <!-- Last Updated -->
+                                <div class="info-item">
+                                    <h4>Last Updated</h4>
+                                    <p>
+                                        <mat-icon class="info-icon">update</mat-icon>
+                                        {{ formatDate(quiz.updatedAt) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+                </div>
+            </mat-tab>
+
+            <!-- Questions Tab -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon>quiz</mat-icon>
+                    Questions ({{ getQuestionCount() }})
+                </ng-template>
+
+                <div class="tab-content">
+                    <!-- Questions List -->
+                    <div *ngIf="hasQuestions(); else noQuestions">
+                        <mat-card *ngFor="let question of quiz.questions; let i = index" class="question-card">
+
+                            <!-- Question Header -->
+                            <mat-card-header>
+                                <mat-card-title>
+                                    Question {{ i + 1 }}
+                                    <span class="question-type-badge">{{ getQuestionTypeText(question.type) }}</span>
+                                    <span class="points-badge">{{ question.points }} pts</span>
+                                </mat-card-title>
+                            </mat-card-header>
+
+                            <!-- Question Content -->
+                            <mat-card-content>
+                                <p class="question-text">{{ question.question }}</p>
+
+                                <!-- Answer Options -->
+                                <div class="options-section" *ngIf="question.options && question.options.length > 0">
+                                    <h4>Answer Options:</h4>
+                                    <div class="options-list">
+                                        <div *ngFor="let option of question.options; let j = index" class="option-item"
+                                            [class.correct-option]="question.correctAnswers.includes(j.toString())">
+                                            <mat-icon class="option-icon"
+                                                [color]="question.correctAnswers.includes(j.toString()) ? 'primary' : ''">
+                                                {{ question.correctAnswers.includes(j.toString()) ? 'check_circle' :
+                                                'radio_button_unchecked' }}
+                                            </mat-icon>
+                                            <span>{{ option }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
+                    <!-- No Questions State -->
+                    <ng-template #noQuestions>
+                        <mat-card class="no-content-card">
+                            <mat-card-content>
+                                <div class="no-content">
+                                    <mat-icon class="no-content-icon">quiz</mat-icon>
+                                    <h3>No questions added yet</h3>
+                                    <p>Add questions to make this quiz available to students</p>
+                                    <button mat-raised-button color="primary" (click)="editQuiz()">
+                                        <mat-icon>add</mat-icon>
+                                        Add Questions
+                                    </button>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </ng-template>
+                </div>
+            </mat-tab>
+
+            <!-- Statistics Tab -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon>analytics</mat-icon>
+                    Statistics
+                </ng-template>
+
+                <div class="tab-content">
+                    <!-- Statistics Loading -->
+                    <div *ngIf="statsLoading$ | async" class="loading-container">
+                        <mat-spinner diameter="40"></mat-spinner>
+                        <p>Loading statistics...</p>
+                    </div>
+
+                    <!-- Statistics Content -->
+                    <ng-container *ngIf="stats$ | async as stats">
+                        <div *ngIf="!(statsLoading$ | async)">
+                    
+                            <!-- Overview Stats -->
+                            <div class="stats-grid">
+                                <mat-card class="stat-card">
+                                    <mat-card-content>
+                                        <div class="stat-content">
+                                            <mat-icon class="stat-icon">assignment</mat-icon>
+                                            <div class="stat-info">
+                                                <h3>{{ stats.totalAttempts }}</h3>
+                                                <p>Total Attempts</p>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                    
+                                <mat-card class="stat-card">
+                                    <mat-card-content>
+                                        <div class="stat-content">
+                                            <mat-icon class="stat-icon">grade</mat-icon>
+                                            <div class="stat-info">
+                                                <h3>{{ getAverageScorePercentage(stats) }}%</h3>
+                                                <p>Average Score</p>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                    
+                                <mat-card class="stat-card">
+                                    <mat-card-content>
+                                        <div class="stat-content">
+                                            <mat-icon class="stat-icon">check_circle</mat-icon>
+                                            <div class="stat-info">
+                                                <h3>{{ (stats.passRate * 100).toFixed(1) }}%</h3>
+                                                <p>Pass Rate</p>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                    
+                                <mat-card class="stat-card">
+                                    <mat-card-content>
+                                        <div class="stat-content">
+                                            <mat-icon class="stat-icon">trending_up</mat-icon>
+                                            <div class="stat-info">
+                                                <h3>{{ (stats.completionRate * 100).toFixed(1) }}%</h3>
+                                                <p>Completion Rate</p>
+                                            </div>
+                                        </div>
+                                    </mat-card-content>
+                                </mat-card>
+                            </div>
+                    
+                            <!-- Question Performance -->
+                            <mat-card class="question-stats-card" *ngIf="stats.questionStats?.length">
+                                <mat-card-header>
+                                    <mat-card-title>Question Performance</mat-card-title>
+                                    <mat-card-subtitle>Individual question accuracy rates</mat-card-subtitle>
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <div class="question-stats-list">
+                                        <div *ngFor="let questionStat of stats.questionStats; let i = index" class="question-stat-item">
+                                            <div class="question-stat-header">
+                                                <span class="question-number">Q{{ i + 1 }}</span>
+                                                <span class="accuracy-percentage">{{ (questionStat.accuracy * 100).toFixed(1) }}%</span>
+                                            </div>
+                                            <div class="question-stat-text">{{ questionStat.questionText }}</div>
+                                            <div class="question-stat-details">
+                                                {{ questionStat.correctAnswers }} of {{ questionStat.totalAnswers }} correct
+                                            </div>
+                                        </div>
+                                    </div>
+                                </mat-card-content>
+                            </mat-card>
+                    
+                        </div>
+                    </ng-container>
+                      
+
+                    <!-- No Statistics State -->
+                    <div *ngIf="!(statsLoading$ | async) && !(stats$ | async) && quiz.isPublished" class="no-content">
+                        <mat-icon class="no-content-icon">analytics</mat-icon>
+                        <h3>No statistics available</h3>
+                        <p>Statistics will appear once students start taking this quiz</p>
+                    </div>
+
+                    <!-- Quiz Not Published State -->
+                    <div *ngIf="!quiz.isPublished" class="no-content">
+                        <mat-icon class="no-content-icon">visibility_off</mat-icon>
+                        <h3>Quiz not published</h3>
+                        <p>Publish this quiz to start collecting statistics</p>
+                        <button mat-raised-button color="primary" (click)="togglePublished()">
+                            <mat-icon>publish</mat-icon>
+                            Publish Quiz
+                        </button>
+                    </div>
+                </div>
+            </mat-tab>
+
+        </mat-tab-group>
+    </div>
+</div>
+
+<!-- Loading State for Initial Load -->
+<div *ngIf="loading$ | async" class="quiz-detail-container">
+    <div class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading quiz details...</p>
+    </div>
+</div>
+
+<!-- Error State when quiz is not found -->
+<div *ngIf="!(quiz$ | async) && !(loading$ | async)" class="quiz-detail-container">
+    <div class="error-container">
+        <mat-icon class="error-icon">error_outline</mat-icon>
+        <h2>Quiz Not Found</h2>
+        <p>The quiz you're looking for could not be found or you don't have permission to view it.</p>
+        <button mat-raised-button color="primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Quizzes
+        </button>
+    </div>
+    </div>

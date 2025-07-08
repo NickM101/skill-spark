@@ -1,11 +1,17 @@
-import { Component } from '@angular/core';
+import { NgModule } from '@angular/core';
 
-@Component({
-  selector: 'app-enrollments',
-  imports: [],
-  templateUrl: './enrollments.html',
-  styleUrl: './enrollments.scss'
+// Services
+import { SharedModule } from '@shared/shared.module';
+import { EnrollmentService } from './services/enrollments.service';
+import { EnrollmentRoutingModule } from './enrollment-routing.module';
+
+
+@NgModule({
+  declarations: [],
+  imports: [
+    SharedModule
+  ],
+  providers: [EnrollmentService],
+  exports: [EnrollmentRoutingModule],
 })
-export class Enrollments {
-
-}
+export class EnrollmentModule {}

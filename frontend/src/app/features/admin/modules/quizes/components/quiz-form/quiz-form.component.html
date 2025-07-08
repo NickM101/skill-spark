@@ -1,0 +1,202 @@
+<!-- src/app/features/admin/modules/quizzes/components/quiz-form/quiz-form.component.html -->
+
+<div class="quiz-form-container">
+    <!-- Header -->
+    <div class="form-header">
+        <h1 class="page-title">
+            {{ isEditMode ? 'Edit Quiz' : 'Create New Quiz' }}
+        </h1>
+        <div class="header-actions">
+            <button mat-stroked-button (click)="onCancel()">
+                <mat-icon>close</mat-icon>
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading$ | async" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>{{ isEditMode ? 'Loading quiz...' : 'Creating quiz...' }}</p>
+    </div>
+
+    <!-- Quiz Form -->
+    <form [formGroup]="quizForm" (ngSubmit)="onSubmit()" *ngIf="!(loading$ | async)">
+
+        <!-- Basic Quiz Information -->
+        <mat-card class="form-section">
+            <mat-card-header>
+                <mat-card-title>Quiz Information</mat-card-title>
+                <mat-card-subtitle>Basic details about your quiz</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <div class="form-row">
+                    <!-- Quiz Title -->
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Quiz Title *</mat-label>
+                        <input matInput formControlName="title" placeholder="Enter quiz title">
+                        <mat-error *ngIf="quizForm.get('title')?.invalid && quizForm.get('title')?.touched">
+                            {{ getErrorMessage('title') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                    <!-- Quiz Description -->
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput formControlName="description" rows="3"
+                            placeholder="Enter quiz description"></textarea>
+                        <mat-error *ngIf="quizForm.get('description')?.invalid && quizForm.get('description')?.touched">
+                            {{ getErrorMessage('description') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                    <!-- Time Limit -->
+                    <mat-form-field appearance="outline" class="half-width">
+                        <mat-label>Time Limit (minutes)</mat-label>
+                        <input matInput type="number" formControlName="timeLimit" placeholder="Optional">
+                        <mat-hint>Leave empty for no time limit</mat-hint>
+                        <mat-error *ngIf="quizForm.get('timeLimit')?.invalid && quizForm.get('timeLimit')?.touched">
+                            {{ getErrorMessage('timeLimit') }}
+                        </mat-error>
+                    </mat-form-field>
+
+                    <!-- Passing Score -->
+                    <mat-form-field appearance="outline" class="half-width">
+                        <mat-label>Passing Score (%) *</mat-label>
+                        <input matInput type="number" formControlName="passingScore" min="0" max="100">
+                        <mat-error
+                            *ngIf="quizForm.get('passingScore')?.invalid && quizForm.get('passingScore')?.touched">
+                            {{ getErrorMessage('passingScore') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Questions Section -->
+        <mat-card class="form-section">
+            <mat-card-header>
+                <mat-card-title>Questions</mat-card-title>
+                <mat-card-subtitle>Add questions to your quiz</mat-card-subtitle>
+                <div class="spacer"></div>
+                <button mat-raised-button color="primary" type="button" (click)="addQuestion()">
+                    <mat-icon>add</mat-icon>
+                    Add Question
+                </button>
+            </mat-card-header>
+
+            <mat-card-content>
+                <!-- Questions List -->
+                <div formArrayName="questions" *ngIf="questions.length > 0">
+                    <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i"
+                        class="question-item">
+
+                        <!-- Question Header -->
+                        <div class="question-header">
+                            <h3>Question {{ i + 1 }}</h3>
+                            <button mat-icon-button color="warn" type="button" (click)="removeQuestion(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+
+                        <!-- Question Text -->
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Question Text *</mat-label>
+                                <textarea matInput formControlName="question" rows="2"
+                                    placeholder="Enter your question"></textarea>
+                                <mat-error
+                                    *ngIf="question.get('question')?.invalid && question.get('question')?.touched">
+                                    {{ getErrorMessage('question', i) }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Question Type and Points -->
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Question Type *</mat-label>
+                                <mat-select formControlName="type"
+                                    (selectionChange)="onQuestionTypeChange(i, $event.value)">
+                                    <mat-option *ngFor="let type of questionTypes" [value]="type.value">
+                                        {{ type.label }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Points *</mat-label>
+                                <input matInput type="number" formControlName="points" min="1">
+                                <mat-error *ngIf="question.get('points')?.invalid && question.get('points')?.touched">
+                                    {{ getErrorMessage('points', i) }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <!-- Options Section -->
+                        <div class="options-section" formArrayName="options">
+                            <div class="options-header">
+                                <h4>Answer Options</h4>
+                                <button mat-stroked-button type="button" (click)="addOption(i)"
+                                    *ngIf="question.get('type')?.value === 'MULTIPLE_CHOICE'">
+                                    <mat-icon>add</mat-icon>
+                                    Add Option
+                                </button>
+                            </div>
+
+                            <div class="options-list">
+                                <div *ngFor="let option of getQuestionOptions(i).controls; let j = index"
+                                    class="option-item">
+
+                                    <!-- Option Input -->
+                                    <mat-form-field appearance="outline" class="option-input">
+                                        <mat-label>Option {{ j + 1 }}</mat-label>
+                                        <input matInput [formControlName]="j" placeholder="Enter option text">
+                                    </mat-form-field>
+
+                                    <!-- Correct Answer Checkbox -->
+                                    <mat-checkbox [checked]="isCorrectAnswer(i, j)"
+                                        (change)="onCorrectAnswerChange(i, j, $event.checked)" color="primary">
+                                        Correct
+                                    </mat-checkbox>
+
+                                    <!-- Remove Option Button -->
+                                    <button mat-icon-button color="warn" type="button" (click)="removeOption(i, j)"
+                                        *ngIf="getQuestionOptions(i).length > 2 && question.get('type')?.value === 'MULTIPLE_CHOICE'">
+                                        <mat-icon>remove</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Question Divider -->
+                        <mat-divider *ngIf="i < questions.length - 1"></mat-divider>
+                    </div>
+                </div>
+
+                <!-- No Questions Message -->
+                <div *ngIf="questions.length === 0" class="no-questions">
+                    <mat-icon class="no-questions-icon">quiz</mat-icon>
+                    <h3>No questions added yet</h3>
+                    <p>Click "Add Question" to create your first question</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button mat-stroked-button type="button" (click)="onCancel()">
+                Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="quizForm.invalid || (loading$ | async)">
+                <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                {{ isEditMode ? 'Update Quiz' : 'Create Quiz' }}
+            </button>
+        </div>
+    </form>
+    </div>

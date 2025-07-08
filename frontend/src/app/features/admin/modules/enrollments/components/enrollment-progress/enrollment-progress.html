@@ -1,0 +1,324 @@
+<div class="progress-overview-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="page-title">
+                <mat-icon>analytics</mat-icon>
+                Progress Overview
+            </h1>
+            <p class="page-subtitle">Monitor student progress and course completion rates</p>
+        </div>
+
+        <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="exportData()" [disabled]="loading">
+                <mat-icon>download</mat-icon>
+                Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Overall Statistics -->
+    <div class="stats-section">
+        <div class="stats-grid">
+            <mat-card class="stat-card total-enrollments">
+                <mat-card-content>
+                    <div class="stat-header">
+                        <mat-icon>school</mat-icon>
+                        <h3>Total Enrollments</h3>
+                    </div>
+                    <div class="stat-value">
+                        <span class="number">{{overallStats.totalEnrollments}}</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card average-progress">
+                <mat-card-content>
+                    <div class="stat-header">
+                        <mat-icon>trending_up</mat-icon>
+                        <h3>Average Progress</h3>
+                    </div>
+                    <div class="stat-value">
+                        <span class="number">{{overallStats.averageProgress}}%</span>
+                        <mat-progress-bar mode="determinate" [value]="overallStats.averageProgress" color="primary">
+                        </mat-progress-bar>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card completed-enrollments">
+                <mat-card-content>
+                    <div class="stat-header">
+                        <mat-icon>check_circle</mat-icon>
+                        <h3>Completed</h3>
+                    </div>
+                    <div class="stat-value">
+                        <span class="number">{{overallStats.completedEnrollments}}</span>
+                        <span class="percentage">
+                            {{overallStats.totalEnrollments > 0 ? (overallStats.completedEnrollments /
+                            overallStats.totalEnrollments * 100 | number:'1.0-1') : 0}}%
+                        </span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="stat-card active-enrollments">
+                <mat-card-content>
+                    <div class="stat-header">
+                        <mat-icon>play_circle</mat-icon>
+                        <h3>Active</h3>
+                    </div>
+                    <div class="stat-value">
+                        <span class="number">{{overallStats.activeEnrollments}}</span>
+                        <span class="percentage">
+                            {{overallStats.totalEnrollments > 0 ? (overallStats.activeEnrollments /
+                            overallStats.totalEnrollments * 100 | number:'1.0-1') : 0}}%
+                        </span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <mat-card class="filters-card">
+        <mat-card-content>
+            <form [formGroup]="filterForm" class="filter-form">
+                <div class="filter-row">
+                    <!-- Search -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Search students or courses</mat-label>
+                        <input matInput placeholder="Type to search..." formControlName="search">
+                        <mat-icon matSuffix>search</mat-icon>
+                    </mat-form-field>
+
+                    <!-- Course Filter -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Course</mat-label>
+                        <mat-select formControlName="courseId">
+                            <mat-option value="">All Courses</mat-option>
+                            <mat-option *ngFor="let course of courses" [value]="course.id">
+                                {{course.title}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Status Filter -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status">
+                            <mat-option value="">All Statuses</mat-option>
+                            <mat-option value="ACTIVE">Active</mat-option>
+                            <mat-option value="COMPLETED">Completed</mat-option>
+                            <mat-option value="DROPPED">Dropped</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Progress Range -->
+                    <mat-form-field appearance="outline" class="filter-field progress-min">
+                        <mat-label>Min Progress %</mat-label>
+                        <input matInput type="number" formControlName="minProgress" min="0" max="100">
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="filter-field progress-max">
+                        <mat-label>Max Progress %</mat-label>
+                        <input matInput type="number" formControlName="maxProgress" min="0" max="100">
+                    </mat-form-field>
+
+                    <!-- Clear Filters -->
+                    <button mat-stroked-button type="button" (click)="clearFilters()" class="clear-filters-btn">
+                        <mat-icon>clear</mat-icon>
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Progress Table -->
+    <mat-card class="table-card">
+        <mat-card-header>
+            <mat-card-title>
+                <mat-icon>list</mat-icon>
+                Student Progress Details
+            </mat-card-title>
+            <div class="table-actions">
+                <button mat-icon-button [matMenuTriggerFor]="viewMenu" matTooltip="View Options">
+                    <mat-icon>view_column</mat-icon>
+                </button>
+                <mat-menu #viewMenu="matMenu">
+                    <button mat-menu-item *ngFor="let col of displayedColumns" (click)="toggleColumn(col)">
+                        <mat-checkbox [checked]="isColumnVisible(col)" class="column-checkbox">
+                            {{getColumnLabel(col)}}
+                        </mat-checkbox>
+                    </button>
+                </mat-menu>
+            </div>
+        </mat-card-header>
+
+        <mat-card-content class="table-content">
+            <!-- Loading Spinner -->
+            <div *ngIf="loading" class="loading-container">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Loading progress data...</p>
+            </div>
+
+            <!-- Data Table -->
+            <div *ngIf="!loading" class="table-container">
+                <table mat-table [dataSource]="dataSource" matSort class="progress-table">
+
+                    <!-- Student Column -->
+                    <ng-container matColumnDef="student">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="studentName">
+                            Student
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="student-info">
+                                <div class="student-avatar">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                                <div class="student-details">
+                                    <div class="student-name">{{row.studentName}}</div>
+                                    <div class="student-email text-secondary">{{row.studentEmail}}</div>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Course Column -->
+                    <ng-container matColumnDef="course">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="courseName">
+                            Course
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="course-info">
+                                <div class="course-name">{{row.courseName}}</div>
+                                <button mat-button color="primary" (click)="viewCourseProgress(row.courseId)"
+                                    class="view-course-btn">
+                                    <mat-icon>visibility</mat-icon>
+                                    View Details
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Progress Column -->
+                    <ng-container matColumnDef="progress">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="progressPercent">
+                            Progress
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="progress-display">
+                                <div class="progress-info">
+                                    <span class="progress-percent">{{formatProgress(row.progressPercent)}}</span>
+                                    <mat-progress-bar mode="determinate" [value]="row.progressPercent"
+                                        [color]="getProgressColor(row.progressPercent)">
+                                    </mat-progress-bar>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Completed Lessons Column -->
+                    <ng-container matColumnDef="completedLessons">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="completedLessons">
+                            Lessons
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="lessons-progress">
+                                <div class="lesson-count">
+                                    <span class="completed">{{row.completedLessons}}</span>
+                                    <span class="separator">/</span>
+                                    <span class="total">{{row.totalLessons}}</span>
+                                </div>
+                                <div class="completion-rate">
+                                    {{getCompletionRate(row.completedLessons, row.totalLessons)}}%
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Last Activity Column -->
+                    <ng-container matColumnDef="lastActivity">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="lastActivity">
+                            Last Activity
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="activity-info">
+                                <div class="activity-date">{{row.lastActivity | date:'short'}}</div>
+                                <div class="time-ago text-secondary">
+                                    {{getTimeAgo(row.lastActivity)}}
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <mat-chip [color]="getStatusColor(row.status)" selected>
+                                {{row.status}}
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Actions</th>
+                        <td mat-cell *matCellDef="let row">
+                            <div class="action-buttons">
+                                <button mat-icon-button (click)="viewEnrollmentDetail(row)" matTooltip="View Details"
+                                    color="primary">
+                                    <mat-icon>visibility</mat-icon>
+                                </button>
+
+                                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="More Actions">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+
+                                <mat-menu #actionMenu="matMenu">
+                                    <button mat-menu-item (click)="viewEnrollmentDetail(row)">
+                                        <mat-icon>info</mat-icon>
+                                        View Enrollment
+                                    </button>
+                                    <button mat-menu-item (click)="viewCourseProgress(row.courseId)">
+                                        <mat-icon>analytics</mat-icon>
+                                        Course Analytics
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon>email</mat-icon>
+                                        Contact Student
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item>
+                                        <mat-icon>file_download</mat-icon>
+                                        Export Progress
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Table Headers and Rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackByEnrollmentId"
+                        class="progress-row"></tr>
+                </table>
+
+                <!-- No Data Message -->
+                <div *ngIf="dataSource.data.length === 0" class="no-data-container">
+                    <mat-icon class="no-data-icon">analytics_off</mat-icon>
+                    <h3>No progress data found</h3>
+                    <p>Try adjusting your filters or check back later.</p>
+                </div>
+            </div>
+
+            <!-- Paginator -->
+            <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons>
+            </mat-paginator>
+        </mat-card-content>
+    </mat-card>
+    </div>

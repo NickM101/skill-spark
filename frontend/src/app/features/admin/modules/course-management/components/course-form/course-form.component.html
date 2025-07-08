@@ -170,23 +170,10 @@
                     
                                 <!-- Lessons Management for Edit Mode -->
                                 <div *ngIf="isEditMode && courseId" class="lessons-section">
-                                    <mat-divider></mat-divider>
-                    
-                                    <mat-expansion-panel class="lessons-panel" [expanded]="true">
-                                        <mat-expansion-panel-header>
-                                            <mat-panel-title>
-                                                <mat-icon>play_lesson</mat-icon>
-                                                Course Lessons
-                                            </mat-panel-title>
-                                            <mat-panel-description>
-                                                Manage lessons for this course
-                                            </mat-panel-description>
-                                        </mat-expansion-panel-header>
                     
                                         <app-lesson-list [courseId]="courseId" [readonly]="false"
                                             >
                                         </app-lesson-list>
-                                    </mat-expansion-panel>
                                 </div>
                     
                                 <!-- Create Mode Instructions -->

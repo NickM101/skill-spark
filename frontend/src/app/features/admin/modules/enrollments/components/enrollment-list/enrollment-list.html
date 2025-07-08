@@ -1,0 +1,301 @@
+<div class="enrollment-list-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="page-title">
+                <mat-icon>school</mat-icon>
+                Enrollment Management
+            </h1>
+            <p class="page-subtitle">Manage student enrollments and track progress</p>
+        </div>
+
+        <div class="header-actions">
+            <button mat-raised-button color="primary" (click)="exportData()" [disabled]="loading">
+                <mat-icon>download</mat-icon>
+                Export Data
+            </button>
+
+            <button mat-raised-button color="warn" (click)="bulkDelete()" [disabled]="selection.selected.length === 0">
+                <mat-icon>delete</mat-icon>
+                Delete Selected ({{selection.selected.length}})
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <mat-card class="filters-card">
+        <mat-card-content>
+            <!-- Quick Filters -->
+            <div class="quick-filters mb-4">
+                <mat-chip-listbox>
+                    <mat-chip-option *ngFor="let filter of quickFilters | keyvalue"
+                        [selected]="activeQuickFilter === filter.key" (click)="onQuickFilter(filter.key)">
+                        {{filter.value}}
+                    </mat-chip-option>
+                </mat-chip-listbox>
+            </div>
+
+            <!-- Advanced Filters -->
+            <form [formGroup]="filterForm" class="filter-form">
+                <div class="filter-row">
+                    <!-- Search -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Search students or courses</mat-label>
+                        <input matInput placeholder="Type to search..." (input)="onSearch($any($event.target).value)">
+                        <mat-icon matSuffix>search</mat-icon>
+                    </mat-form-field>
+
+                    <!-- Course Filter -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Course</mat-label>
+                        <mat-select formControlName="courseId">
+                            <mat-option value="">All Courses</mat-option>
+                            <mat-option *ngFor="let course of courses" [value]="course.id">
+                                {{course.title}}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Status Filter -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status">
+                            <mat-option value="">All Statuses</mat-option>
+                            <mat-option value="ACTIVE">Active</mat-option>
+                            <mat-option value="COMPLETED">Completed</mat-option>
+                            <mat-option value="DROPPED">Dropped</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Sort -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Sort By</mat-label>
+                        <mat-select formControlName="sortBy">
+                            <mat-option value="enrolledAt">Enrollment Date</mat-option>
+                            <mat-option value="progressPercent">Progress</mat-option>
+                            <mat-option value="updatedAt">Last Activity</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Sort Order -->
+                    <mat-form-field appearance="outline" class="filter-field">
+                        <mat-label>Order</mat-label>
+                        <mat-select formControlName="sortOrder">
+                            <mat-option value="desc">Descending</mat-option>
+                            <mat-option value="asc">Ascending</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Clear Filters -->
+                    <button mat-stroked-button type="button" (click)="clearFilters()" class="clear-filters-btn">
+                        <mat-icon>clear</mat-icon>
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+
+    <!-- Data Table -->
+    <mat-card class="table-card">
+        <mat-card-content class="table-content">
+            <!-- Loading Spinner -->
+            <div *ngIf="loading" class="loading-container">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Loading enrollments...</p>
+            </div>
+
+            <!-- Data Table -->
+            <div *ngIf="!loading" class="table-container">
+                <table mat-table [dataSource]="enrollments" matSort (matSortChange)="onSortChange($event)"
+                    class="enrollment-table">
+
+                    <!-- Selection Column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef>
+                            <mat-checkbox (change)="$event ? masterToggle() : null"
+                                [checked]="selection.hasValue() && isAllSelected()"
+                                [indeterminate]="selection.hasValue() && !isAllSelected()">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <mat-checkbox (click)="$event.stopPropagation()"
+                                (change)="$event ? toggleRow(enrollment) : null"
+                                [checked]="selection.isSelected(enrollment)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+
+                    <!-- Student Column -->
+                    <ng-container matColumnDef="student">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="user.firstName">
+                            Student
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="student-info">
+                                <div class="student-avatar">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                                <div class="student-details">
+                                    <div class="student-name">
+                                        {{getStudentName(enrollment.user)}}
+                                    </div>
+                                    <div class="student-email text-secondary">
+                                        {{enrollment.user?.email}}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Course Column -->
+                    <ng-container matColumnDef="course">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="course.title">
+                            Course
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="course-info">
+                                <div class="course-title">
+                                    {{enrollment.course?.title || getCourseName(enrollment.courseId)}}
+                                </div>
+                                <div class="course-category text-secondary">
+                                    {{enrollment.course?.category?.name}}
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Status Column -->
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
+                            Status
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <mat-chip [color]="getStatusColor(enrollment.status)" selected>
+                                {{enrollment.status}}
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <!-- Progress Column -->
+                    <ng-container matColumnDef="progress">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="progressPercent">
+                            Progress
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="progress-container">
+                                <mat-progress-bar mode="determinate" [value]="enrollment.progressPercent"
+                                    [color]="getProgressColor(enrollment.progressPercent)">
+                                </mat-progress-bar>
+                                <span class="progress-text">
+                                    {{formatProgress(enrollment.progressPercent)}}
+                                </span>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Enrollment Date Column -->
+                    <ng-container matColumnDef="enrolledAt">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header="enrolledAt">
+                            Enrolled
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="date-info">
+                                <div class="date">
+                                    {{enrollment.enrolledAt | date:'mediumDate'}}
+                                </div>
+                                
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Last Activity Column -->
+                    <ng-container matColumnDef="lastActivity">
+                        <th mat-header-cell *matHeaderCellDef>
+                            Last Activity
+                        </th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="activity-info">
+                                <div class="activity-date">
+                                    {{enrollment.updatedAt | date:'short'}}
+                                </div>
+                                <div class="activity-status text-secondary">
+                                    <mat-icon class="activity-icon">
+                                        {{enrollment.status === 'ACTIVE' ? 'play_circle' : enrollment.status ===
+                                        'COMPLETED' ? 'check_circle' : 'pause_circle'}}
+                                    </mat-icon>
+                                    {{enrollment.status === 'ACTIVE' ? 'Learning' : enrollment.status === 'COMPLETED' ?
+                                    'Completed' : 'Paused'}}
+                                </div>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>Actions</th>
+                        <td mat-cell *matCellDef="let enrollment">
+                            <div class="action-buttons">
+                                <button mat-icon-button (click)="viewEnrollment(enrollment)" matTooltip="View Details"
+                                    color="primary">
+                                    <mat-icon>visibility</mat-icon>
+                                </button>
+
+                                <button mat-icon-button (click)="editEnrollment(enrollment)"
+                                    matTooltip="Edit Enrollment" color="accent">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+
+                                <button mat-icon-button (click)="deleteEnrollment(enrollment)"
+                                    matTooltip="Delete Enrollment" color="warn">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+
+                                <button mat-icon-button [matMenuTriggerFor]="actionMenu" matTooltip="More Actions">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+
+                                <mat-menu #actionMenu="matMenu">
+                                    <button mat-menu-item (click)="viewEnrollment(enrollment)">
+                                        <mat-icon>analytics</mat-icon>
+                                        View Progress
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon>email</mat-icon>
+                                        Send Message
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon>file_download</mat-icon>
+                                        Export Data
+                                    </button>
+                                    <mat-divider></mat-divider>
+                                    <button mat-menu-item (click)="deleteEnrollment(enrollment)" class="warn-menu-item">
+                                        <mat-icon color="warn">delete</mat-icon>
+                                        Delete Enrollment
+                                    </button>
+                                </mat-menu>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <!-- Table Headers and Rows -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let enrollment; columns: displayedColumns;"
+                        [class.selected-row]="selection.isSelected(enrollment)" (click)="toggleRow(enrollment)"></tr>
+                </table>
+
+                <!-- No Data Message -->
+                <div *ngIf="enrollments.length === 0" class="no-data-container">
+                    <mat-icon class="no-data-icon">school_off</mat-icon>
+                    <h3>No enrollments found</h3>
+                    <p>Try adjusting your filters or search criteria.</p>
+                </div>
+            </div>
+
+            <!-- Paginator -->
+            <mat-paginator [length]="totalCount" [pageSize]="pageSize" [pageIndex]="pageIndex"
+                [pageSizeOptions]="pageSizeOptions" (page)="onPageChange($event)" showFirstLastButtons>
+            </mat-paginator>
+        </mat-card-content>
+    </mat-card>
+    </div>

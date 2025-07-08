@@ -21,3 +21,19 @@ export interface Question {
   quiz?: Quiz;
   answers?: Answer[];
 }
+
+export interface QuestionStats {
+  questionId: string;
+  questionText: string;
+  correctAnswers: number;
+  totalAnswers: number;
+  accuracy: number;
+}
+
+export interface AddQuestionDto {
+  question: string;
+  type: QuestionType;
+  options?: string[];
+  correctAnswers: string[];
+  points: number;
+}

@@ -1,0 +1,522 @@
+.progress-overview-container {
+    padding: 1.5rem;
+    max-width: 100%;
+  
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--divider-color);
+  
+      .header-content {
+        .page-title {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 2rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin-bottom: 0.5rem;
+  
+          mat-icon {
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
+            color: var(--primary-color);
+          }
+        }
+  
+        .page-subtitle {
+          color: var(--text-secondary);
+          font-size: 1rem;
+          margin: 0;
+        }
+      }
+  
+      .header-actions {
+        button {
+          min-width: 140px;
+        }
+      }
+    }
+  
+    .stats-section {
+      margin-bottom: 2rem;
+  
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+  
+        .stat-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+          }
+  
+          .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+  
+            mat-icon {
+              font-size: 1.5rem;
+              width: 1.5rem;
+              height: 1.5rem;
+            }
+  
+            h3 {
+              margin: 0;
+              font-size: 1rem;
+              font-weight: 500;
+              color: var(--text-secondary);
+            }
+          }
+  
+          .stat-value {
+            .number {
+              font-size: 2.5rem;
+              font-weight: 700;
+              display: block;
+              line-height: 1;
+              margin-bottom: 0.5rem;
+            }
+  
+            .percentage {
+              font-size: 0.875rem;
+              color: var(--text-secondary);
+              margin-left: 0.5rem;
+            }
+  
+            mat-progress-bar {
+              height: 8px;
+              border-radius: 4px;
+              margin-top: 0.75rem;
+            }
+          }
+  
+          &.total-enrollments {
+            .stat-header mat-icon {
+              color: var(--primary-color);
+            }
+            .stat-value .number {
+              color: var(--primary-color);
+            }
+          }
+  
+          &.average-progress {
+            .stat-header mat-icon {
+              color: var(--accent-color);
+            }
+            .stat-value .number {
+              color: var(--accent-color);
+            }
+          }
+  
+          &.completed-enrollments {
+            .stat-header mat-icon {
+              color: var(--success-color);
+            }
+            .stat-value .number {
+              color: var(--success-color);
+            }
+          }
+  
+          &.active-enrollments {
+            .stat-header mat-icon {
+              color: #2196f3;
+            }
+            .stat-value .number {
+              color: #2196f3;
+            }
+          }
+        }
+      }
+    }
+  
+    .filters-card {
+      margin-bottom: 1.5rem;
+  
+      .filter-form {
+        .filter-row {
+          display: grid;
+          grid-template-columns: 2fr 1.5fr 1fr 0.8fr 0.8fr auto;
+          gap: 1rem;
+          align-items: end;
+  
+          .filter-field {
+            width: 100%;
+  
+            &.progress-min,
+            &.progress-max {
+              min-width: 100px;
+            }
+          }
+  
+          .clear-filters-btn {
+            height: 56px;
+            min-width: 80px;
+          }
+        }
+      }
+    }
+  
+    .table-card {
+      .mat-mdc-card-header {
+        .mat-mdc-card-title {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 1.25rem;
+  
+          mat-icon {
+            color: var(--primary-color);
+          }
+        }
+  
+        .table-actions {
+          margin-left: auto;
+  
+          .column-checkbox {
+            margin-right: 0.5rem;
+          }
+        }
+      }
+  
+      .table-content {
+        padding: 0;
+  
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+  
+          mat-spinner {
+            margin-bottom: 1rem;
+          }
+  
+          p {
+            color: var(--text-secondary);
+            margin: 0;
+          }
+        }
+  
+        .table-container {
+          .progress-table {
+            width: 100%;
+  
+            .mat-mdc-header-cell {
+              background-color: var(--background-color);
+              font-weight: 600;
+              color: var(--text-primary);
+              border-bottom: 2px solid var(--divider-color);
+            }
+  
+            .progress-row {
+              transition: background-color 0.2s ease;
+  
+              &:hover {
+                background-color: rgba(245, 81, 8, 0.04);
+              }
+            }
+  
+            .mat-mdc-cell {
+              padding: 1rem 0.75rem;
+              border-bottom: 1px solid var(--divider-color);
+            }
+          }
+  
+          // Column-specific styles
+          .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+  
+            .student-avatar {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+              display: flex;
+              align-items: center;
+              justify-content: center;
+  
+              mat-icon {
+                color: white;
+                font-size: 1.25rem;
+              }
+            }
+  
+            .student-details {
+              .student-name {
+                font-weight: 500;
+                color: var(--text-primary);
+                line-height: 1.4;
+              }
+  
+              .student-email {
+                font-size: 0.875rem;
+                line-height: 1.4;
+              }
+            }
+          }
+  
+          .course-info {
+            .course-name {
+              font-weight: 500;
+              color: var(--text-primary);
+              line-height: 1.4;
+              margin-bottom: 0.5rem;
+            }
+  
+            .view-course-btn {
+              font-size: 0.75rem;
+              height: 32px;
+              line-height: 32px;
+              padding: 0 8px;
+              min-width: auto;
+  
+              mat-icon {
+                font-size: 1rem;
+                width: 1rem;
+                height: 1rem;
+                margin-right: 0.25rem;
+              }
+            }
+          }
+  
+          .progress-display {
+            min-width: 140px;
+  
+            .progress-info {
+              .progress-percent {
+                font-weight: 600;
+                color: var(--text-primary);
+                display: block;
+                margin-bottom: 0.5rem;
+              }
+  
+              mat-progress-bar {
+                height: 8px;
+                border-radius: 4px;
+              }
+            }
+          }
+  
+          .lessons-progress {
+            .lesson-count {
+              display: flex;
+              align-items: baseline;
+              gap: 0.25rem;
+              margin-bottom: 0.25rem;
+  
+              .completed {
+                font-weight: 600;
+                color: var(--success-color);
+              }
+  
+              .separator {
+                color: var(--text-secondary);
+              }
+  
+              .total {
+                font-weight: 500;
+                color: var(--text-secondary);
+              }
+            }
+  
+            .completion-rate {
+              font-size: 0.875rem;
+              color: var(--text-secondary);
+            }
+          }
+  
+          .activity-info {
+            .activity-date {
+              font-weight: 500;
+              color: var(--text-primary);
+              line-height: 1.4;
+            }
+  
+            .time-ago {
+              font-size: 0.875rem;
+              line-height: 1.4;
+            }
+          }
+  
+          .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+  
+            button {
+              width: 36px;
+              height: 36px;
+  
+              mat-icon {
+                font-size: 1.125rem;
+                width: 1.125rem;
+                height: 1.125rem;
+              }
+            }
+          }
+  
+          .no-data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+  
+            .no-data-icon {
+              font-size: 4rem;
+              width: 4rem;
+              height: 4rem;
+              color: var(--text-secondary);
+              margin-bottom: 1rem;
+              opacity: 0.6;
+            }
+  
+            h3 {
+              color: var(--text-primary);
+              margin-bottom: 0.5rem;
+              font-weight: 500;
+            }
+  
+            p {
+              color: var(--text-secondary);
+              margin: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Utility classes
+  .text-secondary {
+    color: var(--text-secondary) !important;
+  }
+  
+  // Responsive design
+  @media (max-width: 1400px) {
+    .progress-overview-container {
+      .filters-card {
+        .filter-form {
+          .filter-row {
+            grid-template-columns: 2fr 1.5fr 1fr;
+  
+            .progress-min,
+            .progress-max {
+              grid-column: span 1;
+            }
+  
+            .clear-filters-btn {
+              grid-column: span 3;
+              justify-self: start;
+              margin-top: 1rem;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 1024px) {
+    .progress-overview-container {
+      .stats-section {
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .progress-overview-container {
+      padding: 1rem;
+  
+      .header-section {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+  
+        .header-actions {
+          button {
+            width: 100%;
+          }
+        }
+      }
+  
+      .stats-section {
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+  
+      .filters-card {
+        .filter-form {
+          .filter-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+  
+            .clear-filters-btn {
+              grid-column: 1;
+              height: 48px;
+            }
+          }
+        }
+      }
+  
+      .table-card {
+        .table-content {
+          .table-container {
+            overflow-x: auto;
+  
+            .progress-table {
+              min-width: 800px;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Material Design overrides
+  .mat-mdc-chip.mat-mdc-chip-selected {
+    &.mat-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+  
+    &.mat-accent {
+      background-color: var(--success-color);
+      color: white;
+    }
+  
+    &.mat-warn {
+      background-color: var(--warn-color);
+      color: white;
+    }
+  }
+  
+  .mat-mdc-progress-bar {
+    &.mat-primary .mdc-linear-progress__bar-inner {
+      border-color: var(--primary-color);
+    }
+  
+    &.mat-accent .mdc-linear-progress__bar-inner {
+      border-color: var(--success-color);
+    }
+  
+    &.mat-warn .mdc-linear-progress__bar-inner {
+      border-color: var(--warn-color);
+    }
+  }

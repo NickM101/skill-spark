@@ -21,7 +21,8 @@
                     <mat-icon>{{ showReorderMode ? 'check' : 'reorder' }}</mat-icon>
                     {{ showReorderMode ? 'Done' : 'Reorder' }}
                 </button>
-                <button mat-raised-button color="primary" [disabled]="loading$ | async">
+                <button type="button" mat-raised-button color="primary" (click)="onCreateLesson()"
+                    [disabled]="loading$ | async">
                     <mat-icon>add</mat-icon>
                     Add Lesson
                 </button>

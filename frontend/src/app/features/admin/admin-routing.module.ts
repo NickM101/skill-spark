@@ -43,7 +43,23 @@ export const routes: Routes = [
             (m) => m.CategoryManagementModule
           ),
         title: 'Category Management',
-      }
+      },
+      {
+        path: 'enrollments',
+        loadChildren: () =>
+          import('./modules/enrollments/enrollments').then(
+            (m) => m.EnrollmentModule
+          ),
+        title: 'Enrollments',
+      },
+      {
+        path: 'quizzes',
+        loadChildren: () =>
+          import('./modules/quizes/quiz.module').then(
+            (m) => m.QuizModule
+          ),
+        title: 'Quizzes',
+      },
     ],
   },
 ];

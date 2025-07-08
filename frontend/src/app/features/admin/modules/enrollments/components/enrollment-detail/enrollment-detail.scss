@@ -1,0 +1,602 @@
+.enrollment-detail-container {
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--divider-color);
+  
+      .header-content {
+        flex: 1;
+  
+        .breadcrumb {
+          margin-bottom: 1rem;
+  
+          .back-button {
+            color: var(--text-secondary);
+            text-transform: none;
+            font-weight: 400;
+  
+            mat-icon {
+              margin-right: 0.5rem;
+            }
+  
+            &:hover {
+              background-color: rgba(245, 81, 8, 0.04);
+              color: var(--primary-color);
+            }
+          }
+        }
+  
+        .page-title {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 2rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin-bottom: 1rem;
+  
+          mat-icon {
+            font-size: 2rem;
+            width: 2rem;
+            height: 2rem;
+            color: var(--primary-color);
+          }
+        }
+  
+        .student-course-info {
+          display: flex;
+          gap: 2rem;
+  
+          .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+  
+            .label {
+              font-weight: 500;
+              color: var(--text-secondary);
+            }
+  
+            .value {
+              font-weight: 600;
+              color: var(--text-primary);
+            }
+          }
+        }
+      }
+  
+      .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+  
+        .edit-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+  
+        button {
+          min-width: 100px;
+        }
+      }
+    }
+  
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+  
+      mat-spinner {
+        margin-bottom: 1rem;
+      }
+  
+      p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
+    }
+  
+    .main-content {
+      .overview-section {
+        margin-bottom: 2rem;
+  
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1.5rem;
+  
+          .stat-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: var(--shadow-medium);
+            }
+  
+            .stat-header {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              margin-bottom: 1rem;
+  
+              mat-icon {
+                color: var(--primary-color);
+                font-size: 1.5rem;
+                width: 1.5rem;
+                height: 1.5rem;
+              }
+  
+              h3 {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 500;
+                color: var(--text-secondary);
+              }
+            }
+  
+            .stat-value {
+              .progress-display {
+                .progress-circle {
+                  text-align: center;
+                  margin-bottom: 1rem;
+  
+                  .progress-text {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--primary-color);
+                  }
+                }
+  
+                mat-progress-bar {
+                  height: 8px;
+                  border-radius: 4px;
+                }
+              }
+  
+              .completion-stats {
+                display: flex;
+                align-items: baseline;
+                gap: 0.25rem;
+                margin-bottom: 0.5rem;
+  
+                .completed {
+                  font-size: 2rem;
+                  font-weight: 700;
+                  color: var(--success-color);
+                }
+  
+                .separator {
+                  font-size: 1.5rem;
+                  color: var(--text-secondary);
+                }
+  
+                .total {
+                  font-size: 1.5rem;
+                  font-weight: 600;
+                  color: var(--text-secondary);
+                }
+              }
+  
+              .completion-rate {
+                font-size: 0.875rem;
+                color: var(--text-secondary);
+              }
+  
+              .duration-info {
+                .enrolled-date {
+                  font-weight: 500;
+                  color: var(--text-primary);
+                  margin-bottom: 0.5rem;
+                }
+  
+                .duration {
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  color: var(--primary-color);
+                  margin-bottom: 0.5rem;
+                }
+  
+                .last-activity {
+                  font-size: 0.875rem;
+                  color: var(--text-secondary);
+                }
+              }
+  
+              mat-form-field {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+  
+      .info-section {
+        margin-bottom: 2rem;
+  
+        .info-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+  
+          .info-card {
+            .mat-mdc-card-header {
+              .mat-mdc-card-title {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.125rem;
+  
+                mat-icon {
+                  color: var(--primary-color);
+                }
+              }
+            }
+  
+            &.student-card {
+              .student-details {
+                .avatar-section {
+                  display: flex;
+                  gap: 1rem;
+                  margin-bottom: 1.5rem;
+  
+                  .student-avatar {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+  
+                    mat-icon {
+                      color: white;
+                      font-size: 1.5rem;
+                    }
+                  }
+  
+                  .student-info {
+                    flex: 1;
+  
+                    h3 {
+                      margin: 0 0 0.25rem 0;
+                      font-size: 1.25rem;
+                      font-weight: 600;
+                      color: var(--text-primary);
+                    }
+  
+                    p {
+                      margin: 0 0 0.5rem 0;
+                      color: var(--text-secondary);
+                    }
+  
+                    .role-chip {
+                      font-size: 0.75rem;
+                    }
+                  }
+                }
+  
+                .student-actions {
+                  button {
+                    width: 100%;
+                  }
+                }
+              }
+            }
+  
+            &.course-card {
+              .course-details {
+                .course-info {
+                  margin-bottom: 1.5rem;
+  
+                  h3 {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                  }
+  
+                  .course-description {
+                    color: var(--text-secondary);
+                    margin-bottom: 1rem;
+                    line-height: 1.5;
+                  }
+  
+                  .course-meta {
+                    display: flex;
+                    gap: 0.5rem;
+  
+                    .level-chip, .category-chip {
+                      font-size: 0.75rem;
+                    }
+                  }
+                }
+  
+                .course-actions {
+                  button {
+                    width: 100%;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+  
+      .progress-section {
+        .mat-mdc-card-header {
+          .mat-mdc-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+  
+            mat-icon {
+              color: var(--primary-color);
+            }
+          }
+  
+          .progress-summary {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+          }
+        }
+  
+        .lessons-list {
+          .lesson-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--divider-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+  
+            &:hover {
+              border-color: var(--primary-color);
+              box-shadow: var(--shadow-light);
+            }
+  
+            &.completed {
+              background-color: rgba(76, 175, 80, 0.04);
+              border-color: var(--success-color);
+  
+              .lesson-info .lesson-details h4 {
+                color: var(--success-color);
+              }
+            }
+  
+            .lesson-info {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              flex: 1;
+  
+              .lesson-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background-color: var(--background-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+  
+                mat-icon {
+                  color: var(--primary-color);
+                }
+              }
+  
+              .lesson-details {
+                h4 {
+                  margin: 0 0 0.25rem 0;
+                  font-size: 1rem;
+                  font-weight: 500;
+                  color: var(--text-primary);
+                }
+  
+                .lesson-type {
+                  margin: 0;
+                  font-size: 0.875rem;
+                  color: var(--text-secondary);
+                  text-transform: capitalize;
+                }
+              }
+            }
+  
+            .lesson-status {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.25rem;
+              min-width: 120px;
+  
+              .completion-info {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+  
+                mat-icon {
+                  &.completed {
+                    color: var(--success-color);
+                  }
+  
+                  &.pending {
+                    color: var(--text-secondary);
+                  }
+                }
+  
+                .status-text {
+                  font-size: 0.875rem;
+                  font-weight: 500;
+                }
+              }
+  
+              .completion-date {
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+              }
+            }
+  
+            .lesson-actions {
+              button {
+                width: 36px;
+                height: 36px;
+              }
+            }
+          }
+        }
+  
+        .no-progress {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 3rem 1rem;
+          text-align: center;
+  
+          mat-icon {
+            font-size: 3rem;
+            width: 3rem;
+            height: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            opacity: 0.6;
+          }
+  
+          p {
+            color: var(--text-secondary);
+            margin: 0;
+          }
+        }
+      }
+    }
+  
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      text-align: center;
+  
+      mat-icon {
+        font-size: 4rem;
+        width: 4rem;
+        height: 4rem;
+        color: var(--warn-color);
+        margin-bottom: 1rem;
+      }
+  
+      h2 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+  
+      p {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+      }
+    }
+  }
+  
+  // Responsive design
+  @media (max-width: 1200px) {
+    .enrollment-detail-container {
+      .main-content {
+        .overview-section {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+  
+        .info-section {
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .enrollment-detail-container {
+      padding: 1rem;
+  
+      .header-section {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+  
+        .header-content {
+          .student-course-info {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+        }
+  
+        .header-actions {
+          flex-direction: column;
+  
+          .edit-actions {
+            flex-direction: row;
+          }
+  
+          button {
+            width: 100%;
+          }
+        }
+      }
+  
+      .main-content {
+        .overview-section {
+          .stats-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+  
+        .progress-section {
+          .lessons-list {
+            .lesson-item {
+              flex-direction: column;
+              align-items: stretch;
+              gap: 1rem;
+  
+              .lesson-info {
+                justify-content: flex-start;
+              }
+  
+              .lesson-status {
+                flex-direction: row;
+                justify-content: space-between;
+                min-width: auto;
+              }
+  
+              .lesson-actions {
+                align-self: center;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Material Design overrides
+  .mat-mdc-chip {
+    &.role-chip, &.level-chip, &.category-chip {
+      font-size: 0.75rem;
+      height: auto;
+      min-height: 24px;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+  

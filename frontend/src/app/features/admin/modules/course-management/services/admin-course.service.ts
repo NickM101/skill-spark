@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, forkJoin } from 'rxjs';
-import { map, tap, catchError, switchMap } from 'rxjs/operators';
+import { map, tap, catchError, switchMap, finalize } from 'rxjs/operators';
 
 import { ApiService } from '@core/services/api.service';
 import { Category } from '@core/models/category.model';
@@ -151,6 +151,7 @@ export class CourseService {
         this.loadingSubject.next(false);
         throw error;
       })
+      
     );
   }
 

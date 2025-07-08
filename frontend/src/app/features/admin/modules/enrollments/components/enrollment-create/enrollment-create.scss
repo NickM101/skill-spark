@@ -1,0 +1,501 @@
+.enrollment-create-container {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  
+    .header-section {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--divider-color);
+  
+      .breadcrumb {
+        margin-bottom: 1rem;
+  
+        .back-button {
+          color: var(--text-secondary);
+          text-transform: none;
+          font-weight: 400;
+  
+          mat-icon {
+            margin-right: 0.5rem;
+          }
+  
+          &:hover {
+            background-color: rgba(245, 81, 8, 0.04);
+            color: var(--primary-color);
+          }
+        }
+      }
+  
+      .page-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+  
+        mat-icon {
+          font-size: 2rem;
+          width: 2rem;
+          height: 2rem;
+          color: var(--primary-color);
+        }
+      }
+  
+      .page-subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin: 0;
+      }
+    }
+  
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+  
+      mat-spinner {
+        margin-bottom: 1rem;
+      }
+  
+      p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
+    }
+  
+    .form-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+  
+      .create-form-card {
+        .mat-mdc-card-header {
+          .mat-mdc-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+  
+            mat-icon {
+              color: var(--primary-color);
+            }
+          }
+  
+          .mat-mdc-card-subtitle {
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+          }
+        }
+  
+        .enrollment-form {
+          .form-section {
+            margin-bottom: 2rem;
+  
+            .section-title {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 1.5rem;
+  
+              mat-icon {
+                color: var(--primary-color);
+                font-size: 1.25rem;
+                width: 1.25rem;
+                height: 1.25rem;
+              }
+            }
+  
+            .search-field,
+            .select-field,
+            .notes-field {
+              width: 100%;
+              margin-bottom: 1rem;
+            }
+  
+            .notes-field {
+              textarea {
+                min-height: 100px;
+                resize: vertical;
+              }
+            }
+  
+            // Student and Course Options
+            .student-option,
+            .course-option {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              padding: 0.5rem 0;
+  
+              .student-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+  
+                mat-icon {
+                  color: white;
+                  font-size: 1.125rem;
+                }
+              }
+  
+              .student-info,
+              .course-info {
+                flex: 1;
+  
+                .student-name,
+                .course-title {
+                  font-weight: 500;
+                  color: var(--text-primary);
+                  line-height: 1.4;
+                }
+  
+                .student-email {
+                  font-size: 0.875rem;
+                  color: var(--text-secondary);
+                  line-height: 1.4;
+                }
+  
+                .course-meta {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  margin-top: 0.25rem;
+  
+                  .level-chip,
+                  .category-chip {
+                    font-size: 0.75rem;
+                    height: 24px;
+                  }
+  
+                  .course-price {
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    color: var(--primary-color);
+                    margin-left: 0.5rem;
+                  }
+                }
+              }
+            }
+  
+            // Selected Preview
+            .selected-preview {
+              margin-top: 1.5rem;
+              padding: 1rem;
+              background-color: var(--background-color);
+              border-radius: var(--border-radius);
+              border: 1px solid var(--divider-color);
+  
+              h4 {
+                margin: 0 0 1rem 0;
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--text-primary);
+              }
+  
+              .preview-card {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                background: white;
+                border-radius: var(--border-radius);
+                box-shadow: var(--shadow-light);
+  
+                .preview-avatar,
+                .course-thumbnail {
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 50%;
+                  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+  
+                  mat-icon {
+                    color: white;
+                    font-size: 1.5rem;
+                  }
+                }
+  
+                .course-thumbnail {
+                  border-radius: var(--border-radius);
+                }
+  
+                .preview-info {
+                  flex: 1;
+  
+                  .preview-name {
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    margin-bottom: 0.25rem;
+                    line-height: 1.4;
+                  }
+  
+                  .preview-email,
+                  .preview-description {
+                    color: var(--text-secondary);
+                    font-size: 0.875rem;
+                    line-height: 1.4;
+                    margin-bottom: 0.5rem;
+                  }
+  
+                  .preview-description {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                  }
+  
+                  .role-chip,
+                  .course-tags {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+  
+                    mat-chip {
+                      font-size: 0.75rem;
+                      height: 24px;
+                    }
+                  }
+                }
+              }
+            }
+          }
+  
+          .section-divider {
+            margin: 2rem 0;
+            border-color: var(--divider-color);
+          }
+  
+          .enrollment-summary {
+            margin: 2rem 0;
+  
+            .summary-card {
+              background-color: rgba(245, 81, 8, 0.04);
+              border: 1px solid rgba(245, 81, 8, 0.2);
+  
+              .mat-mdc-card-header {
+                .mat-mdc-card-title {
+                  display: flex;
+                  align-items: center;
+                  gap: 0.75rem;
+                  color: var(--primary-color);
+  
+                  mat-icon {
+                    color: var(--primary-color);
+                  }
+                }
+              }
+  
+              .summary-content {
+                .summary-item {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  padding: 0.75rem 0;
+                  border-bottom: 1px solid var(--divider-color);
+  
+                  &:last-child {
+                    border-bottom: none;
+                  }
+  
+                  .label {
+                    font-weight: 500;
+                    color: var(--text-secondary);
+                  }
+  
+                  .value {
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    text-align: right;
+                  }
+                }
+              }
+            }
+          }
+  
+          .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--divider-color);
+  
+            .cancel-button {
+              min-width: 120px;
+            }
+  
+            .submit-button {
+              min-width: 160px;
+            }
+          }
+        }
+      }
+  
+      .help-card {
+        align-self: start;
+        position: sticky;
+        top: 2rem;
+  
+        .mat-mdc-card-header {
+          .mat-mdc-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--accent-color);
+  
+            mat-icon {
+              color: var(--accent-color);
+            }
+          }
+        }
+  
+        .help-content {
+          .help-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+  
+            &:last-child {
+              margin-bottom: 0;
+            }
+  
+            mat-icon {
+              color: var(--text-secondary);
+              font-size: 1.125rem;
+              width: 1.125rem;
+              height: 1.125rem;
+              margin-top: 0.125rem;
+              flex-shrink: 0;
+            }
+  
+            .help-text {
+              font-size: 0.875rem;
+              line-height: 1.5;
+              color: var(--text-secondary);
+  
+              strong {
+                color: var(--text-primary);
+                font-weight: 600;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Form field error states
+  .mat-mdc-form-field {
+    &.error {
+      .mat-mdc-text-field-wrapper {
+        border-color: var(--warn-color);
+      }
+    }
+  }
+  
+  // Responsive design
+  @media (max-width: 1024px) {
+    .enrollment-create-container {
+      .form-container {
+        grid-template-columns: 1fr;
+  
+        .help-card {
+          position: static;
+          order: -1;
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .enrollment-create-container {
+      padding: 1rem;
+  
+      .form-container {
+        .create-form-card {
+          .enrollment-form {
+            .form-section {
+              .student-option,
+              .course-option {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+              }
+  
+              .selected-preview {
+                .preview-card {
+                  flex-direction: column;
+                  align-items: flex-start;
+                  text-align: left;
+  
+                  .preview-info {
+                    width: 100%;
+                  }
+                }
+              }
+            }
+  
+            .enrollment-summary {
+              .summary-content {
+                .summary-item {
+                  flex-direction: column;
+                  align-items: flex-start;
+                  gap: 0.25rem;
+  
+                  .value {
+                    text-align: left;
+                  }
+                }
+              }
+            }
+  
+            .form-actions {
+              flex-direction: column;
+  
+              button {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Material Design overrides
+  .mat-mdc-chip {
+    &.level-chip {
+      background-color: var(--primary-color);
+      color: white;
+    }
+  
+    &.category-chip {
+      background-color: var(--accent-color);
+      color: white;
+    }
+  
+    &.price-chip {
+      background-color: var(--success-color);
+      color: white;
+    }
+  
+    &.role-chip {
+      background-color: var(--text-secondary);
+      color: white;
+    }
+  }

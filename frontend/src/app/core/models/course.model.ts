@@ -94,3 +94,19 @@ export interface UpdateCourseRequest {
   instructorId?: string;
   isPublished?: boolean;
 }
+
+export interface CourseProgress {
+  courseId: string;
+  courseTitle: string;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+  students: Array<{
+    userId: string;
+    userEmail: string;
+    userName: string;
+    progressPercent: number;
+    lastActivity: string;
+    completedLessons: number;
+  }>;
+}

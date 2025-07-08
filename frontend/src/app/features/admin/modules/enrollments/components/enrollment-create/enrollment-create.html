@@ -1,0 +1,282 @@
+<div class="enrollment-create-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="breadcrumb">
+                <button mat-button (click)="onCancel()" class="back-button">
+                    <mat-icon>arrow_back</mat-icon>
+                    Back to Enrollments
+                </button>
+            </div>
+
+            <h1 class="page-title">
+                <mat-icon>add_circle</mat-icon>
+                Create New Enrollment
+            </h1>
+            <p class="page-subtitle">Enroll a student in a course</p>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading data...</p>
+    </div>
+
+    <!-- Create Form -->
+    <div *ngIf="!loading" class="form-container">
+        <mat-card class="create-form-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>school</mat-icon>
+                    Enrollment Details
+                </mat-card-title>
+                <mat-card-subtitle>
+                    Select a student and course to create the enrollment
+                </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <form [formGroup]="createForm" (ngSubmit)="onSubmit()" class="enrollment-form">
+                    <!-- Student Selection -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <mat-icon>person</mat-icon>
+                            Select Student
+                        </h3>
+
+                        <!-- Student Search -->
+                        <mat-form-field appearance="outline" class="search-field">
+                            <mat-label>Search students</mat-label>
+                            <input matInput placeholder="Type student name or email..."
+                                (input)="onStudentSearch($any($event.target).value)">
+                            <mat-icon matSuffix>search</mat-icon>
+                        </mat-form-field>
+
+                        <!-- Student Selection -->
+                        <mat-form-field appearance="outline" class="select-field">
+                            <mat-label>Student *</mat-label>
+                            <mat-select formControlName="studentId" [class.error]="isFieldInvalid('studentId')">
+                                <mat-option value="">Select a student</mat-option>
+                                <mat-option *ngFor="let student of filteredStudents" [value]="student.id">
+                                    <div class="student-option">
+                                        <div class="student-avatar">
+                                            <mat-icon>person</mat-icon>
+                                        </div>
+                                        <div class="student-info">
+                                            <div class="student-name">{{getStudentDisplayName(student)}}</div>
+                                            <div class="student-email">{{student.email}}</div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="isFieldInvalid('studentId')">
+                                {{getFormFieldError('studentId')}}
+                            </mat-error>
+                        </mat-form-field>
+
+                        <!-- Selected Student Preview -->
+                        <div class="selected-preview" *ngIf="createForm.get('studentId')?.value">
+                            <h4>Selected Student:</h4>
+                            <div class="preview-card student-preview">
+                                <div class="preview-avatar">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                                <div class="preview-info">
+                                    <div class="preview-name">
+                                        {{ getStudentDisplayName(getSelectedStudent()) }}
+
+                                    </div>
+                                    <div class="preview-email">
+                                        {{ getSelectedStudentEmail() }}
+                                    </div>
+                                    <mat-chip class="role-chip">Student</mat-chip>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Course Selection -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <mat-icon>book</mat-icon>
+                            Select Course
+                        </h3>
+
+                        <!-- Course Search -->
+                        <mat-form-field appearance="outline" class="search-field">
+                            <mat-label>Search courses</mat-label>
+                            <input matInput placeholder="Type course title or category..."
+                                (input)="onCourseSearch($any($event.target).value)">
+                            <mat-icon matSuffix>search</mat-icon>
+                        </mat-form-field>
+
+                        <!-- Course Selection -->
+                        <mat-form-field appearance="outline" class="select-field">
+                            <mat-label>Course *</mat-label>
+                            <mat-select formControlName="courseId" [class.error]="isFieldInvalid('courseId')">
+                                <mat-option value="">Select a course</mat-option>
+                                <mat-option *ngFor="let course of filteredCourses" [value]="course.id">
+                                    <div class="course-option">
+                                        <div class="course-info">
+                                            <div class="course-title">{{course.title}}</div>
+                                            <div class="course-meta">
+                                                <mat-chip class="level-chip"
+                                                    [color]="'primary'">{{getCourseLevel(course)}}</mat-chip>
+                                                <mat-chip class="category-chip">{{course.category?.name}}</mat-chip>
+                                                <span class="course-price">{{getCoursePrice(course)}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                            </mat-select>
+                            <mat-error *ngIf="isFieldInvalid('courseId')">
+                                {{getFormFieldError('courseId')}}
+                            </mat-error>
+                        </mat-form-field>
+
+                        <!-- Selected Course Preview -->
+                        <div class="selected-preview" *ngIf="createForm.get('courseId')?.value">
+                            <h4>Selected Course:</h4>
+                            <div class="preview-card course-preview">
+                                <div class="course-thumbnail">
+                                    <mat-icon>book</mat-icon>
+                                </div>
+                                <div class="preview-info">
+                                    <div class="preview-name">
+                                        {{ getSelectedCourseTitle() }}
+                                    </div>
+                                    <div class="preview-description">
+                                        {{ getSelectedCourseDescription() }}
+                                    </div>
+                                    <div class="course-tags">
+                                        <mat-chip class="level-chip">
+                                            {{ getSelectedCourseLevel() }}
+
+                                        </mat-chip>
+                                        <mat-chip class="category-chip">
+                                            {{ getSelectedCourseCategory() }}
+
+                                        </mat-chip>
+                                        <mat-chip class="price-chip">
+                                            {{ getSelectedCoursePrice() }}
+
+                                        </mat-chip>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <mat-divider class="section-divider"></mat-divider>
+
+                    <!-- Additional Notes -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <mat-icon>note</mat-icon>
+                            Additional Information
+                        </h3>
+
+                        <mat-form-field appearance="outline" class="notes-field">
+                            <mat-label>Notes (Optional)</mat-label>
+                            <textarea matInput formControlName="notes"
+                                placeholder="Add any additional notes about this enrollment..." rows="4">
+                </textarea>
+                            <mat-hint>Any special instructions or comments for this enrollment</mat-hint>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Enrollment Summary -->
+                    <div class="enrollment-summary"
+                        *ngIf="createForm.get('studentId')?.value && createForm.get('courseId')?.value">
+                        <mat-card class="summary-card">
+                            <mat-card-header>
+                                <mat-card-title>
+                                    <mat-icon>summarize</mat-icon>
+                                    Enrollment Summary
+                                </mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div class="summary-content">
+                                    <div class="summary-item">
+                                        <span class="label">Student:</span>
+                                        <span class="value">{{getSelectedStudent()}}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Course:</span>
+                                        <span class="value">{{ getSelectedCourseTitle() }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Price:</span>
+                                        <span class="value">{{ getSelectedCoursePrice() }}</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Enrollment Date:</span>
+                                        <span class="value">{{ today | date: 'mediumDate' }}</span>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button mat-button type="button" (click)="onCancel()" class="cancel-button">
+                            <mat-icon>cancel</mat-icon>
+                            Cancel
+                        </button>
+
+                        <button mat-raised-button color="primary" type="submit"
+                            [disabled]="!createForm.valid || loading" class="submit-button">
+                            <mat-icon>add</mat-icon>
+                            <span *ngIf="!loading">Create Enrollment</span>
+                            <span *ngIf="loading">Creating...</span>
+                        </button>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Help Card -->
+        <mat-card class="help-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>help</mat-icon>
+                    Help & Guidelines
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="help-content">
+                    <div class="help-item">
+                        <mat-icon>info</mat-icon>
+                        <div class="help-text">
+                            <strong>Student Selection:</strong> Only active students with the "Student" role are shown
+                            in the list.
+                        </div>
+                    </div>
+                    <div class="help-item">
+                        <mat-icon>info</mat-icon>
+                        <div class="help-text">
+                            <strong>Course Selection:</strong> Only published courses are available for enrollment.
+                        </div>
+                    </div>
+                    <div class="help-item">
+                        <mat-icon>warning</mat-icon>
+                        <div class="help-text">
+                            <strong>Duplicate Check:</strong> Students cannot be enrolled in the same course twice.
+                        </div>
+                    </div>
+                    <div class="help-item">
+                        <mat-icon>schedule</mat-icon>
+                        <div class="help-text">
+                            <strong>Enrollment Date:</strong> The enrollment will be effective immediately upon
+                            creation.
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

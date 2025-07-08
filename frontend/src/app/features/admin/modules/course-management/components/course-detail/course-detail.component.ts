@@ -75,6 +75,7 @@ export class CourseDetailComponent implements OnInit, OnDestroy {
             duration: 3000,
           });
           this.router.navigate(['/admin/courses']);
+          this.cdr.detectChanges();
         },
       });
   }
